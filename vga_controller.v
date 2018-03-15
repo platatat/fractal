@@ -72,10 +72,10 @@ module vga_controller(clock, reset, control, vga_data, vga_address);
         end
 
         // Pan and zoom based on control signals.
-        x_zoom_center <= x_zoom_center + ({23'b0, pan_right_rate});
+        /*x_zoom_center <= x_zoom_center + ({23'b0, pan_right_rate});
         x_zoom_center <= x_zoom_center - ({23'b0, pan_left_rate});
         y_zoom_center <= y_zoom_center + ({23'b0, pan_up_rate});
-        y_zoom_center <= y_zoom_center - ({23'b0, pan_down_rate});
+        y_zoom_center <= y_zoom_center - ({23'b0, pan_down_rate});*/
 
         if (state == 4'd0) begin
             // Initialize solver.
