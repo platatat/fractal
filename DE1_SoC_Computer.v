@@ -377,12 +377,17 @@ HexDigit Digit3(HEX3, hex3_hex0[15:12]);
 //=======================================================
 wire [7:0] vga_sram_writedata;
 wire [31:0] vga_sram_address;
-wire [31:0] user_control;
+
+wire signed [7:0] user_control_pan_x = (~KEY[0]) ? 7'd64 : (~KEY[3]) ? -7'd64 : 7'd0;
+wire signed [7:0] user_control_pan_y = (~KEY[1]) ? 7'd64 : (~KEY[2]) ? -7'd64 : 7'd0;
+wire signed [7:0] user_control_zoom = SW[1:0];
 
 vga_controller vga_controller(
 	.clock(CLOCK_50),
-	.reset(~KEY[0]),
-	.control(user_control),
+	.reset(SW[9]),
+	.control_pan_x(user_control_pan_x),
+	.control_pan_y(user_control_pan_y),
+	.control_zoom(user_control_zoom),
 	.vga_data(vga_sram_writedata),
 	.vga_address(vga_sram_address)
 );
