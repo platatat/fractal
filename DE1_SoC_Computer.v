@@ -375,17 +375,16 @@ HexDigit Digit3(HEX3, hex3_hex0[15:12]);
 //=======================================================
 // Controls for VGA memory
 //=======================================================
-wire [7:0] vga_sram_writedata ;
-wire [31:0] vga_sram_address; 
-wire vga_sram_write = 1'b1;
-wire vga_sram_clken = 1'b1;
-wire vga_sram_chipselect = 1'b1;
+wire [7:0] vga_sram_writedata;
+wire [31:0] vga_sram_address;
+wire [31:0] user_control;
 
 vga_controller vga_controller(
 	.clock(CLOCK_50),
 	.reset(~KEY[0]),
-	.vga_sram_writedata(vga_sram_writedata),
-	.vga_sram_address(vga_sram_address)
+	.control(user_control),
+	.vga_data(vga_sram_writedata),
+	.vga_address(vga_sram_address)
 );
 
 //=======================================================
@@ -404,9 +403,9 @@ Computer_System The_System (
 	
 	// SRAM to VGA video
 	.onchip_vga_buffer_s1_address    (vga_sram_address),    
-	.onchip_vga_buffer_s1_clken      (vga_sram_clken),      
-	.onchip_vga_buffer_s1_chipselect (vga_sram_chipselect), 
-	.onchip_vga_buffer_s1_write      (vga_sram_write),      
+	.onchip_vga_buffer_s1_clken      (1'b1),      
+	.onchip_vga_buffer_s1_chipselect (1'b1), 
+	.onchip_vga_buffer_s1_write      (1'b1),      
 	.onchip_vga_buffer_s1_readdata   (),   // never read from vga here
 	.onchip_vga_buffer_s1_writedata  (vga_sram_writedata),   
 

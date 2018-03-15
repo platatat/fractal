@@ -1,19 +1,27 @@
-module vga_controller(clock, reset, vga_sram_writedata, vga_sram_address);
-	parameter vga_out_base_address = 32'h0000_0000;
+module vga_controller(clock, reset, control, vga_data, vga_address);
+	parameter vga_base_address = 32'h0000_0000;
 
 	input clock;
 	input reset;
+
+	input [31:0] control;
+	wire [3:0] pan_right_rate 	= control[ 3: 0];
+	wire [3:0] pan_down_rate 	= control[ 7: 4];
+	wire [3:0] pan_up_rate 		= control[11: 8];
+	wire [3:0] pan_left_rate 	= control[15:12];
+	wire [3:0] zoom_out_rate 	= control[19:16];
+	wire [3:0] zoom_in_rate 	= control[23:20];
 	
-	output reg [7:0] vga_sram_writedata;
-	output reg [31:0] vga_sram_address;
+	output reg [7:0] vga_data;
+	output reg [31:0] vga_address;
 	
 	reg [3:0] state;
 	
-	// VGA range is (0, 0) to (640, 480)
+	// VGA coordinates in pixels.
 	reg [9:0] x_vga;
 	reg [9:0] y_vga;
 	
-	// Solver range is (-0.625, -0.) to (1, 1)
+	// Convert vga coordinates to solver coordinates.
 	wire signed [26:0] x_solver = (x_vga << 12) - (27'd320 <<< 12);
 	wire signed [26:0] y_solver = (y_vga << 12) - (27'd240 <<< 12);
 	reg signed [26:0] zoom_scale;
@@ -63,6 +71,12 @@ module vga_controller(clock, reset, vga_sram_writedata, vga_sram_address);
 			zoom_scale <= 27'd1 <<< 20;
 		end
 
+		// Pan and zoom based on control signals.
+		x_zoom_center <= x_zoom_center + ({23'b0, pan_right_rate});
+		x_zoom_center <= x_zoom_center - ({23'b0, pan_left_rate});
+		y_zoom_center <= y_zoom_center + ({23'b0, pan_up_rate});
+		y_zoom_center <= y_zoom_center - ({23'b0, pan_down_rate});
+
 		if (state == 4'd0) begin
 			// Initialize solver.
 			solver_reset <= 1'b1;
@@ -82,17 +96,17 @@ module vga_controller(clock, reset, vga_sram_writedata, vga_sram_address);
 			end
 		end else if (state == 4'd3) begin
 			// Write solver output to VGA.
-			if (solver_out == -32'd1) 	vga_sram_writedata <= 8'b11111111;
-			else if ((solver_out >>> 7) > 0) 	vga_sram_writedata <= 8'b00011100;
-			else if ((solver_out >>> 6) > 0) 	vga_sram_writedata <= 8'b00011000;
-			else if ((solver_out >>> 5) > 0) 	vga_sram_writedata <= 8'b00010100;
-			else if ((solver_out >>> 4) > 0) 	vga_sram_writedata <= 8'b00010000;
-			else if ((solver_out >>> 3) > 0) 	vga_sram_writedata <= 8'b00001100;
-			else if ((solver_out >>> 2) > 0) 	vga_sram_writedata <= 8'b00001000;
-			else if ((solver_out >>> 1) > 0) 	vga_sram_writedata <= 8'b00000100;
-			else 								vga_sram_writedata <= 8'b00000000;
+			if (solver_out == -32'd1) 	vga_data <= 8'b11111111;
+			else if ((solver_out >>> 7) > 0) 	vga_data <= 8'b00011100;
+			else if ((solver_out >>> 6) > 0) 	vga_data <= 8'b00011000;
+			else if ((solver_out >>> 5) > 0) 	vga_data <= 8'b00010100;
+			else if ((solver_out >>> 4) > 0) 	vga_data <= 8'b00010000;
+			else if ((solver_out >>> 3) > 0) 	vga_data <= 8'b00001100;
+			else if ((solver_out >>> 2) > 0) 	vga_data <= 8'b00001000;
+			else if ((solver_out >>> 1) > 0) 	vga_data <= 8'b00000100;
+			else 								vga_data <= 8'b00000000;
 
-			vga_sram_address <= vga_out_base_address + {22'b0, x_vga} + ({22'b0,y_vga}*640);
+			vga_address <= vga_base_address + {22'b0, x_vga} + ({22'b0, y_vga} * 640);
 			
 			// Iterate over x and y.
 			if (x_vga < x_max) begin
