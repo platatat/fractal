@@ -1,10 +1,11 @@
+`include "mult.v"
+
 /*
  * Computes iterations of z(n+1) = z(n)^2 + c. Returns the number of iterations until
  * divergence, or -1 for convergence.
  *
  * out_ready = 0 while the solver is running, and 1 after the solution is ready.
  */
-
 module mand_solver(clock, reset, c_im, c_re, out_ready, out);
     // Max iterations before assuming convergence.
     parameter CONVERGENCE_ITER = 100;
@@ -35,21 +36,21 @@ module mand_solver(clock, reset, c_im, c_re, out_ready, out);
      */
 
     wire signed [26:0] z_im_sq;
-    signed_mult z_im_sq_mult(
+    signed_mult #(4, 23) z_im_sq_mult(
         .a(z_im),
         .b(z_im),
         .out(z_im_sq)
     );
 
     wire signed [26:0] z_re_sq;
-    signed_mult z_re_sq_mult(
+    signed_mult #(4, 23) z_re_sq_mult(
         .a(z_re),
         .b(z_re),
         .out(z_re_sq)
     );
 
     wire signed [26:0] z_im_z_re;
-    signed_mult z_im_z_re_mult(
+    signed_mult #(4, 23) z_im_z_re_mult(
         .a(z_im),
         .b(z_re),
         .out(z_im_z_re)
