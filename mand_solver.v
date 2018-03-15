@@ -36,21 +36,21 @@ module mand_solver(clock, reset, c_im, c_re, out_ready, out);
      */
 
     wire signed [26:0] z_im_sq;
-    signed_mult #(4, 23) z_im_sq_mult(
+    signed_mult #(7, 20) z_im_sq_mult(
         .a(z_im),
         .b(z_im),
         .out(z_im_sq)
     );
 
     wire signed [26:0] z_re_sq;
-    signed_mult #(4, 23) z_re_sq_mult(
+    signed_mult #(7, 20) z_re_sq_mult(
         .a(z_re),
         .b(z_re),
         .out(z_re_sq)
     );
 
     wire signed [26:0] z_im_z_re;
-    signed_mult #(4, 23) z_im_z_re_mult(
+    signed_mult #(7, 20) z_im_z_re_mult(
         .a(z_im),
         .b(z_re),
         .out(z_im_z_re)
