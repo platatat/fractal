@@ -83,14 +83,6 @@
          type = "String";
       }
    }
-   element Pixel_DMA_Addr_Translation
-   {
-      datum _sortIndex
-      {
-         value = "5";
-         type = "int";
-      }
-   }
    element Pixel_DMA_Addr_Translation.slave
    {
       datum _lockedAddress
@@ -127,7 +119,7 @@
    {
       datum _sortIndex
       {
-         value = "6";
+         value = "5";
          type = "int";
       }
    }
@@ -159,7 +151,7 @@
    {
       datum _sortIndex
       {
-         value = "7";
+         value = "6";
          type = "int";
       }
    }
@@ -167,7 +159,7 @@
    {
       datum _sortIndex
       {
-         value = "8";
+         value = "7";
          type = "int";
       }
    }
@@ -819,13 +811,6 @@
   <parameter name="writable" value="true" />
  </module>
  <module
-   name="Pixel_DMA_Addr_Translation"
-   kind="altera_up_avalon_video_dma_ctrl_addr_trans"
-   version="15.0"
-   enabled="1">
-  <parameter name="ADDRESS_TRANSLATION_MASK" value="3221225472" />
- </module>
- <module
    name="SDRAM"
    kind="altera_avalon_new_sdram_controller"
    version="15.0"
@@ -875,7 +860,7 @@
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="6" />
   <parameter name="AUTO_GENERATION_ID" value="0" />
   <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_MAP"><![CDATA[<address-map><slave name='onchip_vga_buffer.s2' start='0x0' end='0x4B000' /></address-map>]]></parameter>
-  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_WIDTH">com.altera.entityinterfaces.moduleext.AddressWidthType@4c112e5a</parameter>
+  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_WIDTH">com.altera.entityinterfaces.moduleext.AddressWidthType@3e135dcf</parameter>
   <parameter name="AUTO_SYS_CLK_CLOCK_DOMAIN" value="9" />
   <parameter name="AUTO_SYS_CLK_CLOCK_RATE" value="100000000" />
   <parameter name="AUTO_SYS_CLK_RESET_DOMAIN" value="9" />
@@ -970,24 +955,6 @@
  <connection
    kind="avalon"
    version="15.0"
-   start="ARM_A9_HPS.h2f_lw_axi_master"
-   end="Pixel_DMA_Addr_Translation.slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x3020" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="15.0"
-   start="Pixel_DMA_Addr_Translation.master"
-   end="VGA_Subsystem.pixel_dma_control_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="15.0"
    start="VGA_Subsystem.pixel_dma_master"
    end="onchip_vga_buffer.s2">
   <parameter name="arbitrationPriority" value="1" />
@@ -1028,11 +995,6 @@
    kind="clock"
    version="15.0"
    start="System_PLL.sys_clk"
-   end="Pixel_DMA_Addr_Translation.clock" />
- <connection
-   kind="clock"
-   version="15.0"
-   start="System_PLL.sys_clk"
    end="ARM_A9_HPS.f2h_axi_clock" />
  <connection
    kind="clock"
@@ -1059,11 +1021,6 @@
    version="15.0"
    start="ARM_A9_HPS.h2f_reset"
    end="AV_Config.reset" />
- <connection
-   kind="reset"
-   version="15.0"
-   start="ARM_A9_HPS.h2f_reset"
-   end="Pixel_DMA_Addr_Translation.reset" />
  <connection
    kind="reset"
    version="15.0"
@@ -1099,11 +1056,6 @@
    version="15.0"
    start="System_PLL.reset_source"
    end="AV_Config.reset" />
- <connection
-   kind="reset"
-   version="15.0"
-   start="System_PLL.reset_source"
-   end="Pixel_DMA_Addr_Translation.reset" />
  <connection
    kind="reset"
    version="15.0"

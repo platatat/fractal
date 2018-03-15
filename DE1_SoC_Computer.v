@@ -1,5 +1,3 @@
-
-
 module DE1_SoC_Computer (
 	////////////////////////////////////
 	// FPGA Pins
@@ -1054,5 +1052,3 @@ module FpAdd (
                   {buf_oSum_s, oSum_e, oSum_f};
 	 end //output update
 endmodule
-
-/// end /////////////////////////////////////////////////////////////////////
