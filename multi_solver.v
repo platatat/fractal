@@ -51,7 +51,9 @@ module multi_solver #(
                 if (reset) begin
                     solver_addr <= 10'd0;
                 end else begin
-                    solver_addr <= solver_addr + 1;
+                    if (solver_ready) begin
+                        solver_addr <= solver_addr + 1;
+                    end
                 end
             end
         end
