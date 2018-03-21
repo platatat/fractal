@@ -83,14 +83,6 @@
          type = "String";
       }
    }
-   element Pixel_DMA_Addr_Translation.slave
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-   }
    element SDRAM
    {
       datum _sortIndex
@@ -163,6 +155,14 @@
          type = "int";
       }
    }
+   element vga_buffer_slave
+   {
+      datum _sortIndex
+      {
+         value = "8";
+         type = "int";
+      }
+   }
 }
 ]]></parameter>
  <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
@@ -223,6 +223,11 @@
    type="reset"
    dir="end" />
  <interface name="vga" internal="VGA_Subsystem.vga" type="conduit" dir="end" />
+ <interface
+   name="vga_buffer_slave_external_interface"
+   internal="vga_buffer_slave.external_interface"
+   type="conduit"
+   dir="end" />
  <interface
    name="vga_pll_ref_clk"
    internal="VGA_Subsystem.vga_pll_ref_clk"
@@ -859,8 +864,8 @@
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="6" />
   <parameter name="AUTO_GENERATION_ID" value="0" />
-  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_MAP"><![CDATA[<address-map><slave name='onchip_vga_buffer.s2' start='0x0' end='0x4B000' /></address-map>]]></parameter>
-  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_WIDTH">com.altera.entityinterfaces.moduleext.AddressWidthType@3e135dcf</parameter>
+  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_MAP"><![CDATA[<address-map><slave name='vga_buffer_slave.avalon_slave' start='0x0' end='0x100000' /></address-map>]]></parameter>
+  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_WIDTH">com.altera.entityinterfaces.moduleext.AddressWidthType@49f2c695</parameter>
   <parameter name="AUTO_SYS_CLK_CLOCK_DOMAIN" value="9" />
   <parameter name="AUTO_SYS_CLK_CLOCK_RATE" value="100000000" />
   <parameter name="AUTO_SYS_CLK_RESET_DOMAIN" value="9" />
@@ -906,6 +911,17 @@
   <parameter name="useNonDefaultInitFile" value="false" />
   <parameter name="useShallowMemBlocks" value="false" />
   <parameter name="writable" value="true" />
+ </module>
+ <module
+   name="vga_buffer_slave"
+   kind="altera_up_avalon_to_external_bus_bridge"
+   version="15.0"
+   enabled="1">
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
+  <parameter name="addr_size" value="1" />
+  <parameter name="addr_size_multiplier" value="Mbytes" />
+  <parameter name="data_size" value="16" />
  </module>
  <connection
    kind="avalon"
@@ -956,7 +972,7 @@
    kind="avalon"
    version="15.0"
    start="VGA_Subsystem.pixel_dma_master"
-   end="onchip_vga_buffer.s2">
+   end="vga_buffer_slave.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -981,6 +997,11 @@
    version="15.0"
    start="System_PLL.sys_clk"
    end="AV_Config.clk" />
+ <connection
+   kind="clock"
+   version="15.0"
+   start="System_PLL.sys_clk"
+   end="vga_buffer_slave.clk" />
  <connection
    kind="clock"
    version="15.0"
@@ -1025,6 +1046,11 @@
    kind="reset"
    version="15.0"
    start="ARM_A9_HPS.h2f_reset"
+   end="vga_buffer_slave.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
    end="Onchip_SRAM.reset1" />
  <connection
    kind="reset"
@@ -1056,6 +1082,11 @@
    version="15.0"
    start="System_PLL.reset_source"
    end="AV_Config.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="vga_buffer_slave.reset" />
  <connection
    kind="reset"
    version="15.0"
