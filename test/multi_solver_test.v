@@ -31,12 +31,12 @@ module top();
     multi_solver #(1) solver(
         .clock(clock),
         .reset(reset),
-        .min_x(27'b0),// <<< 20),
-        .min_y(27'b0),// <<< 20),
-        .max_x(27'd8),// <<< 20),
-        .max_y(27'd8),// <<< 20),
-        .dx(27'b1),// <<< 17),
-        .dy(27'b1)// <<< 17)
+        .min_x(-27'd2 <<< 20),
+        .min_y(-27'd1 <<< 20),
+        .max_x(27'd1 <<< 20),
+        .max_y(27'd1 <<< 20),
+        .dx(27'd1638),
+        .dy(27'd2185)
     );
 
 endmodule
