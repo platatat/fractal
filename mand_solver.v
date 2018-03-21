@@ -1,3 +1,6 @@
+`ifndef _mand_solver_v_
+`define _mand_solver_v_
+
 `include "mult.v"
 
 /*
@@ -89,3 +92,5 @@ module mand_solver(clock, reset, c_im, c_re, out_ready, out);
         end
     end
 endmodule
+
+`endif

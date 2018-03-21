@@ -1,3 +1,5 @@
+`ifndef _mult_v_
+`define _mult_v_
 
 module pipeline_mult #(
     parameter INT_BITS  = 1,
@@ -47,3 +49,5 @@ module signed_mult #(
 
     assign out = mult_out[NUM_BITS + FRAC_BITS - 1 : FRAC_BITS];
 endmodule
+
+`endif

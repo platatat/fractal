@@ -1,3 +1,6 @@
+`ifndef _pattern_solver_v_
+`define _pattern_solver_v_
+
 `include "mand_solver.v"
 
 module pattern_solver #(
@@ -52,3 +55,5 @@ module pattern_solver #(
     end
 
 endmodule
+
+`endif

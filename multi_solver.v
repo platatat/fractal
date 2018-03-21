@@ -1,3 +1,6 @@
+`ifndef _multi_solver_v_
+`define _multi_solver_v_
+
 `include "pattern_solver.v"
 `include "ram.v"
 
@@ -63,3 +66,5 @@ module multi_solver #(
     assign done = solvers_done == -1;
 
 endmodule
+
+`endif

@@ -1,3 +1,6 @@
+`ifndef _ram_v_
+`define _ram_v_
+
 module RAM_1024_8(
     input clock, wr_en, rd_en,
     input [9:0] wr_addr, rd_addr, 
@@ -18,3 +21,5 @@ module RAM_1024_8(
     end
 
 endmodule
+
+`endif
