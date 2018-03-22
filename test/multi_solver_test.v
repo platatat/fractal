@@ -32,7 +32,7 @@ module top();
         #20000
         rd_solver_id <= 6'd1;
 
-        #500000
+        #1000000000
         $finish;
     end
 
@@ -41,7 +41,7 @@ module top();
         clock <= !clock;
     end
 
-    multi_solver #(2) solver(
+    multi_solver #(10) solver(
         .clock(clock),
         .reset(reset),
         .min_x(-27'd2 <<< 20),
