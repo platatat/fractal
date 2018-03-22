@@ -6,18 +6,31 @@ module top();
     reg clock;
     reg reset;
 
+    reg [5:0] rd_solver_id;
+    reg [9:0] rd_addr;
+
     initial begin
         $dumpfile("build/multi_solver_test.vcd");
         $dumpvars(0, top);
 
         clock <= 0;
         reset <= 1;
+        rd_solver_id <= 6'd0;
+        rd_addr<= 10'd0;
         #20
         reset <= 0;
         #20
         reset <= 1;
         #20
         reset <= 0;
+
+        #78000
+        rd_solver_id <= 6'd0;
+        rd_addr <= 10'h11;
+        #40
+        rd_addr <= 10'h8c;
+        #20000
+        rd_solver_id <= 6'd1;
 
         #500000
         $finish;
@@ -28,7 +41,7 @@ module top();
         clock <= !clock;
     end
 
-    multi_solver #(1) solver(
+    multi_solver #(2) solver(
         .clock(clock),
         .reset(reset),
         .min_x(-27'd2 <<< 20),
@@ -36,7 +49,9 @@ module top();
         .max_x(27'd1 <<< 20),
         .max_y(27'd1 <<< 20),
         .dx(27'd1638),
-        .dy(27'd2185)
+        .dy(27'd2185),
+        .rd_solver_id(rd_solver_id),
+        .rd_addr(rd_addr)
     );
 
 endmodule
