@@ -25,15 +25,7 @@
          type = "int";
       }
    }
-   element VGA_Alpha_Blender
-   {
-      datum _sortIndex
-      {
-         value = "6";
-         type = "int";
-      }
-   }
-   element VGA_Char_Buffer
+   element VGA_Controller
    {
       datum _sortIndex
       {
@@ -41,19 +33,11 @@
          type = "int";
       }
    }
-   element VGA_Controller
-   {
-      datum _sortIndex
-      {
-         value = "8";
-         type = "int";
-      }
-   }
    element VGA_Dual_Clock_FIFO
    {
       datum _sortIndex
       {
-         value = "7";
+         value = "4";
          type = "int";
       }
    }
@@ -65,7 +49,7 @@
          type = "int";
       }
    }
-   element VGA_Pixel_DMA
+   element VGA_Pixel_FIFO
    {
       datum _sortIndex
       {
@@ -73,19 +57,11 @@
          type = "int";
       }
    }
-   element VGA_Pixel_FIFO
-   {
-      datum _sortIndex
-      {
-         value = "3";
-         type = "int";
-      }
-   }
    element VGA_Pixel_RGB_Resampler
    {
       datum _sortIndex
       {
-         value = "4";
+         value = "3";
          type = "int";
       }
    }
@@ -110,22 +86,6 @@
  <parameter name="timeStamp" value="0" />
  <parameter name="useTestBenchNamingPattern" value="false" />
  <instanceScript></instanceScript>
- <interface
-   name="char_buffer_control_slave"
-   internal="VGA_Char_Buffer.avalon_char_control_slave" />
- <interface
-   name="char_buffer_slave"
-   internal="VGA_Char_Buffer.avalon_char_buffer_slave" />
- <interface
-   name="pixel_dma_control_slave"
-   internal="VGA_Pixel_DMA.avalon_control_slave"
-   type="avalon"
-   dir="end" />
- <interface
-   name="pixel_dma_master"
-   internal="VGA_Pixel_DMA.avalon_pixel_dma_master"
-   type="avalon"
-   dir="start" />
  <interface name="sys_clk" internal="Sys_Clk.clk_in" type="clock" dir="end" />
  <interface
    name="sys_reset"
@@ -157,27 +117,6 @@
   <parameter name="clockFrequencyKnown" value="false" />
   <parameter name="inputClockFrequency" value="0" />
   <parameter name="resetSynchronousEdges" value="NONE" />
- </module>
- <module
-   name="VGA_Alpha_Blender"
-   kind="altera_up_avalon_video_alpha_blender"
-   version="15.0"
-   enabled="0">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
-  <parameter name="mode" value="Normal" />
- </module>
- <module
-   name="VGA_Char_Buffer"
-   kind="altera_up_avalon_video_character_buffer_with_dma"
-   version="15.0"
-   enabled="0">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
-  <parameter name="color_bits" value="1-bit" />
-  <parameter name="enable_transparency" value="true" />
-  <parameter name="resolution" value="80 x 60" />
-  <parameter name="vga_device" value="On-board VGA DAC" />
  </module>
  <module
    name="VGA_Controller"
@@ -219,20 +158,6 @@
   <parameter name="video_in_clk_en" value="false" />
  </module>
  <module
-   name="VGA_Pixel_DMA"
-   kind="altera_up_avalon_video_pixel_buffer_dma"
-   version="15.0"
-   enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
-  <parameter name="addr_mode" value="Consecutive" />
-  <parameter name="back_start_address" value="0" />
-  <parameter name="color_space" value="8-bit RGB" />
-  <parameter name="image_height" value="480" />
-  <parameter name="image_width" value="640" />
-  <parameter name="start_address" value="0" />
- </module>
- <module
    name="VGA_Pixel_FIFO"
    kind="altera_up_avalon_video_dual_clock_buffer"
    version="15.0"
@@ -257,11 +182,6 @@
  <connection
    kind="avalon_streaming"
    version="15.0"
-   start="VGA_Char_Buffer.avalon_char_source"
-   end="VGA_Alpha_Blender.avalon_foreground_sink" />
- <connection
-   kind="avalon_streaming"
-   version="15.0"
    start="VGA_Pixel_FIFO.avalon_dc_buffer_source"
    end="VGA_Pixel_RGB_Resampler.avalon_rgb_sink" />
  <connection
@@ -278,22 +198,7 @@
    kind="clock"
    version="15.0"
    start="Sys_Clk.clk"
-   end="VGA_Pixel_DMA.clk" />
- <connection
-   kind="clock"
-   version="15.0"
-   start="Sys_Clk.clk"
    end="VGA_Pixel_RGB_Resampler.clk" />
- <connection
-   kind="clock"
-   version="15.0"
-   start="Sys_Clk.clk"
-   end="VGA_Char_Buffer.clk" />
- <connection
-   kind="clock"
-   version="15.0"
-   start="Sys_Clk.clk"
-   end="VGA_Alpha_Blender.clk" />
  <connection
    kind="clock"
    version="15.0"
@@ -323,22 +228,7 @@
    kind="reset"
    version="15.0"
    start="Sys_Clk.clk_reset"
-   end="VGA_Pixel_DMA.reset" />
- <connection
-   kind="reset"
-   version="15.0"
-   start="Sys_Clk.clk_reset"
    end="VGA_Pixel_RGB_Resampler.reset" />
- <connection
-   kind="reset"
-   version="15.0"
-   start="Sys_Clk.clk_reset"
-   end="VGA_Char_Buffer.reset" />
- <connection
-   kind="reset"
-   version="15.0"
-   start="Sys_Clk.clk_reset"
-   end="VGA_Alpha_Blender.reset" />
  <connection
    kind="reset"
    version="15.0"

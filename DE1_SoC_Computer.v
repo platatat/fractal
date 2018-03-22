@@ -457,21 +457,6 @@ Computer_System The_System (
 	.system_pll_ref_clk_clk					(CLOCK_50),
 	.system_pll_ref_reset_reset			(1'b0),
 	
-	// SRAM to VGA video
-	.onchip_vga_buffer_s1_address    (vga_sram_address),    
-	.onchip_vga_buffer_s1_clken      (1'b1),      
-	.onchip_vga_buffer_s1_chipselect (1'b1), 
-	.onchip_vga_buffer_s1_write      (1'b1),      
-	.onchip_vga_buffer_s1_readdata   (),   // never read from vga here
-	.onchip_vga_buffer_s1_writedata  (vga_sram_writedata),   
-
-	// AV Config
-	.av_config_SCLK							(FPGA_I2C_SCLK),
-	.av_config_SDAT							(FPGA_I2C_SDAT),
-
-	// 50 MHz clock bridge
-	.clock_bridge_0_in_clk_clk            (CLOCK_50), //(CLOCK_50), 
-	
 	// VGA Subsystem
 	.vga_pll_ref_clk_clk 					(CLOCK2_50),
 	.vga_pll_ref_reset_reset				(1'b0),
@@ -483,18 +468,6 @@ Computer_System The_System (
 	.vga_R										(VGA_R),
 	.vga_G										(VGA_G),
 	.vga_B										(VGA_B),
-		
-	// SDRAM
-	.sdram_clk_clk								(DRAM_CLK),
-   .sdram_addr									(DRAM_ADDR),
-	.sdram_ba									(DRAM_BA),
-	.sdram_cas_n								(DRAM_CAS_N),
-	.sdram_cke									(DRAM_CKE),
-	.sdram_cs_n									(DRAM_CS_N),
-	.sdram_dq									(DRAM_DQ),
-	.sdram_dqm									({DRAM_UDQM,DRAM_LDQM}),
-	.sdram_ras_n								(DRAM_RAS_N),
-	.sdram_we_n									(DRAM_WE_N),
 	
 	////////////////////////////////////
 	// HPS Side
@@ -600,17 +573,7 @@ Computer_System The_System (
 	.hps_io_hps_io_usb1_inst_DIR		(HPS_USB_DIR),
 	.hps_io_hps_io_usb1_inst_NXT		(HPS_USB_NXT),
 
-    // VGA Memory Slave
-    //.vga_buffer_slave_external_interface_acknowledge (ack),
-    .vga_buffer_slave_external_interface_irq         (1'b0),
-    //.vga_buffer_slave_external_interface_address     (),
-    //.vga_buffer_slave_external_interface_bus_enable  (bus_enable),
-    //.vga_buffer_slave_external_interface_byte_enable (),
-    //.vga_buffer_slave_external_interface_rw          (),
-    //.vga_buffer_slave_external_interface_write_data  (),
-    .vga_buffer_slave_external_interface_read_data   (16'b1110001111100011),
-
-
+    // Video stream
     .video_streaming_sink_ready         (stream_ready),
     .video_streaming_sink_startofpacket (stream_start),
     .video_streaming_sink_endofpacket   (stream_end),
