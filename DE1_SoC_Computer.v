@@ -436,9 +436,9 @@ always @(posedge CLOCK_50) begin
     end
 end
 
-assign stream_start = (x ==   0) && (y ==   0);
-assign stream_end   = (x == 639) && (y == 479);
-assign stream_data  = x[5] ? 8'b11100011 : 8'b11100000;
+assign stream_start = (stream_valid) && (x ==   0) && (y ==   0);
+assign stream_end   = (stream_valid) && (x == 639) && (y == 479);
+assign stream_data  = (x[5] ^ y[5]) ? 8'b00011111 : 8'b00000011;
 //assign stream_valid = stream_ready;
 
 //multi_solver 

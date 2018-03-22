@@ -115,22 +115,6 @@
          type = "int";
       }
    }
-   element VGA_Subsystem.char_buffer_control_slave
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-   }
-   element VGA_Subsystem.char_buffer_slave
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-   }
    element VGA_Subsystem.pixel_dma_control_slave
    {
       datum _lockedAddress
@@ -878,7 +862,7 @@
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="6" />
   <parameter name="AUTO_GENERATION_ID" value="0" />
   <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_MAP"><![CDATA[<address-map><slave name='vga_buffer_slave.avalon_slave' start='0x0' end='0x100000' /></address-map>]]></parameter>
-  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_WIDTH">com.altera.entityinterfaces.moduleext.AddressWidthType@346418f6</parameter>
+  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_WIDTH">com.altera.entityinterfaces.moduleext.AddressWidthType@3cc283e6</parameter>
   <parameter name="AUTO_SYS_CLK_CLOCK_DOMAIN" value="9" />
   <parameter name="AUTO_SYS_CLK_CLOCK_RATE" value="50000000" />
   <parameter name="AUTO_SYS_CLK_RESET_DOMAIN" value="9" />
@@ -961,15 +945,6 @@
    kind="avalon"
    version="15.0"
    start="ARM_A9_HPS.h2f_axi_master"
-   end="VGA_Subsystem.char_buffer_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x09000000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="15.0"
-   start="ARM_A9_HPS.h2f_axi_master"
    end="Onchip_SRAM.s2">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x08000000" />
@@ -991,15 +966,6 @@
    end="AV_Config.avalon_av_config_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x3000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="15.0"
-   start="ARM_A9_HPS.h2f_lw_axi_master"
-   end="VGA_Subsystem.char_buffer_control_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x3030" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection

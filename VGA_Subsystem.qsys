@@ -112,14 +112,10 @@
  <instanceScript></instanceScript>
  <interface
    name="char_buffer_control_slave"
-   internal="VGA_Char_Buffer.avalon_char_control_slave"
-   type="avalon"
-   dir="end" />
+   internal="VGA_Char_Buffer.avalon_char_control_slave" />
  <interface
    name="char_buffer_slave"
-   internal="VGA_Char_Buffer.avalon_char_buffer_slave"
-   type="avalon"
-   dir="end" />
+   internal="VGA_Char_Buffer.avalon_char_buffer_slave" />
  <interface
    name="pixel_dma_control_slave"
    internal="VGA_Pixel_DMA.avalon_control_slave"
@@ -166,7 +162,7 @@
    name="VGA_Alpha_Blender"
    kind="altera_up_avalon_video_alpha_blender"
    version="15.0"
-   enabled="1">
+   enabled="0">
   <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="mode" value="Normal" />
@@ -175,7 +171,7 @@
    name="VGA_Char_Buffer"
    kind="altera_up_avalon_video_character_buffer_with_dma"
    version="15.0"
-   enabled="1">
+   enabled="0">
   <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="color_bits" value="1-bit" />
@@ -261,11 +257,6 @@
  <connection
    kind="avalon_streaming"
    version="15.0"
-   start="VGA_Alpha_Blender.avalon_blended_source"
-   end="VGA_Dual_Clock_FIFO.avalon_dc_buffer_sink" />
- <connection
-   kind="avalon_streaming"
-   version="15.0"
    start="VGA_Char_Buffer.avalon_char_source"
    end="VGA_Alpha_Blender.avalon_foreground_sink" />
  <connection
@@ -282,7 +273,7 @@
    kind="avalon_streaming"
    version="15.0"
    start="VGA_Pixel_RGB_Resampler.avalon_rgb_source"
-   end="VGA_Alpha_Blender.avalon_background_sink" />
+   end="VGA_Dual_Clock_FIFO.avalon_dc_buffer_sink" />
  <connection
    kind="clock"
    version="15.0"
