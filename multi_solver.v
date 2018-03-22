@@ -20,7 +20,7 @@ module multi_solver #(
 );
 
     wire signed [NUM_SOLVERS-1:0] solvers_done;
-    wire signed [7:0] solvers_rd_out [NUM_SOLVERS:0];
+    wire signed [7:0] solvers_rd_out [NUM_SOLVERS-1:0];
 
     generate
         genvar i;
