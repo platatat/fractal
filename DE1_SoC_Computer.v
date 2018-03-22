@@ -389,6 +389,53 @@ vga_controller vga_controller(
 	.vga_data(vga_sram_writedata),
 	.vga_address(vga_sram_address)
 );
+/*
+reg [0:0] ack;
+wire [0:0] bus_enable;
+
+always @(posedge CLOCK_50) begin
+    ack <= bus_enable;
+end
+*/
+
+wire reset_key;
+assign reset_key = ~KEY[0];
+
+wire stream_ready;
+wire stream_start;
+wire stream_end;
+reg stream_valid;
+
+reg [31:0] x;
+reg [31:0] y;
+
+always @(posedge CLOCK_50) begin
+    if (reset_key) begin
+        stream_valid <= 0;
+
+        x <= 0;
+        y <= 0;
+    end else if (stream_ready) begin
+        stream_valid <= 1;
+
+        if (x >= 639) begin
+            x <= 0;
+
+            if (y >= 479) begin
+                y <= 0;
+            end else begin
+                y <= y + 1;
+            end
+        end else begin
+            x <= x + 1;
+        end
+    end else begin
+        stream_valid <= 0;
+    end
+end
+
+assign stream_start = (x ==   0) && (y ==   0);
+assign stream_end   = (x == 479) && (y == 639);
 
 //=======================================================
 //  Structural coding
@@ -545,7 +592,24 @@ Computer_System The_System (
 	.hps_io_hps_io_usb1_inst_CLK		(HPS_USB_CLKOUT),
 	.hps_io_hps_io_usb1_inst_STP		(HPS_USB_STP),
 	.hps_io_hps_io_usb1_inst_DIR		(HPS_USB_DIR),
-	.hps_io_hps_io_usb1_inst_NXT		(HPS_USB_NXT)
+	.hps_io_hps_io_usb1_inst_NXT		(HPS_USB_NXT),
+
+    // VGA Memory Slave
+    //.vga_buffer_slave_external_interface_acknowledge (ack),
+    .vga_buffer_slave_external_interface_irq         (1'b0),
+    //.vga_buffer_slave_external_interface_address     (),
+    //.vga_buffer_slave_external_interface_bus_enable  (bus_enable),
+    //.vga_buffer_slave_external_interface_byte_enable (),
+    //.vga_buffer_slave_external_interface_rw          (),
+    //.vga_buffer_slave_external_interface_write_data  (),
+    .vga_buffer_slave_external_interface_read_data   (16'b1110001111100011),
+
+
+    .video_streaming_sink_ready         (stream_ready),
+    .video_streaming_sink_startofpacket (stream_start),
+    .video_streaming_sink_endofpacket   (stream_end),
+    .video_streaming_sink_valid         (stream_valid),
+    .video_streaming_sink_data          (8'b11100011)
 );
 endmodule // end top level
 
@@ -1052,3 +1116,4 @@ module FpAdd (
                   {buf_oSum_s, oSum_e, oSum_f};
 	 end //output update
 endmodule
+
