@@ -39,7 +39,7 @@ module multi_solver #(
                 .data_out(solvers_rd_out[i])
             );
 
-            pattern_solver solver(
+            pattern_solver #(i, NUM_SOLVERS) solver(
                 .clock(clock),
                 .reset(reset),
                 .min_x(min_x), .min_y(min_y), .max_x(max_x), .max_y(max_y),
