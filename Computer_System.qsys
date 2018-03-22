@@ -155,6 +155,14 @@
          type = "int";
       }
    }
+   element timing_adapter_0
+   {
+      datum _sortIndex
+      {
+         value = "9";
+         type = "int";
+      }
+   }
    element vga_buffer_slave
    {
       datum _sortIndex
@@ -240,7 +248,7 @@
    dir="end" />
  <interface
    name="video_streaming_sink"
-   internal="VGA_Subsystem.vga_pixel_fifo_avalon_dc_buffer_sink"
+   internal="timing_adapter_0.in"
    type="avalon_streaming"
    dir="end" />
  <module name="ARM_A9_HPS" kind="altera_hps" version="15.0" enabled="1">
@@ -337,7 +345,7 @@
   <parameter name="ENABLE_USER_ECC" value="false" />
   <parameter name="EXPORT_AFI_HALF_CLK" value="false" />
   <parameter name="EXTRA_SETTINGS" value="" />
-  <parameter name="F2H_AXI_CLOCK_FREQ" value="100000000" />
+  <parameter name="F2H_AXI_CLOCK_FREQ" value="50000000" />
   <parameter name="F2H_SDRAM0_CLOCK_FREQ" value="100" />
   <parameter name="F2H_SDRAM1_CLOCK_FREQ" value="100" />
   <parameter name="F2H_SDRAM2_CLOCK_FREQ" value="100" />
@@ -392,10 +400,10 @@
   <parameter name="FPGA_PERIPHERAL_OUTPUT_CLOCK_FREQ_SPIM1_SCLK_OUT" value="100" />
   <parameter name="GPIO_Enable">No,No,No,No,No,No,No,No,No,Yes,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,Yes,No,No,No,No,Yes,Yes,No,No,No,No,No,No,Yes,No,No,No,No,Yes,Yes,No,No,No,No,No,No,Yes,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No</parameter>
   <parameter name="GP_Enable" value="false" />
-  <parameter name="H2F_AXI_CLOCK_FREQ" value="100000000" />
+  <parameter name="H2F_AXI_CLOCK_FREQ" value="50000000" />
   <parameter name="H2F_CTI_CLOCK_FREQ" value="100" />
   <parameter name="H2F_DEBUG_APB_CLOCK_FREQ" value="100" />
-  <parameter name="H2F_LW_AXI_CLOCK_FREQ" value="100000000" />
+  <parameter name="H2F_LW_AXI_CLOCK_FREQ" value="50000000" />
   <parameter name="H2F_TPIU_CLOCK_IN_FREQ" value="100" />
   <parameter name="HARD_EMIF" value="true" />
   <parameter name="HCX_COMPAT_MODE" value="false" />
@@ -774,7 +782,7 @@
    kind="altera_up_avalon_audio_and_video_config"
    version="15.0"
    enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="audio_in" value="Microphone to ADC" />
   <parameter name="bit_length" value="32" />
@@ -832,7 +840,7 @@
   <parameter name="TRP" value="20.0" />
   <parameter name="TWR" value="14.0" />
   <parameter name="casLatency" value="3" />
-  <parameter name="clockRate" value="100000000" />
+  <parameter name="clockRate" value="50000000" />
   <parameter name="columnWidth" value="10" />
   <parameter name="componentName" value="$${FILENAME}_SDRAM" />
   <parameter name="dataWidth" value="16" />
@@ -860,7 +868,7 @@
   <parameter name="CIV_boards" value="DE2-115" />
   <parameter name="CV_boards" value="DE1-SoC" />
   <parameter name="device_family" value="Cyclone V" />
-  <parameter name="gui_outclk" value="100.0" />
+  <parameter name="gui_outclk" value="50.0" />
   <parameter name="gui_refclk" value="50.0" />
   <parameter name="other_boards" value="None" />
  </module>
@@ -870,9 +878,9 @@
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="6" />
   <parameter name="AUTO_GENERATION_ID" value="0" />
   <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_MAP"><![CDATA[<address-map><slave name='vga_buffer_slave.avalon_slave' start='0x0' end='0x100000' /></address-map>]]></parameter>
-  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_WIDTH">com.altera.entityinterfaces.moduleext.AddressWidthType@47838fef</parameter>
+  <parameter name="AUTO_PIXEL_DMA_MASTER_ADDRESS_WIDTH">com.altera.entityinterfaces.moduleext.AddressWidthType@346418f6</parameter>
   <parameter name="AUTO_SYS_CLK_CLOCK_DOMAIN" value="9" />
-  <parameter name="AUTO_SYS_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_SYS_CLK_CLOCK_RATE" value="50000000" />
   <parameter name="AUTO_SYS_CLK_RESET_DOMAIN" value="9" />
   <parameter name="AUTO_UNIQUE_ID">$${FILENAME}_VGA_Subsystem</parameter>
   <parameter name="AUTO_VGA_PLL_REF_CLK_CLOCK_DOMAIN" value="5" />
@@ -918,11 +926,32 @@
   <parameter name="writable" value="true" />
  </module>
  <module
+   name="timing_adapter_0"
+   kind="timing_adapter"
+   version="15.0"
+   enabled="1">
+  <parameter name="inBitsPerSymbol" value="8" />
+  <parameter name="inChannelWidth" value="0" />
+  <parameter name="inErrorDescriptor" value="" />
+  <parameter name="inErrorWidth" value="0" />
+  <parameter name="inMaxChannel" value="0" />
+  <parameter name="inReadyLatency" value="1" />
+  <parameter name="inSymbolsPerBeat" value="1" />
+  <parameter name="inUseEmpty" value="false" />
+  <parameter name="inUseEmptyPort" value="AUTO" />
+  <parameter name="inUsePackets" value="true" />
+  <parameter name="inUseReady" value="true" />
+  <parameter name="inUseValid" value="true" />
+  <parameter name="outReadyLatency" value="0" />
+  <parameter name="outUseReady" value="true" />
+  <parameter name="outUseValid" value="true" />
+ </module>
+ <module
    name="vga_buffer_slave"
    kind="altera_up_avalon_to_external_bus_bridge"
    version="15.0"
    enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="addr_size" value="1" />
   <parameter name="addr_size_multiplier" value="Mbytes" />
@@ -983,6 +1012,11 @@
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
+   kind="avalon_streaming"
+   version="15.0"
+   start="timing_adapter_0.out"
+   end="VGA_Subsystem.vga_pixel_fifo_avalon_dc_buffer_sink" />
+ <connection
    kind="clock"
    version="15.0"
    start="clock_bridge_0.out_clk"
@@ -1007,6 +1041,11 @@
    version="15.0"
    start="System_PLL.sys_clk"
    end="vga_buffer_slave.clk" />
+ <connection
+   kind="clock"
+   version="15.0"
+   start="System_PLL.sys_clk"
+   end="timing_adapter_0.clk" />
  <connection
    kind="clock"
    version="15.0"
@@ -1056,6 +1095,11 @@
    kind="reset"
    version="15.0"
    start="ARM_A9_HPS.h2f_reset"
+   end="timing_adapter_0.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
    end="Onchip_SRAM.reset1" />
  <connection
    kind="reset"
@@ -1092,6 +1136,11 @@
    version="15.0"
    start="System_PLL.reset_source"
    end="vga_buffer_slave.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="timing_adapter_0.reset" />
  <connection
    kind="reset"
    version="15.0"

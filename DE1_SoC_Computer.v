@@ -404,7 +404,7 @@ assign reset_key = ~KEY[0];
 wire stream_ready;
 wire stream_start;
 wire stream_end;
-wire stream_valid;
+reg stream_valid;
 
 reg [31:0] x;
 reg [31:0] y;
@@ -413,12 +413,12 @@ wire [7:0] stream_data;
 
 always @(posedge CLOCK_50) begin
     if (reset_key) begin
-        //stream_valid <= 0;
+        stream_valid <= 0;
 
         x <= 0;
         y <= 0;
     end else if (stream_ready) begin
-        //stream_valid <= 1;
+        stream_valid <= 1;
 
         if (x >= 639) begin
             x <= 0;
@@ -432,14 +432,14 @@ always @(posedge CLOCK_50) begin
             x <= x + 1;
         end
     end else begin
-        //stream_valid <= 0;
+        stream_valid <= 0;
     end
 end
 
 assign stream_start = (x ==   0) && (y ==   0);
 assign stream_end   = (x == 639) && (y == 479);
 assign stream_data  = x[5] ? 8'b11100011 : 8'b11100000;
-assign stream_valid = stream_ready;
+//assign stream_valid = stream_ready;
 
 //multi_solver 
 
