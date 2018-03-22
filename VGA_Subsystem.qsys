@@ -142,6 +142,11 @@
    type="conduit"
    dir="end" />
  <interface
+   name="vga_pixel_fifo_avalon_dc_buffer_sink"
+   internal="VGA_Pixel_FIFO.avalon_dc_buffer_sink"
+   type="avalon_streaming"
+   dir="end" />
+ <interface
    name="vga_pll_ref_clk"
    internal="VGA_PLL.ref_clk"
    type="clock"
@@ -273,11 +278,6 @@
    version="15.0"
    start="VGA_Dual_Clock_FIFO.avalon_dc_buffer_source"
    end="VGA_Controller.avalon_vga_sink" />
- <connection
-   kind="avalon_streaming"
-   version="15.0"
-   start="VGA_Pixel_DMA.avalon_pixel_source"
-   end="VGA_Pixel_FIFO.avalon_dc_buffer_sink" />
  <connection
    kind="avalon_streaming"
    version="15.0"
