@@ -976,9 +976,20 @@ set_global_assignment -name VERILOG_FILE hex_decoder.v
 set_global_assignment -name FITTER_EFFORT "AUTO FIT"
 
 set_global_assignment -name SMART_RECOMPILE ON
+
+set_global_assignment -name PARTITION_NETLIST_TYPE POST_SYNTH -section_id "Computer_System:The_System"
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "Computer_System:The_System"
+set_global_assignment -name PARTITION_COLOR 39423 -section_id "Computer_System:The_System"
+set_global_assignment -name PARTITION_NETLIST_TYPE POST_SYNTH -section_id multi_hier
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id multi_hier
+set_global_assignment -name PARTITION_COLOR 52377 -section_id multi_hier
+set_global_assignment -name ENABLE_SIGNALTAP ON
+set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
+set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY thesy_eb451 -to "Computer_System:The_System" -section_id "Computer_System:The_System"
-set_instance_assignment -name PARTITION_HIERARCHY multi_42ab1 -to "HexDigit:Digit0" -section_id multi_hier
-set_instance_assignment -name PARTITION_HIERARCHY multi_42ab1 -to "HexDigit:Digit1" -section_id multi_hier
-set_instance_assignment -name PARTITION_HIERARCHY multi_42ab1 -to "HexDigit:Digit2" -section_id multi_hier
 set_instance_assignment -name PARTITION_HIERARCHY multi_42ab1 -to "HexDigit:Digit3" -section_id multi_hier
+set_instance_assignment -name PARTITION_HIERARCHY multi_42ab1 -to "HexDigit:Digit2" -section_id multi_hier
+set_instance_assignment -name PARTITION_HIERARCHY multi_42ab1 -to "HexDigit:Digit1" -section_id multi_hier
+set_instance_assignment -name PARTITION_HIERARCHY multi_42ab1 -to "HexDigit:Digit0" -section_id multi_hier
