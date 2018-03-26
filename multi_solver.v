@@ -13,7 +13,7 @@ module multi_solver #(
     input signed [26:0] dx, dy,
 
     input [5:0] rd_solver_id,
-    input [9:0] rd_addr,
+    input [18:0] rd_addr,
     output signed [7:0] rd_data_out,
 
     output done
@@ -27,7 +27,7 @@ module multi_solver #(
         for (i = 0; i < NUM_SOLVERS; i = i + 1) begin : solvers
             wire signed [7:0] solver_out;
             wire solver_ready;
-            reg [9:0] solver_addr;
+            reg [18:0] solver_addr;
 
             RAM_1024_8 ram(
                 .clock(clock),
@@ -52,7 +52,7 @@ module multi_solver #(
 
             always @(posedge clock) begin
                 if (reset) begin
-                    solver_addr <= 10'd0;
+                    solver_addr <= 19'd0;
                 end else begin
                     if (solver_ready) begin
                         solver_addr <= solver_addr + 1;
