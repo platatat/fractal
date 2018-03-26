@@ -14,7 +14,7 @@ module pattern_solver #(
 
     input continue,
 
-    output signed [7:0] solver_out,
+    output signed [3:0] solver_out,
     output solver_ready,
     output reg done
 );
@@ -24,7 +24,7 @@ module pattern_solver #(
 
     always @(posedge clock) begin
         if (solver_ready) begin
-            $display("%d %d %d", x, y, solver_out);
+            //$display("%d %d %d", x, y, solver_out);
         end
     end
 
@@ -37,7 +37,7 @@ module pattern_solver #(
         .out_ready(solver_ready),
         .out(s_out)
     );
-    assign solver_out = s_out[9:2];
+    assign solver_out = s_out[9:6];
 
     wire signed [26:0] inc_x = x + dx;
     wire signed [26:0] inc_y = y + (NUM_SOLVERS * dy);

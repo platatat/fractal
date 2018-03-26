@@ -14,22 +14,22 @@ module multi_solver #(
 
     input [5:0] rd_solver_id,
     input [18:0] rd_addr,
-    output signed [7:0] rd_data_out,
+    output signed [3:0] rd_data_out,
 
     output done
 );
 
     wire signed [NUM_SOLVERS-1:0] solvers_done;
-    wire signed [7:0] solvers_rd_out [NUM_SOLVERS-1:0];
+    wire signed [3:0] solvers_rd_out [NUM_SOLVERS-1:0];
 
     generate
         genvar i;
         for (i = 0; i < NUM_SOLVERS; i = i + 1) begin : solvers
-            wire signed [7:0] solver_out;
+            wire signed [3:0] solver_out;
             wire solver_ready;
             reg [18:0] solver_addr;
 
-            RAM_1024_8 ram(
+            RAM #((308000 / NUM_SOLVERS) + 640, 4) ram(
                 .clock(clock),
                 .wr_en(solver_ready),
                 .rd_en(rd_solver_id == i),

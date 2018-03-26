@@ -7,7 +7,7 @@ module top();
     reg reset;
 
     reg [5:0] rd_solver_id;
-    reg [9:0] rd_addr;
+    reg [18:0] rd_addr;
 
     initial begin
         $dumpfile("build/multi_solver_test.vcd");
@@ -26,9 +26,9 @@ module top();
 
         #78000
         rd_solver_id <= 6'd0;
-        rd_addr <= 10'h11;
+        rd_addr <= 19'h11;
         #40
-        rd_addr <= 10'h8c;
+        rd_addr <= 19'h8c;
         #20000
         rd_solver_id <= 6'd1;
 
