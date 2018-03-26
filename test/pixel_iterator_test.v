@@ -5,6 +5,7 @@
 module top();
     reg clock;
     reg reset;
+    reg en;
 
     initial begin
         $dumpfile("build/pixel_iterator_test.vcd");
@@ -12,13 +13,19 @@ module top();
 
         clock <= 0;
         reset <= 1;
+        en <= 1;
         #20
         reset <= 0;
 
-        #6160000
-        reset <= 1;
-        #40
-        reset <= 0;
+        #160000
+        en <= 0;
+        #400
+        en <= 1;
+
+        #6000000
+        en <= 0;
+        #400
+        en <= 1;
 
         #6160000
         $finish;
@@ -29,9 +36,10 @@ module top();
         clock <= !clock;
     end
 
-    pixel_iterator #(2) it(
+    pixel_iterator #(7) it(
         .clock(clock),
-        .reset(reset)
+        .reset(reset),
+        .en(en)
     );
 
 endmodule
