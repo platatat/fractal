@@ -19,37 +19,26 @@ module top();
         rd_addr<= 10'd0;
         #20
         reset <= 0;
-        #20
-        reset <= 1;
-        #20
-        reset <= 0;
 
-        #78000
-        rd_solver_id <= 6'd0;
-        rd_addr <= 19'h11;
-        #40
-        rd_addr <= 19'h8c;
-        #20000
-        rd_solver_id <= 6'd1;
-
-        #1000000000
+        #10000000
         $finish;
     end
 
     always begin
         #10
         clock <= !clock;
+        if (solver.done) $finish;
     end
 
-    multi_solver #(10) solver(
+    multi_solver #(11) solver(
         .clock(clock),
         .reset(reset),
         .min_x(-27'd2 <<< 20),
         .min_y(-27'd1 <<< 20),
         .max_x(27'd1 <<< 20),
         .max_y(27'd1 <<< 20),
-        .dx(27'd1638),
-        .dy(27'd2185),
+        .dx(27'd31775),
+        .dy(27'd31775),
         .rd_solver_id(rd_solver_id),
         .rd_addr(rd_addr)
     );

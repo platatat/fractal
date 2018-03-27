@@ -24,20 +24,20 @@ module pattern_solver #(
 
     always @(posedge clock) begin
         if (solver_ready) begin
-            //$display("%d %d %d", x, y, solver_out);
+            $display("%d %d %d", x, y, solver_out);
         end
     end
 
     wire signed [31:0] s_out;
     mand_solver solver(
         .clock(clock),
-        .reset(reset | continue),
+        .reset(reset | continue | done),
         .c_im(y),
         .c_re(x),
         .out_ready(solver_ready),
         .out(s_out)
     );
-    assign solver_out = s_out[9:6];
+    assign solver_out = s_out[7:3];
 
     wire signed [26:0] inc_x = x + dx;
     wire signed [26:0] inc_y = y + (NUM_SOLVERS * dy);
@@ -50,7 +50,7 @@ module pattern_solver #(
             x <= min_x;
             y <= min_y + (SOLVER_ID * dy);
         end else if (!done) begin
-            if (wrap_y) begin
+            if (wrap_y && wrap_x & solver_ready) begin
                 done <= 1'b1;
             end else if (solver_ready) begin
                 //iterate to next (x, y)
