@@ -13,14 +13,15 @@ module pixel_iterator #(
     output reg [18:0] solver_addr,
 
     output reg start_stream,
-    output reg end_stream
+    output reg end_stream,
+    output reg valid_stream
 );
 
     reg [18:0] start_addr;
     reg [8:0] line_num;
 
     always @(posedge clock) begin
-        if (reset | (line_num == NUM_ROWS-1 & solver_addr >= start_addr + NUM_COLUMNS-1)) begin
+        if (reset | (en & (line_num == NUM_ROWS-1) & (solver_addr >= start_addr + NUM_COLUMNS-1))) begin
             solver_id <= 0;
             start_addr <= 0;
             solver_addr <= 0;
@@ -52,6 +53,8 @@ module pixel_iterator #(
                 solver_addr <= solver_addr + 1;
             end
         end
+
+        valid_stream <= en;
     end
 
 endmodule

@@ -404,42 +404,44 @@ assign reset_key = ~KEY[0];
 wire stream_ready;
 wire stream_start;
 wire stream_end;
-reg stream_valid;
-
-reg [31:0] x;
-reg [31:0] y;
+wire stream_valid;
 
 wire [7:0] stream_data;
 
+wire [5:0] solver_id;
+wire [18:0] solver_addr;
+
+pixel_iterator #(2, 640, 480) pixel_it (
+    .clock(CLOCK_50),
+    .reset(reset_key),
+    .en(stream_ready),
+
+    .solver_id(solver_id),
+    .solver_addr(solver_addr),
+
+    .start_stream(stream_start),
+    .end_stream(stream_end),
+    .valid_stream(stream_valid)
+);
+
+assign stream_data = (solver_id[0]) ? 8'b00011111 : 8'b00000011;
+
+reg [7:0] stream_data_delay [2:1];
+reg stream_start_delay [2:1];
+reg stream_end_delay [2:1];
+reg stream_valid_delay [2:1];
+
 always @(posedge CLOCK_50) begin
-    if (reset_key) begin
-        stream_valid <= 0;
+    stream_data_delay[1] <= stream_data;
+    stream_start_delay[1] <= stream_start;
+    stream_end_delay[1] <= stream_end;
+    stream_valid_delay[1] <= stream_valid;
 
-        x <= 0;
-        y <= 0;
-    end else if (stream_ready) begin
-        stream_valid <= 1;
-
-        if (x >= 639) begin
-            x <= 0;
-
-            if (y >= 479) begin
-                y <= 0;
-            end else begin
-                y <= y + 1;
-            end
-        end else begin
-            x <= x + 1;
-        end
-    end else begin
-        stream_valid <= 0;
-    end
+    stream_data_delay[2] <= stream_data_delay[1];
+    stream_start_delay[2] <= stream_start_delay[1];
+    stream_end_delay[2] <= stream_end_delay[1];
+    stream_valid_delay[2] <= stream_valid_delay[1];
 end
-
-assign stream_start = (stream_valid) && (x ==   0) && (y ==   0);
-assign stream_end   = (stream_valid) && (x == 639) && (y == 479);
-assign stream_data  = (x[5] ^ y[5]) ? 8'b00011111 : 8'b00000011;
-//assign stream_valid = stream_ready;
 
 //multi_solver 
 
@@ -575,10 +577,10 @@ Computer_System The_System (
 
     // Video stream
     .video_streaming_sink_ready         (stream_ready),
-    .video_streaming_sink_startofpacket (stream_start),
-    .video_streaming_sink_endofpacket   (stream_end),
-    .video_streaming_sink_valid         (stream_valid),
-    .video_streaming_sink_data          (stream_data)
+    .video_streaming_sink_startofpacket (stream_start_delay[2]),
+    .video_streaming_sink_endofpacket   (stream_end_delay[2]),
+    .video_streaming_sink_valid         (stream_valid_delay[2]),
+    .video_streaming_sink_data          (stream_data_delay[2])
 );
 endmodule // end top level
 
