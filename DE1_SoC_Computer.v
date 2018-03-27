@@ -386,7 +386,9 @@ wire [7:0] stream_data;
 wire [5:0] solver_id;
 wire [18:0] solver_addr;
 
-pixel_iterator #(1, 640, 480) pixel_it (
+localparam NUM_SOLVERS = 10;
+
+pixel_iterator #(NUM_SOLVERS, 640, 480) pixel_it (
     .clock(CLOCK_50),
     .reset(reset_key),
     .en(stream_ready),
@@ -415,7 +417,7 @@ end
 
 reg signed [3:0] solver_data_out;
 
-multi_solver #(1) solver (
+multi_solver #(NUM_SOLVERS) solver (
     .clock(CLOCK_50),
     .reset(reset_key),
 
