@@ -1,10 +1,19 @@
+#!/usr/bin/env python2
+
+import sys
 
 import scipy.misc
 import numpy as np
 
+if (len(sys.argv) != 5):
+    print 'Need 4 args'
+    sys.exit(1)
+
+num_solvers = int(sys.argv[1])
+
 # Image size
-width = 640
-height = 480
+width = int(sys.argv[2])
+height = int(sys.argv[3])
 channels = 3
 
 # Create an empty image
@@ -17,7 +26,7 @@ for x in range(width):
         img[y][x][2] = 0
 
 
-with open('solve_dat.txt', 'r') as f:
+with open(sys.argv[4], 'r') as f:
     f.readline()
     vmax = 0
     for l in f:
@@ -32,7 +41,7 @@ with open('solve_dat.txt', 'r') as f:
         s_val = int(line[2])
 
         x = s_addr % width
-        y = s_addr / width
+        y = s_id + (s_addr / width) * num_solvers
         if s_val > vmax:
             vmax = s_val
         if (s_val == -1):
