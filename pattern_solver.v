@@ -27,12 +27,6 @@ module pattern_solver #(
     reg [9:0] column;
     reg [9:0] row;
 
-    always @(posedge clock) begin
-        if (solver_ready) begin
-            //$display("%d %d %d", x, y, solver_out);
-        end
-    end
-
     wire signed [31:0] s_out;
     mand_solver solver(
         .clock(clock),
