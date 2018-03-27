@@ -423,9 +423,11 @@ reg signed [3:0] solver_data_out;
 wire signed [26:0] x_min, y_min;
 wire signed [26:0] dx, dy;
 
+wire solver_hps_reset;
+
 multi_solver #(NUM_SOLVERS) solver (
     .clock(CLOCK_50),
-    .reset(reset_key),
+    .reset(reset_key | solver_hps_reset),
 
     .min_x(x_min),
     .min_y(y_min),
@@ -586,6 +588,6 @@ Computer_System The_System (
     .dx_external_connection_export           (dx),
     .y_min_external_connection_export        (y_min),
     .x_min_external_connection_export        (x_min),
-    .solver_reset_external_connection_export (solver_reset)
+    .solver_reset_external_connection_export (solver_hps_reset)
 );
 endmodule // end top level
