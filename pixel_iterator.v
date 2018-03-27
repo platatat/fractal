@@ -20,7 +20,7 @@ module pixel_iterator #(
     reg [8:0] line_num;
 
     always @(posedge clock) begin
-        if (reset | (line_num == NUM_ROWS-1 & solver_addr >= start_addr + NUM_COLUMNS-1)) begin
+        if (reset | (en & (line_num == NUM_ROWS-1) & (solver_addr >= start_addr + NUM_COLUMNS-1))) begin
             solver_id <= 0;
             start_addr <= 0;
             solver_addr <= 0;
