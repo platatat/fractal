@@ -44,7 +44,7 @@ module multi_solver #(
                 .reset(reset),
                 .min_x(min_x), .min_y(min_y), .max_x(max_x), .max_y(max_y),
                 .dx(dx), .dy(dy),
-                .continue(solver_ready & ~solvers_done[i]),
+                .continue(solver_ready),
                 .solver_out(solver_out),
                 .solver_ready(solver_ready),
                 .done(solvers_done[i])

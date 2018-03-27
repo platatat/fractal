@@ -24,19 +24,25 @@ with open('solve_dat.txt', 'r') as f:
         line = l[:-1].split()
         if (len(line) < 3):
             break
-        x = int(float(line[0]) / (2 ** 20) * 33) + 66
-        y = int(float(line[1]) / (2 ** 20) * 33) + 33
-        v = int(line[2])
-        if v > vmax:
-            vmax = v
-        if (v == -1):
-            img[y][x][0] = 0#200
-            img[y][x][1] = 0#200
-            img[y][x][2] = 0#200
+
+        s_id = int(line[0])
+        s_addr = int(line[1])
+        if (line[2] == 'x'):
+            continue
+        s_val = int(line[2])
+
+        x = s_addr % width
+        y = s_addr / width
+        if s_val > vmax:
+            vmax = s_val
+        if (s_val == -1):
+            img[y][x][0] = 0
+            img[y][x][1] = 0
+            img[y][x][2] = 0
         else:
-            img[y][x][0] = 255 - (v * 42)
-            img[y][x][1] = 255 - (v * 42)
-            img[y][x][2] = 255 - (v * 42)
+            img[y][x][0] = 255 - (s_val * 42)
+            img[y][x][1] = 255 - (s_val * 42)
+            img[y][x][2] = 255 - (s_val * 42)
     print vmax
 
 # Display the image
