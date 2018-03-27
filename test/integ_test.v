@@ -4,9 +4,9 @@
 `include "pixel_iterator.v"
 
 module top();
-    localparam NUM_SOLVERS = 1;
-    localparam NUM_COLUMNS = 640;
-    localparam NUM_ROWS = 480;
+    localparam NUM_SOLVERS = 7;
+    localparam NUM_COLUMNS = 99;
+    localparam NUM_ROWS = 66;
 
     reg clock;
     reg reset;
@@ -20,9 +20,6 @@ module top();
         can_finish <= 0;
         #20
         reset <= 0;
-
-        //#7643680
-        //$finish;
     end
 
     always begin
@@ -42,8 +39,8 @@ module top();
         .reset(reset),
         .min_x(-27'd2 <<< 20),
         .min_y(-27'd1 <<< 20),
-        .dx(27'd4915),
-        .dy(27'd4369),
+        .dx(27'd31775),
+        .dy(27'd31775),
         .rd_solver_id(it.solver_id),
         .rd_addr(it.solver_addr)
     );
