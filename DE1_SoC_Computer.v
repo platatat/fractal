@@ -438,8 +438,25 @@ end
 
 assign stream_start = (stream_valid) && (x ==   0) && (y ==   0);
 assign stream_end   = (stream_valid) && (x == 639) && (y == 479);
-assign stream_data  = (x[5] ^ y[5]) ? 8'b00011111 : 8'b00000011;
+//assign stream_data  = (x[5] ^ y[5]) ? 8'b00011111 : 8'b00000011;
 //assign stream_valid = stream_ready;
+
+wire [5:0] solver_id;
+wire [18:0] solver_addr;
+
+pixel_iterator #(2, 640, 480) pixel_it (
+    .clock(CLOCK_50),
+    .reset(reset_key),
+    .en(stream_ready),
+
+    .solver_id(solver_id),
+    .solver_addr(solver_addr),
+
+    .start_stream(),
+    .end_stream()
+);
+
+assign stream_data  = (solver_id[0]) ? 8'b00011111 : 8'b00000011;
 
 //multi_solver 
 
