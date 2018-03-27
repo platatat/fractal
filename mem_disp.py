@@ -3,8 +3,8 @@ import scipy.misc
 import numpy as np
 
 # Image size
-width = 99
-height = 66
+width = 640
+height = 480
 channels = 3
 
 # Create an empty image
