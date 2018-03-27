@@ -18,6 +18,7 @@ module multi_solver #(
     input [18:0] rd_addr,
     output signed [3:0] rd_data_out,
 
+    output reg [31:0] solve_time,
     output done
 );
 
@@ -63,6 +64,14 @@ module multi_solver #(
             end
         end
     endgenerate
+
+    always @(posedge clock) begin
+        if (reset) begin
+            solve_time <= 0;
+        end else if (~done) begin
+            solve_time <= solve_time + 1;
+        end
+    end
 
     assign rd_data_out = solvers_rd_out[rd_solver_id];
     assign done = solvers_done == -1;

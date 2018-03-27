@@ -355,20 +355,22 @@ output					HPS_USB_STP;
 //  REG/WIRE declarations
 //=======================================================
 
-wire			[15: 0]	hex3_hex0;
+wire			[23: 0]	hex5_hex0;
 //wire			[15: 0]	hex5_hex4;
 
 //assign HEX0 = ~hex3_hex0[ 6: 0]; // hex3_hex0[ 6: 0]; 
 //assign HEX1 = ~hex3_hex0[14: 8];
 //assign HEX2 = ~hex3_hex0[22:16];
 //assign HEX3 = ~hex3_hex0[30:24];
-assign HEX4 = 7'b1111111;
-assign HEX5 = 7'b1111111;
+//assign HEX4 = 7'b1111111;
+//assign HEX5 = 7'b1111111;
 
-HexDigit Digit0(HEX0, hex3_hex0[3:0]);
-HexDigit Digit1(HEX1, hex3_hex0[7:4]);
-HexDigit Digit2(HEX2, hex3_hex0[11:8]);
-HexDigit Digit3(HEX3, hex3_hex0[15:12]);
+HexDigit Digit0(HEX0, hex5_hex0[3:0]);
+HexDigit Digit1(HEX1, hex5_hex0[7:4]);
+HexDigit Digit2(HEX2, hex5_hex0[11:8]);
+HexDigit Digit3(HEX3, hex5_hex0[15:12]);
+HexDigit Digit4(HEX4, hex5_hex0[19:16]);
+HexDigit Digit5(HEX5, hex5_hex0[23:20]);
 
 //=======================================================
 // Solvers and VGA logic
@@ -415,6 +417,7 @@ always @(posedge CLOCK_50) begin
     stream_valid_delay[2] <= stream_valid_delay[1];
 end
 
+wire [31:0] solve_time;
 reg signed [3:0] solver_data_out;
 
 wire signed [26:0] x_min, y_min;
@@ -433,11 +436,14 @@ multi_solver #(NUM_SOLVERS) solver (
     .rd_addr(solver_addr),
     .rd_data_out(solver_data_out),
 
-    .done()
+    .solve_time(solve_time)
 );
 
 assign stream_data[3:0] = solver_data_out;
 assign stream_data[7:4] = solver_data_out;
+
+assign hex5_hex0 = solve_time[31:8];
+assign LEDR[7:0] = solve_time[7:0];
 
 //=======================================================
 //  Structural coding
