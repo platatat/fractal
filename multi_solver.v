@@ -5,11 +5,13 @@
 `include "ram.v"
 
 module multi_solver #(
-    parameter NUM_SOLVERS = 1
+    parameter NUM_SOLVERS = 1,
+    parameter NUM_COLUMNS = 640,
+    parameter NUM_ROWS = 480
 ) (
     input clock, reset,
 
-    input signed [26:0] min_x, min_y, max_x, max_y,
+    input signed [26:0] min_x, min_y,
     input signed [26:0] dx, dy,
 
     input [5:0] rd_solver_id,
@@ -39,10 +41,10 @@ module multi_solver #(
                 .data_out(solvers_rd_out[i])
             );
 
-            pattern_solver #(i, NUM_SOLVERS) solver(
+            pattern_solver #(i, NUM_SOLVERS, NUM_COLUMNS, NUM_ROWS) solver(
                 .clock(clock),
                 .reset(reset),
-                .min_x(min_x), .min_y(min_y), .max_x(max_x), .max_y(max_y),
+                .min_x(min_x), .min_y(min_y),
                 .dx(dx), .dy(dy),
                 .continue(solver_ready),
                 .solver_out(solver_out),

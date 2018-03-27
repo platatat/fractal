@@ -5,6 +5,8 @@
 
 module top();
     localparam NUM_SOLVERS = 1;
+    localparam NUM_COLUMNS = 99;
+    localparam NUM_ROWS = 66;
 
     reg clock;
     reg reset;
@@ -29,21 +31,19 @@ module top();
         if (end_stream2) $finish;
     end
 
-    pixel_iterator #(NUM_SOLVERS, 99, 66) it(
+    pixel_iterator #(NUM_SOLVERS, NUM_COLUMNS, NUM_ROWS) it(
         .clock(clock),
         .reset(reset),
         .en(solver.done)
     );
 
-    multi_solver #(NUM_SOLVERS) solver(
+    multi_solver #(NUM_SOLVERS, NUM_COLUMNS, NUM_ROWS) solver(
         .clock(clock),
         .reset(reset),
         .min_x(-27'd2 <<< 20),
         .min_y(-27'd1 <<< 20),
-        .max_x(27'd1 <<< 20),
-        .max_y(27'd1 <<< 20),
-        .dx(27'd31776),
-        .dy(27'd31776),
+        .dx(27'd31775),
+        .dy(27'd31775),
         .rd_solver_id(it.solver_id),
         .rd_addr(it.solver_addr)
     );

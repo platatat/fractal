@@ -30,15 +30,13 @@ module top();
         if (solver.done) $finish;
     end
 
-    multi_solver #(11) solver(
+    multi_solver #(1, 99, 66) solver(
         .clock(clock),
         .reset(reset),
         .min_x(-27'd2 <<< 20),
         .min_y(-27'd1 <<< 20),
-        .max_x(27'd1 <<< 20),
-        .max_y(27'd1 <<< 20),
-        .dx(27'd31775),
-        .dy(27'd31775),
+        .dx(27'd31776),
+        .dy(27'd31776),
         .rd_solver_id(rd_solver_id),
         .rd_addr(rd_addr)
     );

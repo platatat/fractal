@@ -5,11 +5,13 @@
 
 module pattern_solver #(
     parameter SOLVER_ID = 0,
-    parameter NUM_SOLVERS = 1
+    parameter NUM_SOLVERS = 1,
+    parameter NUM_COLUMNS = 640,
+    parameter NUM_ROWS = 480
 ) (
     input clock, reset,
 
-    input signed [26:0] min_x, min_y, max_x, max_y,
+    input signed [26:0] min_x, min_y,
     input signed [26:0] dx, dy,
 
     input continue,
@@ -21,6 +23,9 @@ module pattern_solver #(
 
     reg signed [26:0] x;
     reg signed [26:0] y;
+
+    reg [9:0] column;
+    reg [9:0] row;
 
     always @(posedge clock) begin
         if (solver_ready) begin
@@ -41,14 +46,17 @@ module pattern_solver #(
 
     wire signed [26:0] inc_x = x + dx;
     wire signed [26:0] inc_y = y + (NUM_SOLVERS * dy);
-    wire wrap_x = inc_x >= max_x;
-    wire wrap_y = inc_y >= max_y;
+
+    wire wrap_x = column == NUM_COLUMNS - 1;
+    wire wrap_y = row    == NUM_ROWS    - 1;
 
     always @(posedge clock) begin
         if (reset) begin
             done <= 1'b0;
             x <= min_x;
             y <= min_y + (SOLVER_ID * dy);
+            column <= 0;
+            row    <= 0;
         end else if (!done) begin
             if (wrap_y && wrap_x & solver_ready) begin
                 done <= 1'b1;
@@ -56,6 +64,9 @@ module pattern_solver #(
                 //iterate to next (x, y)
                 x <= wrap_x ? min_x : inc_x;
                 y <= wrap_x ? inc_y : y;
+
+                column <= wrap_x ? 0       : column + 1;
+                row    <= wrap_x ? row + 1 : row;
             end
         end
     end

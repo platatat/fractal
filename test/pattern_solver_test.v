@@ -25,13 +25,11 @@ module top();
     end
 
     wire solver_ready;
-    pattern_solver #(0, 1) solver(
+    pattern_solver #(0, 1, 8, 8) solver(
         .clock(clock),
         .reset(reset),
         .min_x(27'b0),// <<< 20),
         .min_y(27'b0),// <<< 20),
-        .max_x(27'd8),// <<< 20),
-        .max_y(27'd8),// <<< 20),
         .dx(27'b1),// <<< 17),
         .dy(27'b1),// <<< 17)
         .continue(solver_ready),
