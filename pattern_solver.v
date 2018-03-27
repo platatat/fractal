@@ -42,7 +42,7 @@ module pattern_solver #(
         .out_ready(solver_ready),
         .out(s_out)
     );
-    assign solver_out = s_out[7:4];
+    assign solver_out = s_out[9:6];
 
     wire signed [26:0] inc_x = x + dx;
     wire signed [26:0] inc_y = y + (NUM_SOLVERS * dy);

@@ -11,7 +11,7 @@
  */
 module mand_solver(clock, reset, c_im, c_re, out_ready, out);
     // Max iterations before assuming convergence.
-    parameter CONVERGENCE_ITER = 100;
+    parameter CONVERGENCE_ITER = 1000;
     // Max *squared* magnitude of z before assuming divergence.
     parameter DIVERGENCE_MAG = 27'd4 << 20;
 

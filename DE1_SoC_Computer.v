@@ -386,7 +386,7 @@ wire [7:0] stream_data;
 wire [5:0] solver_id;
 wire [18:0] solver_addr;
 
-localparam NUM_SOLVERS = 10;
+localparam NUM_SOLVERS = 29;
 
 pixel_iterator #(NUM_SOLVERS, 640, 480) pixel_it (
     .clock(CLOCK_50),
@@ -417,14 +417,17 @@ end
 
 reg signed [3:0] solver_data_out;
 
+wire signed [26:0] x_min, y_min;
+wire signed [26:0] dx, dy;
+
 multi_solver #(NUM_SOLVERS) solver (
     .clock(CLOCK_50),
     .reset(reset_key),
 
-    .min_x(-27'd2 <<< 20),
-    .min_y(-27'd1 <<< 20),
-    .dx(27'd4915),
-    .dy(27'd4369),
+    .min_x(x_min),
+    .min_y(y_min),
+    .dx(dx),
+    .dy(dy),
 
     .rd_solver_id(solver_id),
     .rd_addr(solver_addr),
@@ -571,6 +574,12 @@ Computer_System The_System (
     .video_streaming_sink_startofpacket (stream_start_delay[2]),
     .video_streaming_sink_endofpacket   (stream_end_delay[2]),
     .video_streaming_sink_valid         (stream_valid_delay[2]),
-    .video_streaming_sink_data          (stream_data)
+    .video_streaming_sink_data          (stream_data),
+    
+    .dy_external_connection_export           (dy),
+    .dx_external_connection_export           (dx),
+    .y_min_external_connection_export        (y_min),
+    .x_min_external_connection_export        (x_min),
+    .solver_reset_external_connection_export (solver_reset)
 );
 endmodule // end top level

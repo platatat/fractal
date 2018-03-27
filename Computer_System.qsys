@@ -49,12 +49,84 @@
          type = "int";
       }
    }
+   element dx
+   {
+      datum _sortIndex
+      {
+         value = "6";
+         type = "int";
+      }
+   }
+   element dx.s1
+   {
+      datum baseAddress
+      {
+         value = "32";
+         type = "String";
+      }
+   }
+   element dy
+   {
+      datum _sortIndex
+      {
+         value = "7";
+         type = "int";
+      }
+   }
+   element dy.s1
+   {
+      datum baseAddress
+      {
+         value = "48";
+         type = "String";
+      }
+   }
+   element solver_reset
+   {
+      datum _sortIndex
+      {
+         value = "8";
+         type = "int";
+      }
+   }
+   element solver_reset.s1
+   {
+      datum baseAddress
+      {
+         value = "64";
+         type = "String";
+      }
+   }
    element timing_adapter_0
    {
       datum _sortIndex
       {
          value = "3";
          type = "int";
+      }
+   }
+   element x_min
+   {
+      datum _sortIndex
+      {
+         value = "4";
+         type = "int";
+      }
+   }
+   element y_min
+   {
+      datum _sortIndex
+      {
+         value = "5";
+         type = "int";
+      }
+   }
+   element y_min.s1
+   {
+      datum baseAddress
+      {
+         value = "16";
+         type = "String";
       }
    }
 }
@@ -78,13 +150,23 @@
  <parameter name="timeStamp" value="0" />
  <parameter name="useTestBenchNamingPattern" value="false" />
  <instanceScript></instanceScript>
+ <interface
+   name="dx_external_connection"
+   internal="dx.external_connection"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="dy_external_connection"
+   internal="dy.external_connection"
+   type="conduit"
+   dir="end" />
  <interface name="hps_io" internal="ARM_A9_HPS.hps_io" type="conduit" dir="end" />
  <interface name="memory" internal="ARM_A9_HPS.memory" type="conduit" dir="end" />
  <interface
-   name="sdram_clk"
-   internal="System_PLL.sdram_clk"
-   type="clock"
-   dir="start" />
+   name="solver_reset_external_connection"
+   internal="solver_reset.external_connection"
+   type="conduit"
+   dir="end" />
  <interface
    name="system_pll_ref_clk"
    internal="System_PLL.ref_clk"
@@ -110,6 +192,16 @@
    name="video_streaming_sink"
    internal="timing_adapter_0.in"
    type="avalon_streaming"
+   dir="end" />
+ <interface
+   name="x_min_external_connection"
+   internal="x_min.external_connection"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="y_min_external_connection"
+   internal="y_min.external_connection"
+   type="conduit"
    dir="end" />
  <module name="ARM_A9_HPS" kind="altera_hps" version="15.0" enabled="1">
   <parameter name="ABSTRACT_REAL_COMPARE_TEST" value="false" />
@@ -657,13 +749,59 @@
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="6" />
   <parameter name="AUTO_GENERATION_ID" value="0" />
-  <parameter name="AUTO_SYS_CLK_CLOCK_DOMAIN" value="8" />
+  <parameter name="AUTO_SYS_CLK_CLOCK_DOMAIN" value="7" />
   <parameter name="AUTO_SYS_CLK_CLOCK_RATE" value="50000000" />
-  <parameter name="AUTO_SYS_CLK_RESET_DOMAIN" value="8" />
+  <parameter name="AUTO_SYS_CLK_RESET_DOMAIN" value="7" />
   <parameter name="AUTO_UNIQUE_ID">$${FILENAME}_VGA_Subsystem</parameter>
-  <parameter name="AUTO_VGA_PLL_REF_CLK_CLOCK_DOMAIN" value="4" />
+  <parameter name="AUTO_VGA_PLL_REF_CLK_CLOCK_DOMAIN" value="3" />
   <parameter name="AUTO_VGA_PLL_REF_CLK_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_VGA_PLL_REF_CLK_RESET_DOMAIN" value="4" />
+  <parameter name="AUTO_VGA_PLL_REF_CLK_RESET_DOMAIN" value="3" />
+ </module>
+ <module name="dx" kind="altera_avalon_pio" version="15.0" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Output" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="4915" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="27" />
+ </module>
+ <module name="dy" kind="altera_avalon_pio" version="15.0" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Output" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="4369" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="27" />
+ </module>
+ <module
+   name="solver_reset"
+   kind="altera_avalon_pio"
+   version="15.0"
+   enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Output" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="1" />
  </module>
  <module
    name="timing_adapter_0"
@@ -686,6 +824,79 @@
   <parameter name="outUseReady" value="true" />
   <parameter name="outUseValid" value="true" />
  </module>
+ <module name="x_min" kind="altera_avalon_pio" version="15.0" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Output" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="27" />
+ </module>
+ <module name="y_min" kind="altera_avalon_pio" version="15.0" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Output" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="27" />
+ </module>
+ <connection
+   kind="avalon"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_lw_axi_master"
+   end="y_min.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0010" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_lw_axi_master"
+   end="x_min.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_lw_axi_master"
+   end="dx.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0020" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_lw_axi_master"
+   end="dy.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0030" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_lw_axi_master"
+   end="solver_reset.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0040" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
  <connection
    kind="avalon_streaming"
    version="15.0"
@@ -696,6 +907,23 @@
    version="15.0"
    start="System_PLL.sys_clk"
    end="timing_adapter_0.clk" />
+ <connection
+   kind="clock"
+   version="15.0"
+   start="System_PLL.sys_clk"
+   end="x_min.clk" />
+ <connection
+   kind="clock"
+   version="15.0"
+   start="System_PLL.sys_clk"
+   end="y_min.clk" />
+ <connection kind="clock" version="15.0" start="System_PLL.sys_clk" end="dx.clk" />
+ <connection kind="clock" version="15.0" start="System_PLL.sys_clk" end="dy.clk" />
+ <connection
+   kind="clock"
+   version="15.0"
+   start="System_PLL.sys_clk"
+   end="solver_reset.clk" />
  <connection
    kind="clock"
    version="15.0"
@@ -725,12 +953,62 @@
    kind="reset"
    version="15.0"
    start="ARM_A9_HPS.h2f_reset"
+   end="x_min.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
+   end="y_min.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
+   end="dx.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
+   end="dy.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
+   end="solver_reset.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
    end="VGA_Subsystem.sys_reset" />
  <connection
    kind="reset"
    version="15.0"
    start="System_PLL.reset_source"
    end="timing_adapter_0.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="x_min.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="y_min.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="dx.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="dy.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="solver_reset.reset" />
  <connection
    kind="reset"
    version="15.0"
