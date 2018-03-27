@@ -442,8 +442,8 @@ multi_solver #(NUM_SOLVERS) solver (
 assign stream_data[3:0] = solver_data_out;
 assign stream_data[7:4] = solver_data_out;
 
-assign hex5_hex0 = solve_time[31:8];
-assign LEDR[7:0] = solve_time[7:0];
+assign hex5_hex0 = solve_time[23:0];
+assign LEDR[7:0] = solve_time[31:24];
 
 //=======================================================
 //  Structural coding
