@@ -426,6 +426,23 @@ pixel_iterator #(2, 640, 480) pixel_it (
 
 assign stream_data = (solver_id[0]) ? 8'b00011111 : 8'b00000011;
 
+reg [7:0] stream_data_delay [2:1];
+reg stream_start_delay [2:1];
+reg stream_end_delay [2:1];
+reg stream_valid_delay [2:1];
+
+always @(posedge CLOCK_50) begin
+    stream_data_delay[1] <= stream_data;
+    stream_start_delay[1] <= stream_start;
+    stream_end_delay[1] <= stream_end;
+    stream_valid_delay[1] <= stream_valid;
+
+    stream_data_delay[2] <= stream_data_delay[1];
+    stream_start_delay[2] <= stream_start_delay[1];
+    stream_end_delay[2] <= stream_end_delay[1];
+    stream_valid_delay[2] <= stream_valid_delay[1];
+end
+
 //multi_solver 
 
 //=======================================================
@@ -560,10 +577,10 @@ Computer_System The_System (
 
     // Video stream
     .video_streaming_sink_ready         (stream_ready),
-    .video_streaming_sink_startofpacket (stream_start),
-    .video_streaming_sink_endofpacket   (stream_end),
-    .video_streaming_sink_valid         (stream_valid),
-    .video_streaming_sink_data          (stream_data)
+    .video_streaming_sink_startofpacket (stream_start_delay[2]),
+    .video_streaming_sink_endofpacket   (stream_end_delay[2]),
+    .video_streaming_sink_valid         (stream_valid_delay[2]),
+    .video_streaming_sink_data          (stream_data_delay[2])
 );
 endmodule // end top level
 
