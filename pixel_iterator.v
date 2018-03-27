@@ -13,7 +13,8 @@ module pixel_iterator #(
     output reg [18:0] solver_addr,
 
     output reg start_stream,
-    output reg end_stream
+    output reg end_stream,
+    output reg valid_stream
 );
 
     reg [18:0] start_addr;
@@ -52,6 +53,8 @@ module pixel_iterator #(
                 solver_addr <= solver_addr + 1;
             end
         end
+
+        valid_stream <= en;
     end
 
 endmodule
