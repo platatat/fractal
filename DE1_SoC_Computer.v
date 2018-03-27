@@ -411,7 +411,7 @@ wire [7:0] stream_data;
 wire [5:0] solver_id;
 wire [18:0] solver_addr;
 
-pixel_iterator #(2, 640, 480) pixel_it (
+pixel_iterator #(1, 640, 480) pixel_it (
     .clock(CLOCK_50),
     .reset(reset_key),
     .en(stream_ready),
@@ -424,26 +424,45 @@ pixel_iterator #(2, 640, 480) pixel_it (
     .valid_stream(stream_valid)
 );
 
-assign stream_data = (solver_id[0]) ? 8'b00011111 : 8'b00000011;
+//assign stream_data = (solver_id[0]) ? 8'b00011111 : 8'b00000011;
 
-reg [7:0] stream_data_delay [2:1];
+//reg [7:0] stream_data_delay [2:1];
 reg stream_start_delay [2:1];
 reg stream_end_delay [2:1];
 reg stream_valid_delay [2:1];
 
 always @(posedge CLOCK_50) begin
-    stream_data_delay[1] <= stream_data;
+    //stream_data_delay[1] <= stream_data;
     stream_start_delay[1] <= stream_start;
     stream_end_delay[1] <= stream_end;
     stream_valid_delay[1] <= stream_valid;
 
-    stream_data_delay[2] <= stream_data_delay[1];
+    //stream_data_delay[2] <= stream_data_delay[1];
     stream_start_delay[2] <= stream_start_delay[1];
     stream_end_delay[2] <= stream_end_delay[1];
     stream_valid_delay[2] <= stream_valid_delay[1];
 end
 
-//multi_solver 
+reg signed [3:0] solver_data_out;
+
+multi_solver #(1) solver (
+    .clock(CLOCK_50),
+    .reset(reset_key),
+
+    .min_x(-27'd2 <<< 20),
+    .min_y(-27'd1 <<< 20),
+    .dx(27'd4915),
+    .dy(27'd4369),
+
+    .rd_solver_id(solver_id),
+    .rd_addr(solver_addr),
+    .rd_data_out(solver_data_out),
+
+    .done()
+);
+
+assign stream_data[3:0] = solver_data_out;
+assign stream_data[7:4] = solver_data_out;
 
 //=======================================================
 //  Structural coding
@@ -580,7 +599,7 @@ Computer_System The_System (
     .video_streaming_sink_startofpacket (stream_start_delay[2]),
     .video_streaming_sink_endofpacket   (stream_end_delay[2]),
     .video_streaming_sink_valid         (stream_valid_delay[2]),
-    .video_streaming_sink_data          (stream_data_delay[2])
+    .video_streaming_sink_data          (stream_data)
 );
 endmodule // end top level
 
