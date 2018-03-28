@@ -424,6 +424,7 @@ wire signed [26:0] x_min, y_min;
 wire signed [26:0] dx, dy;
 
 wire solver_hps_reset;
+wire solver_done;
 
 multi_solver #(NUM_SOLVERS) solver (
     .clock(CLOCK_50),
@@ -438,7 +439,8 @@ multi_solver #(NUM_SOLVERS) solver (
     .rd_addr(solver_addr),
     .rd_data_out(solver_data_out),
 
-    .solve_time(solve_time)
+    .solve_time(solve_time),
+    .done(solver_done)
 );
 
 assign stream_data[3:0] = solver_data_out;
@@ -588,6 +590,7 @@ Computer_System The_System (
     .dx_external_connection_export           (dx),
     .y_min_external_connection_export        (y_min),
     .x_min_external_connection_export        (x_min),
-    .solver_reset_external_connection_export (solver_hps_reset)
+    .solver_reset_external_connection_export (solver_hps_reset),
+    .solver_done_external_connection_export  (solver_done)
 );
 endmodule // end top level

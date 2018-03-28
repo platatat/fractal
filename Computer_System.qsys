@@ -81,6 +81,22 @@
          type = "String";
       }
    }
+   element solver_done
+   {
+      datum _sortIndex
+      {
+         value = "9";
+         type = "int";
+      }
+   }
+   element solver_done.s1
+   {
+      datum baseAddress
+      {
+         value = "80";
+         type = "String";
+      }
+   }
    element solver_reset
    {
       datum _sortIndex
@@ -162,6 +178,11 @@
    dir="end" />
  <interface name="hps_io" internal="ARM_A9_HPS.hps_io" type="conduit" dir="end" />
  <interface name="memory" internal="ARM_A9_HPS.memory" type="conduit" dir="end" />
+ <interface
+   name="solver_done_external_connection"
+   internal="solver_done.external_connection"
+   type="conduit"
+   dir="end" />
  <interface
    name="solver_reset_external_connection"
    internal="solver_reset.external_connection"
@@ -786,6 +807,24 @@
   <parameter name="width" value="27" />
  </module>
  <module
+   name="solver_done"
+   kind="altera_avalon_pio"
+   version="15.0"
+   enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Input" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="1" />
+ </module>
+ <module
    name="solver_reset"
    kind="altera_avalon_pio"
    version="15.0"
@@ -898,6 +937,15 @@
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
+   kind="avalon"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_lw_axi_master"
+   end="solver_done.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0050" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
    kind="avalon_streaming"
    version="15.0"
    start="timing_adapter_0.out"
@@ -924,6 +972,11 @@
    version="15.0"
    start="System_PLL.sys_clk"
    end="solver_reset.clk" />
+ <connection
+   kind="clock"
+   version="15.0"
+   start="System_PLL.sys_clk"
+   end="solver_done.clk" />
  <connection
    kind="clock"
    version="15.0"
@@ -978,6 +1031,11 @@
    kind="reset"
    version="15.0"
    start="ARM_A9_HPS.h2f_reset"
+   end="solver_done.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
    end="VGA_Subsystem.sys_reset" />
  <connection
    kind="reset"
@@ -1009,6 +1067,11 @@
    version="15.0"
    start="System_PLL.reset_source"
    end="solver_reset.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="solver_done.reset" />
  <connection
    kind="reset"
    version="15.0"
