@@ -2,6 +2,7 @@
 `define _pattern_solver_v_
 
 `include "mand_solver.v"
+`include "priority_encoder.v"
 
 module pattern_solver #(
     parameter SOLVER_ID = 0,
@@ -27,12 +28,6 @@ module pattern_solver #(
     reg [9:0] column;
     reg [9:0] row;
 
-    always @(posedge clock) begin
-        if (solver_ready) begin
-            //$display("%d %d %d", x, y, solver_out);
-        end
-    end
-
     wire signed [31:0] s_out;
     mand_solver solver(
         .clock(clock),
@@ -42,7 +37,11 @@ module pattern_solver #(
         .out_ready(solver_ready),
         .out(s_out)
     );
-    assign solver_out = s_out[9:6];
+
+    priority_encoder enc(
+        .in(s_out[9:0]),
+        .out(solver_out)
+    );
 
     wire signed [26:0] inc_x = x + dx;
     wire signed [26:0] inc_y = y + (NUM_SOLVERS * dy);
