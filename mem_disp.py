@@ -28,7 +28,6 @@ for x in range(width):
 
 with open(sys.argv[4], 'r') as f:
     f.readline()
-    vmax = 0
     for l in f:
         line = l[:-1].split()
         if (len(line) < 3):
@@ -42,17 +41,15 @@ with open(sys.argv[4], 'r') as f:
 
         x = s_addr % width
         y = s_id + (s_addr / width) * num_solvers
-        if s_val > vmax:
-            vmax = s_val
-        if (s_val == -1):
+
+        if (s_val == 15):
             img[y][x][0] = 0
             img[y][x][1] = 0
             img[y][x][2] = 0
         else:
-            img[y][x][0] = 255 - (s_val * 42)
-            img[y][x][1] = 255 - (s_val * 42)
-            img[y][x][2] = 255 - (s_val * 42)
-    print vmax
+            img[y][x][0] = 255 - (s_val * 25)
+            img[y][x][1] = 255 - (s_val * 25)
+            img[y][x][2] = 255 - (s_val * 25)
 
 # Display the image
 scipy.misc.imshow(img)

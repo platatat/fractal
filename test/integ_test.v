@@ -63,7 +63,7 @@ module top();
         end_stream1 <= end_stream0;
         end_stream2 <= end_stream1;
         if (solver.done) begin
-            $display("%d %d %d", solver_id1, solver_addr1, solver.rd_data_out);
+            $display("%d %d %d", solver_id1, solver_addr1, $unsigned(solver.rd_data_out));
         end
     end
 
