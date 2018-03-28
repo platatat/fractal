@@ -33,9 +33,11 @@ int main(int argc, char** argv)
     volatile int* reset = h2p_lw_virtual_base + 0x40;
     volatile int* done = h2p_lw_virtual_base + 0x50;
 
+    const int init_dxy = 4915;
+
     int screen_x = 0;
     int screen_y = 0;
-    int screen_dxy = 4915;
+    int screen_dxy = init_dxy;
 
     //// Mouse things
 
@@ -54,6 +56,7 @@ int main(int argc, char** argv)
 
     bool prev_left = false;
     bool prev_right = false;
+    bool prev_middle = false;
     bool left, middle, right;
     signed char x, y;
     while(1)
@@ -96,8 +99,15 @@ int main(int argc, char** argv)
                 screen_dxy *= 2;
             }
 
+            if (middle && !prev_middle) {
+                screen_x = 0;
+                screen_y = 0;
+                screen_dxy = init_dxy;
+            }
+
             prev_left = left;
             prev_right = right;
+            prev_middle = middle;
         }   
     }
     return 0; 
