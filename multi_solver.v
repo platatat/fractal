@@ -55,7 +55,7 @@ module multi_solver #(
 
             always @(posedge clock) begin
                 if (reset) begin
-                    solver_addr <= 19'd0;
+                    solver_addr <= -19'd1;
                 end else begin
                     if (solver_ready) begin
                         solver_addr <= solver_addr + 1;
