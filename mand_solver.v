@@ -9,9 +9,7 @@
  *
  * out_ready = 0 while the solver is running, and 1 after the solution is ready.
  */
-module mand_solver(clock, reset, c_im, c_re, out_ready, out);
-    // Max iterations before assuming convergence.
-    parameter CONVERGENCE_ITER = 1000;
+module mand_solver(clock, reset, c_im, c_re, convergence_iterations, out_ready, out);
     // Max *squared* magnitude of z before assuming divergence.
     parameter DIVERGENCE_MAG = 27'd4 << 20;
 
@@ -20,6 +18,7 @@ module mand_solver(clock, reset, c_im, c_re, out_ready, out);
 
     input signed [26:0] c_im;
     input signed [26:0] c_re;
+    input [9:0] convergence_iterations;
 
     output reg out_ready;
     output reg signed [31:0] out;
@@ -78,7 +77,7 @@ module mand_solver(clock, reset, c_im, c_re, out_ready, out);
             z_im <= c_im;
             z_re <= c_re;
         end else begin
-            if (iteration > CONVERGENCE_ITER) begin
+            if (iteration > convergence_iterations) begin
                 out <= -32'd1;
                 out_ready <= 1;
             end else if (z_mag_sq > DIVERGENCE_MAG) begin

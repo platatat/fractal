@@ -423,6 +423,7 @@ reg signed [3:0] solver_data_out;
 wire signed [26:0] x_min, y_min;
 wire signed [26:0] dx, dy;
 
+wire [9:0] solver_iterations;
 wire solver_hps_reset;
 wire solver_done;
 wire solver_clock;
@@ -435,6 +436,7 @@ multi_solver #(NUM_SOLVERS) solver (
     .min_y(y_min),
     .dx(dx),
     .dy(dy),
+    .iterations(solver_iterations),
 
     .rd_clock(CLOCK_50),
     .rd_solver_id(solver_id),
@@ -613,6 +615,7 @@ Computer_System The_System (
     .solver_reset_external_connection_export (solver_hps_reset),
     .solver_done_external_connection_export  (solver_done),
     .solver_cycles_external_connection_export(solve_time),
+    .solver_iterations_external_connection_export (solver_iterations),
 
     .solver_clock_clk (solver_clock)
 );

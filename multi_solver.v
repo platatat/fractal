@@ -13,6 +13,7 @@ module multi_solver #(
 
     input signed [26:0] min_x, min_y,
     input signed [26:0] dx, dy,
+    input [9:0] iterations,
 
 	input rd_clock,
     input [5:0] rd_solver_id,
@@ -49,6 +50,7 @@ module multi_solver #(
                 .reset(reset),
                 .min_x(min_x), .min_y(min_y),
                 .dx(dx), .dy(dy),
+                .iterations(iterations),
                 .continue(solver_ready),
                 .solver_out(solver_out),
                 .solver_ready(solver_ready),
