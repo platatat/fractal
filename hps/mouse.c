@@ -6,6 +6,10 @@
 
 #include "address_map_arm_brl4.h"
 
+float fix_to_float(int x) {
+    return ((float) x) / (1 << 20);
+}
+
 int main(int argc, char** argv)
 {
 	// === get FPGA addresses ==================
@@ -32,6 +36,8 @@ int main(int argc, char** argv)
 
     volatile int* reset = h2p_lw_virtual_base + 0x40;
     volatile int* done = h2p_lw_virtual_base + 0x50;
+    volatile int* solve_time = h2p_lw_virtual_base + 0x60;
+    volatile int* iterations = h2p_lw_virtual_base + 0x70;
 
     const int init_dxy = 4915;
 
@@ -72,6 +78,15 @@ int main(int argc, char** argv)
 
         while (!*done){}
 
+        double rendertime = *solve_time;
+        rendertime /= 100000000;
+
+        printf("Time: %f\t", rendertime);
+        printf("L: %f\t", fix_to_float(screen_x - screen_dxy * (640 / 2)));
+        printf("R: %f\t", fix_to_float(screen_x + screen_dxy * (640 / 2)));
+        printf("T: %f\t", fix_to_float(screen_y - screen_dxy * (480 / 2)));
+        printf("B: %f\n", fix_to_float(screen_y - screen_dxy * (480 / 2)));
+
         // Read Mouse     
         bytes = read(fd, data, sizeof(data));
 
@@ -82,7 +97,6 @@ int main(int argc, char** argv)
 
             x = data[1];
             y = data[2];
-            printf("x=%d, y=%d, left=%d, middle=%d, right=%d\n", x, y, left, middle, right);
 
             screen_x += -x * screen_dxy;
             screen_y +=  y * screen_dxy;
