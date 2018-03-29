@@ -423,18 +423,22 @@ reg signed [3:0] solver_data_out;
 wire signed [26:0] x_min, y_min;
 wire signed [26:0] dx, dy;
 
+wire [9:0] solver_iterations;
 wire solver_hps_reset;
 wire solver_done;
+wire solver_clock;
 
 multi_solver #(NUM_SOLVERS) solver (
-    .clock(CLOCK_50),
+    .clock(solver_clock),
     .reset(reset_key | solver_hps_reset),
 
     .min_x(x_min),
     .min_y(y_min),
     .dx(dx),
     .dy(dy),
+    .iterations(solver_iterations),
 
+    .rd_clock(CLOCK_50),
     .rd_solver_id(solver_id),
     .rd_addr(solver_addr),
     .rd_data_out(solver_data_out),
@@ -443,24 +447,26 @@ multi_solver #(NUM_SOLVERS) solver (
     .done(solver_done)
 );
 
-assign stream_data = 
-		solver_data_out == 4'b0000 ? 16'b00000_000000_00000 :
-		solver_data_out == 4'b0001 ? 16'b00000_001000_00000 :
-		solver_data_out == 4'b0010 ? 16'b00000_010000_00000 :
-		solver_data_out == 4'b0011 ? 16'b00000_011000_00000 :
-		solver_data_out == 4'b0100 ? 16'b00000_100000_00000 :
-		solver_data_out == 4'b0101 ? 16'b00000_101000_00000 :
-		solver_data_out == 4'b0110 ? 16'b00000_110000_00000 :
-		solver_data_out == 4'b0111 ? 16'b00000_111000_01000 :
-		solver_data_out == 4'b1000 ? 16'b00000_111000_10000 :
-		solver_data_out == 4'b1001 ? 16'b00000_110000_11000 :
-		solver_data_out == 4'b1010 ? 16'b00000_101000_11000 :
-		solver_data_out == 4'b1011 ? 16'b00000_100000_11000 :
-		solver_data_out == 4'b1100 ? 16'b00000_011000_11000 :
-		solver_data_out == 4'b1101 ? 16'b00000_010000_11000 :
-		solver_data_out == 4'b1110 ? 16'b00000_001000_11000 :
-		solver_data_out == 4'b1111 ? 16'b00000_000000_11000 :
-									 16'b11111_000000_00000;
+assign stream_data = {5'b0, solver_data_out, 7'b0};
+
+// assign stream_data = 
+// 		solver_data_out == 4'b0000 ? 16'b00000_000000_00000 :
+// 		solver_data_out == 4'b0001 ? 16'b00000_001000_00000 :
+// 		solver_data_out == 4'b0010 ? 16'b00000_010000_00000 :
+// 		solver_data_out == 4'b0011 ? 16'b00000_011000_00000 :
+// 		solver_data_out == 4'b0100 ? 16'b00000_100000_00000 :
+// 		solver_data_out == 4'b0101 ? 16'b00000_101000_00000 :
+// 		solver_data_out == 4'b0110 ? 16'b00000_110000_00000 :
+// 		solver_data_out == 4'b0111 ? 16'b00000_111000_01000 :
+// 		solver_data_out == 4'b1000 ? 16'b00000_111000_10000 :
+// 		solver_data_out == 4'b1001 ? 16'b00000_110000_11000 :
+// 		solver_data_out == 4'b1010 ? 16'b00000_101000_11000 :
+// 		solver_data_out == 4'b1011 ? 16'b00000_100000_11000 :
+// 		solver_data_out == 4'b1100 ? 16'b00000_011000_11000 :
+// 		solver_data_out == 4'b1101 ? 16'b00000_010000_11000 :
+// 		solver_data_out == 4'b1110 ? 16'b00000_001000_11000 :
+// 		solver_data_out == 4'b1111 ? 16'b00000_000000_11000 :
+// 									 16'b11111_000000_00000;
 
 assign hex5_hex0 = solve_time[23:0];
 assign LEDR[7:0] = solve_time[31:24];
@@ -608,6 +614,9 @@ Computer_System The_System (
     .x_min_external_connection_export        (x_min),
     .solver_reset_external_connection_export (solver_hps_reset),
     .solver_done_external_connection_export  (solver_done),
-    .solver_cycles_external_connection_export(solve_time)
+    .solver_cycles_external_connection_export(solve_time),
+    .solver_iterations_external_connection_export (solver_iterations),
+
+    .solver_clock_clk (solver_clock)
 );
 endmodule // end top level

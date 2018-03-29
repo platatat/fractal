@@ -41,6 +41,8 @@ module top();
         .min_y(-27'd1 <<< 23),
         .dx(27'd254200),
         .dy(27'd254200),
+        .iterations(10'd100),
+        .rd_clock(clock),
         .rd_solver_id(it.solver_id),
         .rd_addr(it.solver_addr)
     );
