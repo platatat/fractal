@@ -383,7 +383,7 @@ wire stream_start;
 wire stream_end;
 wire stream_valid;
 
-wire [7:0] stream_data;
+wire [15:0] stream_data;
 
 wire [5:0] solver_id;
 wire [18:0] solver_addr;
@@ -444,23 +444,23 @@ multi_solver #(NUM_SOLVERS) solver (
 );
 
 assign stream_data = 
-		solver_data_out == 4'b0000 ? 8'b00000000 :
-		solver_data_out == 4'b0001 ? 8'b00000100 :
-		solver_data_out == 4'b0010 ? 8'b00001000 :
-		solver_data_out == 4'b0011 ? 8'b00001100 :
-		solver_data_out == 4'b0100 ? 8'b00010000 :
-		solver_data_out == 4'b0101 ? 8'b00010100 :
-		solver_data_out == 4'b0110 ? 8'b00011000 :
-		solver_data_out == 4'b0111 ? 8'b00011101 :
-		solver_data_out == 4'b1000 ? 8'b00011110 :
-		solver_data_out == 4'b1001 ? 8'b00011011 :
-		solver_data_out == 4'b1010 ? 8'b00010111 :
-		solver_data_out == 4'b1011 ? 8'b00010011 :
-		solver_data_out == 4'b1100 ? 8'b00001111 :
-		solver_data_out == 4'b1101 ? 8'b00001011 :
-		solver_data_out == 4'b1110 ? 8'b00000111 :
-		solver_data_out == 4'b1111 ? 8'b00000011 :
-									 8'b11100000;
+		solver_data_out == 4'b0000 ? 16'b00000_000000_00000 :
+		solver_data_out == 4'b0001 ? 16'b00000_001000_00000 :
+		solver_data_out == 4'b0010 ? 16'b00000_010000_00000 :
+		solver_data_out == 4'b0011 ? 16'b00000_011000_00000 :
+		solver_data_out == 4'b0100 ? 16'b00000_100000_00000 :
+		solver_data_out == 4'b0101 ? 16'b00000_101000_00000 :
+		solver_data_out == 4'b0110 ? 16'b00000_110000_00000 :
+		solver_data_out == 4'b0111 ? 16'b00000_111000_01000 :
+		solver_data_out == 4'b1000 ? 16'b00000_111000_10000 :
+		solver_data_out == 4'b1001 ? 16'b00000_110000_11000 :
+		solver_data_out == 4'b1010 ? 16'b00000_101000_11000 :
+		solver_data_out == 4'b1011 ? 16'b00000_100000_11000 :
+		solver_data_out == 4'b1100 ? 16'b00000_011000_11000 :
+		solver_data_out == 4'b1101 ? 16'b00000_010000_11000 :
+		solver_data_out == 4'b1110 ? 16'b00000_001000_11000 :
+		solver_data_out == 4'b1111 ? 16'b00000_000000_11000 :
+									 16'b11111_000000_00000;
 
 assign hex5_hex0 = solve_time[23:0];
 assign LEDR[7:0] = solve_time[31:24];

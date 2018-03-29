@@ -847,7 +847,7 @@
    kind="timing_adapter"
    version="15.0"
    enabled="1">
-  <parameter name="inBitsPerSymbol" value="8" />
+  <parameter name="inBitsPerSymbol" value="16" />
   <parameter name="inChannelWidth" value="0" />
   <parameter name="inErrorDescriptor" value="" />
   <parameter name="inErrorWidth" value="0" />
