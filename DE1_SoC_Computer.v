@@ -425,9 +425,10 @@ wire signed [26:0] dx, dy;
 
 wire solver_hps_reset;
 wire solver_done;
+wire solver_clock;
 
 multi_solver #(NUM_SOLVERS) solver (
-    .clock(CLOCK_50),
+    .clock(solver_clock),
     .reset(reset_key | solver_hps_reset),
 
     .min_x(x_min),
@@ -435,6 +436,7 @@ multi_solver #(NUM_SOLVERS) solver (
     .dx(dx),
     .dy(dy),
 
+    .rd_clock(CLOCK_50),
     .rd_solver_id(solver_id),
     .rd_addr(solver_addr),
     .rd_data_out(solver_data_out),
@@ -610,6 +612,8 @@ Computer_System The_System (
     .x_min_external_connection_export        (x_min),
     .solver_reset_external_connection_export (solver_hps_reset),
     .solver_done_external_connection_export  (solver_done),
-    .solver_cycles_external_connection_export(solve_time)
+    .solver_cycles_external_connection_export(solve_time),
+
+    .solver_clock_clk (solver_clock)
 );
 endmodule // end top level
