@@ -443,24 +443,26 @@ multi_solver #(NUM_SOLVERS) solver (
     .done(solver_done)
 );
 
-assign stream_data = 
-		solver_data_out == 4'b0000 ? 16'b00000_000000_00000 :
-		solver_data_out == 4'b0001 ? 16'b00000_001000_00000 :
-		solver_data_out == 4'b0010 ? 16'b00000_010000_00000 :
-		solver_data_out == 4'b0011 ? 16'b00000_011000_00000 :
-		solver_data_out == 4'b0100 ? 16'b00000_100000_00000 :
-		solver_data_out == 4'b0101 ? 16'b00000_101000_00000 :
-		solver_data_out == 4'b0110 ? 16'b00000_110000_00000 :
-		solver_data_out == 4'b0111 ? 16'b00000_111000_01000 :
-		solver_data_out == 4'b1000 ? 16'b00000_111000_10000 :
-		solver_data_out == 4'b1001 ? 16'b00000_110000_11000 :
-		solver_data_out == 4'b1010 ? 16'b00000_101000_11000 :
-		solver_data_out == 4'b1011 ? 16'b00000_100000_11000 :
-		solver_data_out == 4'b1100 ? 16'b00000_011000_11000 :
-		solver_data_out == 4'b1101 ? 16'b00000_010000_11000 :
-		solver_data_out == 4'b1110 ? 16'b00000_001000_11000 :
-		solver_data_out == 4'b1111 ? 16'b00000_000000_11000 :
-									 16'b11111_000000_00000;
+assign stream_data = {5'b0, solver_data_out, 7'b0};
+
+// assign stream_data = 
+// 		solver_data_out == 4'b0000 ? 16'b00000_000000_00000 :
+// 		solver_data_out == 4'b0001 ? 16'b00000_001000_00000 :
+// 		solver_data_out == 4'b0010 ? 16'b00000_010000_00000 :
+// 		solver_data_out == 4'b0011 ? 16'b00000_011000_00000 :
+// 		solver_data_out == 4'b0100 ? 16'b00000_100000_00000 :
+// 		solver_data_out == 4'b0101 ? 16'b00000_101000_00000 :
+// 		solver_data_out == 4'b0110 ? 16'b00000_110000_00000 :
+// 		solver_data_out == 4'b0111 ? 16'b00000_111000_01000 :
+// 		solver_data_out == 4'b1000 ? 16'b00000_111000_10000 :
+// 		solver_data_out == 4'b1001 ? 16'b00000_110000_11000 :
+// 		solver_data_out == 4'b1010 ? 16'b00000_101000_11000 :
+// 		solver_data_out == 4'b1011 ? 16'b00000_100000_11000 :
+// 		solver_data_out == 4'b1100 ? 16'b00000_011000_11000 :
+// 		solver_data_out == 4'b1101 ? 16'b00000_010000_11000 :
+// 		solver_data_out == 4'b1110 ? 16'b00000_001000_11000 :
+// 		solver_data_out == 4'b1111 ? 16'b00000_000000_11000 :
+// 									 16'b11111_000000_00000;
 
 assign hex5_hex0 = solve_time[23:0];
 assign LEDR[7:0] = solve_time[31:24];
