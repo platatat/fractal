@@ -3,12 +3,12 @@
 
 
 #include "complex.h"
+#include "tile.h"
 
 
 class TileSolver {
 public:
-    static void solveTile(complex origin, complex stride, int x_res, int y_res, 
-                          int iterations, int* output);
+    static void solveTile(Tile& tile, int iterations);
 
     static int solvePixel(complex c, int iterations);
 };

@@ -11,13 +11,13 @@ bool test_tile_solver() {
     complex origin = {.real = -1.0, .imag = -1.0};
     complex stride = {.real = 0.1, .imag = 0.1};
 
-    int* output = new int [x_res * y_res];
-    TileSolver::solveTile(origin, stride, x_res, y_res, 100, output);
+    Tile tile = Tile(x_res, y_res, origin, stride);
+    TileSolver::solveTile(tile, 100);
 
-    if (output[1  + 1  * x_res] != 3)   return false;
-    if (output[10 + 10 * x_res] != -1)  return false;
-    if (output[13 + 3  * x_res] != 6)   return false;
-    if (output[2  + 8  * x_res] != 15)  return false;
+    if (tile.getPoint(1 , 1 ) != 3)   return false;
+    if (tile.getPoint(10, 10) != -1)  return false;
+    if (tile.getPoint(13, 3 ) != 6)   return false;
+    if (tile.getPoint(2 , 8 ) != 15)  return false;
     
     cout << "success\n";
     return true;
