@@ -13,7 +13,9 @@ module multi_solver #(
 
     input signed [26:0] min_x, min_y,
     input signed [26:0] dx, dy,
+    input [9:0] iterations,
 
+    input rd_clock,
     input [5:0] rd_solver_id,
     input [18:0] rd_addr,
     output signed [3:0] rd_data_out,
@@ -33,7 +35,8 @@ module multi_solver #(
             reg [18:0] solver_addr;
 
             RAM #((308000 / NUM_SOLVERS) + 640, 4) ram(
-                .clock(clock),
+                .wr_clock(clock),
+                .rd_clock(rd_clock),
                 .wr_en(solver_ready),
                 .rd_en(rd_solver_id == i),
                 .wr_addr(solver_addr),
@@ -47,6 +50,7 @@ module multi_solver #(
                 .reset(reset),
                 .min_x(min_x), .min_y(min_y),
                 .dx(dx), .dy(dy),
+                .iterations(iterations),
                 .continue(solver_ready),
                 .solver_out(solver_out),
                 .solver_ready(solver_ready),

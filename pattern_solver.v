@@ -14,6 +14,7 @@ module pattern_solver #(
 
     input signed [26:0] min_x, min_y,
     input signed [26:0] dx, dy,
+    input [9:0] iterations,
 
     input continue,
 
@@ -34,6 +35,7 @@ module pattern_solver #(
         .reset(reset | continue | done),
         .c_im(y),
         .c_re(x),
+        .convergence_iterations(iterations),
         .out_ready(solver_ready),
         .out(s_out)
     );

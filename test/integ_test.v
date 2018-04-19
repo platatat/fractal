@@ -37,10 +37,12 @@ module top();
     multi_solver #(NUM_SOLVERS, NUM_COLUMNS, NUM_ROWS) solver(
         .clock(clock),
         .reset(reset),
-        .min_x(-27'd2 <<< 20),
-        .min_y(-27'd1 <<< 20),
-        .dx(27'd31775),
-        .dy(27'd31775),
+        .min_x(-27'd2 <<< 23),
+        .min_y(-27'd1 <<< 23),
+        .dx(27'd254200),
+        .dy(27'd254200),
+        .iterations(10'd100),
+        .rd_clock(clock),
         .rd_solver_id(it.solver_id),
         .rd_addr(it.solver_addr)
     );

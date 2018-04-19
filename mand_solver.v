@@ -9,17 +9,16 @@
  *
  * out_ready = 0 while the solver is running, and 1 after the solution is ready.
  */
-module mand_solver(clock, reset, c_im, c_re, out_ready, out);
-    // Max iterations before assuming convergence.
-    parameter CONVERGENCE_ITER = 1000;
+module mand_solver(clock, reset, c_im, c_re, convergence_iterations, out_ready, out);
     // Max *squared* magnitude of z before assuming divergence.
-    parameter DIVERGENCE_MAG = 27'd4 << 20;
+    parameter DIVERGENCE_MAG = 28'd4 << 23;
 
     input clock;
     input reset;
 
     input signed [26:0] c_im;
     input signed [26:0] c_re;
+    input [9:0] convergence_iterations;
 
     output reg out_ready;
     output reg signed [31:0] out;
@@ -39,21 +38,21 @@ module mand_solver(clock, reset, c_im, c_re, out_ready, out);
      */
 
     wire signed [26:0] z_im_sq;
-    signed_mult #(7, 20) z_im_sq_mult(
+    signed_mult #(4, 23) z_im_sq_mult(
         .a(z_im),
         .b(z_im),
         .out(z_im_sq)
     );
 
     wire signed [26:0] z_re_sq;
-    signed_mult #(7, 20) z_re_sq_mult(
+    signed_mult #(4, 23) z_re_sq_mult(
         .a(z_re),
         .b(z_re),
         .out(z_re_sq)
     );
 
     wire signed [26:0] z_im_z_re;
-    signed_mult #(7, 20) z_im_z_re_mult(
+    signed_mult #(4, 23) z_im_z_re_mult(
         .a(z_im),
         .b(z_re),
         .out(z_im_z_re)
@@ -68,7 +67,7 @@ module mand_solver(clock, reset, c_im, c_re, out_ready, out);
      * convergence iteration limit by 1. So we can reuse some of the multiplications from 
      * computing z_new.
      */
-    wire signed [26:0] z_mag_sq = z_im_sq + z_re_sq;
+    wire signed [27:0] z_mag_sq = {1'b0, z_im_sq} + {1'b0, z_re_sq};
 
     always @(posedge clock) begin
         if (reset) begin
@@ -78,10 +77,12 @@ module mand_solver(clock, reset, c_im, c_re, out_ready, out);
             z_im <= c_im;
             z_re <= c_re;
         end else begin
-            if (iteration > CONVERGENCE_ITER) begin
+            if (iteration > convergence_iterations) begin
                 out <= -32'd1;
                 out_ready <= 1;
-            end else if (z_mag_sq > DIVERGENCE_MAG) begin
+            end else if (z_mag_sq > DIVERGENCE_MAG
+                    || z_im[26] ^ z_im[25] || z_im[26] ^ z_im[24]
+                    || z_re[26] ^ z_re[25] || z_re[26] ^ z_re[24]) begin
                 out <= iteration;
                 out_ready <= 1;
             end else begin
