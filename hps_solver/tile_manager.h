@@ -8,6 +8,8 @@ class TileManager {
 private:
 
 public:
+    // TileManager(int cache_size);
+
     char* loadTile(int x, int y, int z);
 };
 

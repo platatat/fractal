@@ -1,13 +1,10 @@
 #include "application.h"
 #include "constants.h"
 #include <iostream>
-#include <stdio.h>
 
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <GL/glu.h>
-
-using namespace std;
 
 
 Application app;
