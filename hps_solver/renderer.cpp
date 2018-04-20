@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include <iostream>
 
 
 Renderer::Renderer() : _origin({0, 0}), _zoom(0) {
@@ -7,5 +8,7 @@ Renderer::Renderer() : _origin({0, 0}), _zoom(0) {
 
 
 void Renderer::render() {
-    _screen_buffer = _tile_manager.loadTile(1, 0, 2);
+    std::vector<Tile*> tiles;
+    _tile_manager.loadViewport(_origin, {1, 1}, 0, tiles);
+    _screen_buffer = tiles[0]->getData();
 }

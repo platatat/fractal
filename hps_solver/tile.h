@@ -8,17 +8,17 @@
 class Tile {
 private:
     complex _origin;
-    complex _stride;
+    complex _size;
     char* _data;
 
 public:
-    Tile(complex origin, complex stride);
+    Tile(complex origin, complex size);
 
     ~Tile();
 
     complex getOrigin() { return _origin; }
 
-    complex getStride() { return _stride; }
+    complex getSize() { return _size; }
 
     char* getData() { return _data; }
 

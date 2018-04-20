@@ -2,13 +2,17 @@
 #include "constants.h"
 
 
-void TileSolver::solveTile(Tile& tile, int iterations) {
+void TileSolver::solveTile(Tile* tile, int iterations) {
+    complex origin = tile->getOrigin();
+    complex size = tile->getSize();
+    complex stride = {size.real / Constants::TILE_WIDTH, size.imag / Constants::TILE_HEIGHT};
+
     for (int y_index = 0; y_index < Constants::TILE_HEIGHT; y_index++) {
         for (int x_index = 0; x_index < Constants::TILE_WIDTH; x_index++) {
-            complex c = {.real = tile.getStride().real * x_index + tile.getOrigin().real, 
-                         .imag = tile.getStride().imag * y_index + tile.getOrigin().imag};
+            complex c = {stride.real * x_index + origin.real, 
+                         stride.imag * y_index + origin.imag};
             int solution = solvePixel(c, iterations);
-            tile.setPoint(x_index, y_index, solution * 8);
+            tile->setPoint(x_index, y_index, solution * 8);
         }
     }
 }
