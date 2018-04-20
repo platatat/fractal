@@ -7,7 +7,7 @@ void TileSolver::solveTile(Tile& tile, int iterations) {
             complex c = {.real = tile.getStride().real * x_index + tile.getOrigin().real, 
                          .imag = tile.getStride().imag * y_index + tile.getOrigin().imag};
             int solution = solvePixel(c, iterations);
-            tile.setPoint(x_index, y_index, solution);
+            tile.setPoint(x_index, y_index, solution * 8);
         }
     }
 }

@@ -10,7 +10,7 @@ private:
     int _y_res;
     complex _origin;
     complex _stride;
-    int* _data;
+    char* _data;
 
 public:
     Tile(int x_res, int y_res, complex origin, complex stride);
@@ -24,6 +24,8 @@ public:
     complex getOrigin() { return _origin; }
 
     complex getStride() { return _stride; }
+
+    char* getData() { return _data; }
 
     int getPoint(int x, int y) { return _data[x + y * _x_res]; }
 

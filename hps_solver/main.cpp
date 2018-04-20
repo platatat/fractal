@@ -1,29 +1,40 @@
+#include "application.h"
+#include "constants.h"
 #include <iostream>
-#include "tile_solver.h"
-#include "complex.h"
+#include <stdio.h>
+
+#include <GL/gl.h>
+#include <GL/glut.h>
+#include <GL/glu.h>
 
 using namespace std;
 
 
-bool test_tile_solver() {
-    int x_res = 20;
-    int y_res = 20;
-    complex origin = {.real = -1.0, .imag = -1.0};
-    complex stride = {.real = 0.1, .imag = 0.1};
+Application app;
 
-    Tile tile = Tile(x_res, y_res, origin, stride);
-    TileSolver::solveTile(tile, 100);
 
-    if (tile.getPoint(1 , 1 ) != 3)   return false;
-    if (tile.getPoint(10, 10) != -1)  return false;
-    if (tile.getPoint(13, 3 ) != 6)   return false;
-    if (tile.getPoint(2 , 8 ) != 15)  return false;
-    
-    cout << "success\n";
-    return true;
+void display()
+{
+    char* buffer = app.display();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDrawPixels(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, GL_LUMINANCE, GL_BYTE, buffer);
+    glutSwapBuffers();
 }
 
 
-int main() {
-    test_tile_solver();
+int main(int argc, char* argv[])
+{
+    app = Application();
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
+    glutInitWindowSize(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
+    glutCreateWindow("Mandelbrot");
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+    glutDisplayFunc(display);
+    glutMainLoop();
+
+    return 0;
 }
