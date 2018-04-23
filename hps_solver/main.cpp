@@ -1,37 +1,65 @@
 #include "application.h"
 #include "constants.h"
-#include <iostream>
 
-#include <GL/gl.h>
-#include <GL/glut.h>
-#include <GL/glu.h>
+#include <SDL2/SDL.h>
+#include <stdio.h>
 
-
-Application app;
-
-
-void display()
+int main( int argc, char* args[] )
 {
-    char* buffer = app.display();
+    Application app;
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDrawPixels(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, GL_LUMINANCE, GL_BYTE, buffer);
-    glutSwapBuffers();
-}
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return -1;
+    }
+
+    // Create a window
+    SDL_Window* window;
+    window = SDL_CreateWindow("mandelbrot",
+                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                              Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT,
+                              SDL_WINDOW_SHOWN );
+
+    if (window == nullptr) {
+        printf("Window creation failed\n");
+        return -1;
+    }
 
 
-int main(int argc, char* argv[])
-{
-    app = Application();
+    bool exit = false;
+    while (!exit) {
+        // Draw
+        const unsigned char* buffer = app.display();
 
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-    glutInitWindowSize(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
-    glutCreateWindow("Mandelbrot");
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        SDL_Surface* surf;
+        surf = SDL_CreateRGBSurfaceWithFormatFrom((void*) buffer,
+                                                  Constants::SCREEN_WIDTH,
+                                                  Constants::SCREEN_HEIGHT,
+                                                  24,
+                                                  app.getDisplayStride(),
+                                                  SDL_PIXELFORMAT_RGB888);
 
-    glutDisplayFunc(display);
-    glutMainLoop();
+        SDL_Surface* win_surf = SDL_GetWindowSurface(window);
+        SDL_BlitSurface(surf, NULL, win_surf, NULL);
+        SDL_UpdateWindowSurface(window);
+
+        SDL_FreeSurface(surf);
+
+        // Poll events
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                exit = true;
+            }
+        }
+    }
+
+    // Clean up
+    SDL_DestroyWindow(window);
+    window = nullptr;
+
+    SDL_Quit();
 
     return 0;
 }
