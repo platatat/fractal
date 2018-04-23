@@ -4,7 +4,7 @@
 
 void TileSolver::solveTile(Tile* tile, int iterations) {
     complex origin = tile->getOrigin();
-    complex size = tile->getSize();
+    complex size = {tile->getSize(), tile->getSize()};
     complex stride = {size.real / Constants::TILE_WIDTH, size.imag / Constants::TILE_HEIGHT};
 
     for (int y_index = 0; y_index < Constants::TILE_HEIGHT; y_index++) {

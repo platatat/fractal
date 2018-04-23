@@ -3,26 +3,29 @@
 
 #include "complex.h"
 #include "constants.h"
+#include "tile_header.h"
+#include <math.h>
 
 
 class Tile {
 private:
-    complex _origin;
-    complex _size;
+    TileHeader _header;
     char* _data;
 
 public:
-    Tile(complex origin, complex size);
+    Tile(TileHeader header);
 
     ~Tile();
 
-    complex getOrigin() { return _origin; }
+    complex getOrigin() const { return {_header.x * getSize(), _header.y * getSize()}; }
 
-    complex getSize() { return _size; }
+    double getSize() const { return pow(2, -_header.z); }
 
-    char* getData() { return _data; }
+    TileHeader getHeader() const { return _header; }
 
-    int getPoint(int x, int y) { return _data[x + y * Constants::TILE_WIDTH]; }
+    char* getData() const { return _data; }
+
+    int getPoint(int x, int y) const { return _data[x + y * Constants::TILE_WIDTH]; }
 
     void setPoint(int x, int y, int value) { _data[x + y * Constants::TILE_WIDTH] = value; }
 };

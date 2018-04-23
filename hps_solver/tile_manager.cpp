@@ -3,14 +3,61 @@
 #include <math.h>
 #include <iostream>
 
+using std::chrono::system_clock;
+using std::chrono::time_point;
 
-Tile* TileManager::loadTile(int x, int y, int z) {
-    double tile_size = pow(2, -z);
 
-    complex origin = {x * tile_size, y * tile_size};
-    complex size = {tile_size, tile_size};
+TileManager::TileManager() {
+    _cache_size = 4;
+}
 
-    Tile* tile = new Tile(origin, size);
+
+TileManager::TileManager(unsigned int cache_size) {
+    _cache_size = cache_size;
+}
+
+
+void TileManager::evictOldest() {
+    time_point<system_clock> oldest_time = system_clock::now();
+    TileHeader oldest_header;
+
+    for (std::pair<TileHeader, CachedTile> element : _cache) {
+        if (element.second.last_hit < oldest_time) {
+            oldest_time = element.second.last_hit;
+            oldest_header = element.first;
+        }
+    }
+
+    _cache.erase(oldest_header);
+}
+
+
+Tile* TileManager::requestTile(TileHeader header) {
+    std::cout << "Requesting (" << header.x << ", " << header.y << ", " << header.z << ")\n";
+
+    // If cache hit, update timestamps and return tile.
+    auto cache_lookup = _cache.find(header);
+    if (cache_lookup != _cache.end()) {
+        cache_lookup->second.last_hit = system_clock::now();
+        return cache_lookup->second.tile;
+    }
+
+    // If cache miss, make room for a new tile.
+    while (_cache.size() >= _cache_size - 1) {
+        evictOldest();
+    }
+
+    // Generate a new tile and add it to the cache.
+    Tile* tile = generateTile(header);
+    _cache[header] = {tile, system_clock::now()};
+    return tile;
+}
+
+
+Tile* TileManager::generateTile(TileHeader header) {
+    std::cout << "Generating (" << header.x << ", " << header.y << ", " << header.z << ")\n";
+
+    Tile* tile = new Tile(header);
     TileSolver::solveTile(tile, Constants::ITERATIONS);
 
     return tile;
@@ -19,15 +66,14 @@ Tile* TileManager::loadTile(int x, int y, int z) {
 
 void TileManager::loadViewport(complex origin, complex size, int z, std::vector<Tile*>& tiles) {
     double tile_length = pow(2, -z);
-    int viewport_width = (int) size.real.toDouble() / tile_length + 1;
-    int viewport_height = (int) size.imag.toDouble() / tile_length + 1;
+    int left = (int) origin.real.toDouble() / tile_length;
+    int right = (int) (origin.real + size.real).toDouble() / tile_length;
+    int bottom = (int) origin.imag.toDouble() / tile_length;
+    int top = (int) (origin.imag + size.imag).toDouble() / tile_length;
 
-    for (int y = 0; y < viewport_height; y++) {
-        for (int x = 0; x < viewport_width; x++) {
-            complex tile_origin = {origin.real + x * tile_length, origin.imag + y * tile_length};
-            complex tile_size = {tile_length, tile_length};
-            Tile* tile = new Tile(tile_origin, tile_size);
-            TileSolver::solveTile(tile, Constants::ITERATIONS);
+    for (int y = bottom; y <= top; y++) {
+        for (int x = left; x <= right; x++) {
+            Tile* tile = requestTile({x, y, z});
             tiles.push_back(tile);
         }
     }
