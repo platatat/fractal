@@ -8,7 +8,7 @@
 
 class TileSolver {
 public:
-    static void solveTile(Tile& tile, int iterations);
+    static void solveTile(Tile* tile, int iterations);
 
     static int solvePixel(complex c, int iterations);
 };

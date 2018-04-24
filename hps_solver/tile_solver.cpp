@@ -1,13 +1,19 @@
 #include "tile_solver.h"
+#include "constants.h"
 
 
-void TileSolver::solveTile(Tile& tile, int iterations) {
-    for (int y_index = 0; y_index < tile.getYRes(); y_index++) {
-        for (int x_index = 0; x_index < tile.getXRes(); x_index++) {
-            complex c = {.real = tile.getStride().real * x_index + tile.getOrigin().real, 
-                         .imag = tile.getStride().imag * y_index + tile.getOrigin().imag};
+void TileSolver::solveTile(Tile* tile, int iterations) {
+    complex origin = tile->getOrigin();
+    complex size = {tile->getSize(), tile->getSize()};
+    complex stride = {size.real.toDouble() / Constants::TILE_WIDTH, 
+                      size.imag.toDouble() / Constants::TILE_HEIGHT};
+
+    for (int y_index = 0; y_index < Constants::TILE_HEIGHT; y_index++) {
+        for (int x_index = 0; x_index < Constants::TILE_WIDTH; x_index++) {
+            complex c = {stride.real * x_index + origin.real, 
+                         stride.imag * y_index + origin.imag};
             int solution = solvePixel(c, iterations);
-            tile.setPoint(x_index, y_index, solution * 8);
+            tile->setPoint(x_index, y_index, 255 - (solution * 8));
         }
     }
 }
@@ -22,8 +28,8 @@ int TileSolver::solvePixel(complex c, int iterations) {
         z = {.real = z_real_new, .imag = z_imag_new};
 
         if (z.real * z.real + z.imag * z.imag > 4) {
-            // Add 2 because i is zero-indexed and we skip an iteration with z0 = c.
-            return i + 2;
+            // Add 1 because we skip an iteration with z0 = c.
+            return i + 1;
         }
     }
 

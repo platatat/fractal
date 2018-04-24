@@ -4,6 +4,10 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/")
 
 project(mandelbrot CXX)
 
+if(UNIX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -std=gnu++11")
+endif()
+
 add_executable(mandelbrot
     application.cpp
     bignum.cpp
@@ -14,8 +18,14 @@ add_executable(mandelbrot
     tile_solver.cpp
 )
 
-find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS} )
+find_package(PkgConfig REQUIRED)
 
-target_link_libraries(mandelbrot ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} )
+target_link_libraries(mandelbrot ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} gmp)
+
+pkg_check_modules(CAIRO REQUIRED cairo)
+target_include_directories(mandelbrot PRIVATE ${CAIRO_INCLUDE_DIRS})
+target_link_libraries(mandelbrot ${CAIRO_LIBRARIES})
+
+pkg_check_modules(SDL2 REQUIRED sdl2)
+target_include_directories(mandelbrot PRIVATE ${SDL2_INCLUDE_DIRS})
+target_link_libraries(mandelbrot ${SDL2_LIBRARIES})

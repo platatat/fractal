@@ -1,9 +1,8 @@
 #include "tile.h"
 
 
-Tile::Tile(int x_res, int y_res, complex origin, complex stride) : 
-        _x_res(x_res), _y_res(y_res), _origin(origin), _stride(stride) {
-    _data = new char [x_res * y_res];
+Tile::Tile(TileHeader header) : _header(header) {
+    _data = new char [Constants::TILE_WIDTH * Constants::TILE_HEIGHT];
 }
 
 

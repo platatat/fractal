@@ -2,34 +2,32 @@
 #define __TILE_H__
 
 #include "complex.h"
+#include "constants.h"
+#include "tile_header.h"
+#include <math.h>
 
 
 class Tile {
 private:
-    int _x_res;
-    int _y_res;
-    complex _origin;
-    complex _stride;
+    TileHeader _header;
     char* _data;
 
 public:
-    Tile(int x_res, int y_res, complex origin, complex stride);
+    Tile(TileHeader header);
 
     ~Tile();
 
-    int getXRes() { return _x_res; }
+    complex getOrigin() const { return {_header.x * getSize(), _header.y * getSize()}; }
 
-    int getYRes() { return _y_res; }
+    double getSize() const { return pow(2, -_header.z); }
 
-    complex getOrigin() { return _origin; }
+    TileHeader getHeader() const { return _header; }
 
-    complex getStride() { return _stride; }
+    char* getData() const { return _data; }
 
-    char* getData() { return _data; }
+    int getPoint(int x, int y) const { return _data[x + y * Constants::TILE_WIDTH]; }
 
-    int getPoint(int x, int y) { return _data[x + y * _x_res]; }
-
-    void setPoint(int x, int y, int value) { _data[x + y * _x_res] = value; }
+    void setPoint(int x, int y, int value) { _data[x + y * Constants::TILE_WIDTH] = value; }
 };
 
 

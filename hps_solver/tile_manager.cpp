@@ -1,23 +1,80 @@
 #include "tile_manager.h"
-#include "tile.h"
 #include "tile_solver.h"
-#include "constants.h"
-#include "complex.h"
 #include <math.h>
-#include <stdio.h>
 #include <iostream>
 
+using std::chrono::system_clock;
+using std::chrono::time_point;
 
-char* TileManager::loadTile(int x, int y, int z) {
-    // Dimensions of a tile in mandelbrot space at this zoom level.
-    double ms_tile_width = Constants::TILE_WIDTH * pow(2, -z);
-    double ms_tile_height = Constants::TILE_HEIGHT * pow(2, -z);
 
-    complex origin = {-0.75 * ms_tile_width, -0.5 * ms_tile_height};
-    complex stride = {pow(2, -z), pow(2, -z)};
+TileManager::TileManager() {
+    _cache_size = 16;
+}
 
-    Tile* tile = new Tile(Constants::TILE_WIDTH, Constants::TILE_HEIGHT, origin, stride);
-    TileSolver::solveTile(*tile, Constants::ITERATIONS);
 
-    return tile->getData();
+TileManager::TileManager(unsigned int cache_size) {
+    _cache_size = cache_size;
+}
+
+
+void TileManager::evictOldest() {
+    time_point<system_clock> oldest_time = system_clock::now();
+    TileHeader oldest_header;
+
+    for (std::pair<TileHeader, CachedTile> element : _cache) {
+        if (element.second.last_hit < oldest_time) {
+            oldest_time = element.second.last_hit;
+            oldest_header = element.first;
+        }
+    }
+
+    _cache.erase(oldest_header);
+}
+
+
+Tile* TileManager::requestTile(TileHeader header) {
+    // std::cout << "Requesting (" << header.x << ", " << header.y << ", " << header.z << ")\n";
+
+    // If cache hit, update timestamps and return tile.
+    auto cache_lookup = _cache.find(header);
+    if (cache_lookup != _cache.end()) {
+        cache_lookup->second.last_hit = system_clock::now();
+        return cache_lookup->second.tile;
+    }
+
+    // If cache miss, make room for a new tile.
+    while (_cache.size() >= _cache_size - 1) {
+        evictOldest();
+    }
+
+    // Generate a new tile and add it to the cache.
+    Tile* tile = generateTile(header);
+    _cache[header] = {tile, system_clock::now()};
+    return tile;
+}
+
+
+Tile* TileManager::generateTile(TileHeader header) {
+    std::cout << "Generating (" << header.x << ", " << header.y << ", " << header.z << ")\n";
+
+    Tile* tile = new Tile(header);
+    TileSolver::solveTile(tile, Constants::ITERATIONS);
+
+    return tile;
+}
+
+
+void TileManager::loadViewport(complex origin, complex size, int z, std::vector<Tile*>& tiles) {
+    double tile_length = pow(2, -z);
+    int left = (int) origin.real.toDouble() / tile_length;
+    int right = (int) (origin.real + size.real).toDouble() / tile_length;
+    int bottom = (int) origin.imag.toDouble() / tile_length;
+    int top = (int) (origin.imag + size.imag).toDouble() / tile_length;
+
+    for (int y = bottom; y <= top; y++) {
+        for (int x = left; x <= right; x++) {
+            Tile* tile = requestTile({x, y, z});
+            tiles.push_back(tile);
+        }
+    }
 }

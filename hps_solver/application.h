@@ -11,7 +11,8 @@ private:
 public:
     Application();
 
-    char* display();
+    const unsigned char* display();
+    int getDisplayStride();
 };
 
 
