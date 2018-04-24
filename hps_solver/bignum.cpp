@@ -154,7 +154,7 @@ BigNum BigNum::operator*(const BigNum& other) const {
             if (ai == 0) last_carry = carry;
         }
 /*
-        //TODO this is part of the last carry optimization - remove once it is determined that new_limb can't overflow 16 bits
+        //TODO this is commented out as part of the last carry optimization - remove once it is determined that new_limb can't overflow 16 bits
         for (int i = bj - 1; i >= 0; i--) {
             if (carry == 0) break;
             int sum = ret.limbs[i] + carry;

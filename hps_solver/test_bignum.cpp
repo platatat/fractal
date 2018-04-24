@@ -98,5 +98,6 @@ int main(int argc, char* argv[])
         std::cout << "\r" << (i + 1) << "     " << std::flush;
     }
     std::cout << "Passed\n\n";
+
     return 0;
 }
