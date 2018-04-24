@@ -134,13 +134,13 @@ BigNum BigNum::operator*(const BigNum& other) const {
     for (int bj = ret.length - 1; bj >= 0; bj--) {
         unsigned char carry = 0;
         unsigned char extra_limb = 0; //TODO is this extra precision necessary?
-        unsigned char this_limb = bj < b.length ? b.limbs[bj] : 0;
+        unsigned char b_limb = bj < b.length ? b.limbs[bj] : 0;
 
         for (int ai = ret.length - bj; ai >= 0; ai--) {
             int limb_index = bj + ai;
-            unsigned char other_limb = ai < a.length ? a.limbs[ai] : 0;
+            unsigned char a_limb = ai < a.length ? a.limbs[ai] : 0;
 
-            int new_limb = this_limb * other_limb; //TODO can new_limb ever overflow 16 bits. I don't think it could before the last_carry change but now I think it can
+            int new_limb = b_limb * a_limb; //TODO can new_limb ever overflow 16 bits. I don't think it could before the last_carry change but now I think it can
             new_limb += carry;
             if (ai == 0) new_limb += last_carry;
             if (limb_index < ret.length) {
