@@ -7,9 +7,22 @@
 
 #define EPSILON 0.00000000001
 
-double get_rand() {
+double get_small_rand() {
+    double range = 0.000000001;
+    return (((double) rand()) / RAND_MAX) * range - (range / 2);
+}
+
+double get_big_rand() {
     int range = 22;
     return (((double) rand()) / RAND_MAX) * range - (range / 2);
+}
+
+double get_rand() {
+    if ((((double) rand()) / RAND_MAX) < 0.5) {
+        return get_big_rand();
+    } else {
+        return get_small_rand();
+    }
 }
 
 void assertEquals(double a, BigNum num) {
