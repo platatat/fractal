@@ -5,7 +5,7 @@
 
 #include "bignum.h"
 
-#define EPSILON 0
+#define EPSILON 0.00000000001
 
 double get_rand() {
     int range = 22;
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 {
     srand(time(NULL));
 
-    int num_tests = 10000;
+    int num_tests = 100000;
 
     std::cout << "Testing double conversion\n";
     for (int i = 0; i < num_tests; i++) {
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
         double b = get_rand();
         BigNum big_a(a);
         BigNum big_b(b);
-        BigNum big_sum = a + b;
+        BigNum big_sum = big_a + big_b;
         assertEquals(a + b, big_sum);
         std::cout << "\r" << (i + 1) << "     " << std::flush;
     }
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
         double b = get_rand();
         BigNum big_a(a);
         BigNum big_b(b);
-        BigNum big_diff = a - b;
+        BigNum big_diff = big_a - big_b;
         assertEquals(a - b, big_diff);
         std::cout << "\r" << (i + 1) << "     " << std::flush;
     }
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
         double b = get_rand();
         BigNum big_a(a);
         BigNum big_b(b);
-        BigNum big_product = a * b;
+        BigNum big_product = big_a * big_b;
         assertEquals(a * b, big_product);
         std::cout << "\r" << (i + 1) << "     " << std::flush;
     }
