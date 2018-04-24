@@ -11,65 +11,65 @@ public:
     cairo_t *cr;
 };
 
-Renderer::Renderer() : _origin({0, 0}), _zoom(8) {
-    //_screen_buffer = new char [Constants::SCREEN_WIDTH * Constants::SCREEN_HEIGHT];
-
+Renderer::Renderer() : _origin({0, 0}), _zoom(0) {
     pimpl.reset(new Pimpl());
 
     pimpl->surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
                                                 Constants::SCREEN_WIDTH,
                                                 Constants::SCREEN_HEIGHT);
     pimpl->cr = cairo_create(pimpl->surface);
+
+    _tile_manager = TileManager(64);
 }
 
 
 void Renderer::render() {
-    //std::vector<Tile*> tiles;
-    //_tile_manager.loadViewport(_origin, {1, 1}, 0, tiles);
-    //_screen_buffer = tiles[0]->getData();
-
-
-
-    // Dimensions of a tile in mandelbrot space at this zoom level.
-    // double ms_tile_width = Constants::TILE_WIDTH * pow(2, -_zoom);
-    // double ms_tile_height = Constants::TILE_HEIGHT * pow(2, -_zoom);
-
-    // int tile_origin_x = (int) (_origin.real.toDouble() / ms_tile_width);
-    // int tile_origin_y = (int) (_origin.imag.toDouble() / ms_tile_height);
-
-    //_screen_buffer = _tile_manager.loadTile(0, 0, _zoom);
-
     cairo_t *cr = pimpl->cr;
 
-    float angle = 0;//1.2f;
+    std::vector<Tile*> tiles;
 
-    cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                           CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size(cr, 20.0);
+    double screen_width = pow(2, -_zoom) * Constants::SCREEN_WIDTH / Constants::TILE_WIDTH;
+    double screen_height = pow(2, -_zoom) * Constants::SCREEN_HEIGHT / Constants::TILE_HEIGHT;
+    complex screen_size = {screen_width, screen_height};
 
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_rectangle (cr, 0, 0, 640, 480);
+    _tile_manager.loadViewport(_origin, screen_size, (int) (_zoom), tiles);
+
+    cairo_set_source_rgb(cr, 1.0, 0.7, 1.0);
+    cairo_rectangle (cr, 0, 0, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
     cairo_fill (cr);
 
-    cairo_save(cr);
+    for (Tile* tile : tiles) {
+        unsigned char* buffer = (unsigned char*) tile->getData();
+        TileHeader header = tile->getHeader();
+        complex tile_origin = tile->getOrigin();
+        double tile_size = tile->getSize();
 
-    cairo_set_source_rgb(cr, 1, 1, 1);
+        double left = (tile_origin.real - _origin.real).toDouble() / screen_width;
+        double right = (tile_origin.real + tile_size - _origin.real).toDouble() / screen_width;
+        double bottom = (tile_origin.imag - _origin.imag).toDouble() / screen_height;
+        double top = (tile_origin.imag + tile_size - _origin.imag).toDouble() / screen_height;
 
-    cairo_translate(cr, 320, 240);
-    cairo_rotate(cr, angle * (M_PI/180.));
-    cairo_translate(cr, -100, 0);
+        double left_px = left * Constants::SCREEN_WIDTH;
+        double top_px = (1 - top) * Constants::SCREEN_HEIGHT;
 
-    cairo_move_to(cr, 0, 0);
-    cairo_text_path(cr, "do whatever makes you happy");
-    cairo_fill(cr);
+        double x_scale = (right - left) * Constants::SCREEN_WIDTH / Constants::TILE_WIDTH;
+        double y_scale = (top - bottom) * Constants::SCREEN_HEIGHT / Constants::TILE_HEIGHT;
 
-    cairo_set_source_rgb(cr, 1, 0, 1);
-    cairo_rectangle (cr, 0, 0, 10, 10);
-    cairo_fill (cr);
+        std::cout << header.y << ", " << top_px << ", " << y_scale << "\n";
 
-    cairo_restore(cr);
+        cairo_save(cr);
+        cairo_scale(cr, x_scale, y_scale);
+        cairo_surface_t* imageSurface = cairo_image_surface_create_for_data(
+                buffer, CAIRO_FORMAT_A8, Constants::TILE_WIDTH, 
+                Constants::TILE_HEIGHT, Constants::TILE_WIDTH);
+        cairo_set_source_surface (cr, imageSurface, left_px, top_px);
+        cairo_paint(cr);
+        cairo_restore(cr);
 
-    cairo_surface_flush(pimpl->surface);
+        cairo_surface_flush(pimpl->surface);
+    }
+
+    cairo_surface_flush(pimpl->surface); 
 }
 
 const unsigned char* Renderer::getScreenBuffer() {

@@ -8,7 +8,7 @@ using std::chrono::time_point;
 
 
 TileManager::TileManager() {
-    _cache_size = 4;
+    _cache_size = 16;
 }
 
 
@@ -33,7 +33,7 @@ void TileManager::evictOldest() {
 
 
 Tile* TileManager::requestTile(TileHeader header) {
-    std::cout << "Requesting (" << header.x << ", " << header.y << ", " << header.z << ")\n";
+    // std::cout << "Requesting (" << header.x << ", " << header.y << ", " << header.z << ")\n";
 
     // If cache hit, update timestamps and return tile.
     auto cache_lookup = _cache.find(header);

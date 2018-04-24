@@ -33,12 +33,12 @@ int main( int argc, char* args[] )
         const unsigned char* buffer = app.display();
 
         SDL_Surface* surf;
-        surf = SDL_CreateRGBSurfaceWithFormatFrom((void*) buffer,
-                                                  Constants::SCREEN_WIDTH,
-                                                  Constants::SCREEN_HEIGHT,
-                                                  24,
-                                                  app.getDisplayStride(),
-                                                  SDL_PIXELFORMAT_RGB888);
+        surf = SDL_CreateRGBSurfaceFrom((void*) buffer,
+                                        Constants::SCREEN_WIDTH,
+                                        Constants::SCREEN_HEIGHT,
+                                        32, 
+                                        app.getDisplayStride(),
+                                        0, 0, 0, 0);
 
         SDL_Surface* win_surf = SDL_GetWindowSurface(window);
         SDL_BlitSurface(surf, NULL, win_surf, NULL);

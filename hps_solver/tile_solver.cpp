@@ -12,7 +12,7 @@ void TileSolver::solveTile(Tile* tile, int iterations) {
             complex c = {stride.real * x_index + origin.real, 
                          stride.imag * y_index + origin.imag};
             int solution = solvePixel(c, iterations);
-            tile->setPoint(x_index, y_index, solution * 8);
+            tile->setPoint(x_index, y_index, 255 - (solution * 8));
         }
     }
 }
