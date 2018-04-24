@@ -56,7 +56,7 @@ std::string BigNum::toString() const {
     std::ostringstream str;
     for (int i = 0; i < this->length; i++) {
         if (i != 0) str << " ";
-        if (i == 1) str << " . ";
+        if (i == 1) str << ". ";
         str << (int) this->limbs[i];
     }
     return str.str();
@@ -164,5 +164,9 @@ BigNum BigNum::operator*(const BigNum& other) const {
     } else {
         return ret;
     }
+}
+
+bool BigNum::operator>(const BigNum& other) const {
+    return (*this - other).toDouble() > 0;
 }
 

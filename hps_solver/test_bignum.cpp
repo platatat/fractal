@@ -80,13 +80,23 @@ int main(int argc, char* argv[])
     }
     std::cout << "Passed\n\n";
 
-/*
-    BigNum foo(1.5);
-    BigNum bar(0.5);
-    std::cout << "foo: " << foo.toString() << "\n";
-    std::cout << "bar: " << bar.toString() << "\n";
-    BigNum bla(foo * bar);
-    std::cout << "end\n";
-    std::cout << get_rand() << "\n";*/
+    std::cout << "Testing greater than\n";
+    for (int i = 0; i < num_tests; i++) {
+        double a = get_rand();
+        double b = get_rand();
+        BigNum big_a(a);
+        BigNum big_b(b);
+        if (a > b) {
+            if (!(big_a > big_b)) {
+                std::cout << a << " > " << b << " but " << big_a.toString() << " is not > " << big_b.toString() << "\n";
+            }
+        } else {
+            if (big_a > big_b) {
+                std::cout << a << " is not > " << b << " but " << big_a.toString() << " > " << big_b.toString() << "\n";
+            }
+        }
+        std::cout << "\r" << (i + 1) << "     " << std::flush;
+    }
+    std::cout << "Passed\n\n";
     return 0;
 }
