@@ -130,17 +130,19 @@ BigNum BigNum::operator*(const BigNum& other) const {
     const BigNum a = this_neg ? -*this : *this;
     const BigNum b = other_neg ? -other : other;
 
+    unsigned char last_carry = 0;
     for (int bj = ret.length - 1; bj >= 0; bj--) {
-        unsigned char extra_limb = 0; //TODO is this extra precision necessary?
         unsigned char carry = 0;
+        unsigned char extra_limb = 0; //TODO is this extra precision necessary?
         unsigned char this_limb = bj < b.length ? b.limbs[bj] : 0;
 
         for (int ai = ret.length - bj; ai >= 0; ai--) {
             int limb_index = bj + ai;
             unsigned char other_limb = ai < a.length ? a.limbs[ai] : 0;
 
-            int new_limb = this_limb * other_limb;
+            int new_limb = this_limb * other_limb; //TODO can new_limb ever overflow 16 bits. I don't think it could before the last_carry change but now I think it can
             new_limb += carry;
+            if (ai == 0) new_limb += last_carry;
             if (limb_index < ret.length) {
                 new_limb += ret.limbs[limb_index];
                 ret.limbs[limb_index] = (unsigned char) new_limb;
@@ -149,14 +151,17 @@ BigNum BigNum::operator*(const BigNum& other) const {
                 extra_limb = (unsigned char) new_limb;
             }
             carry = (unsigned char) (new_limb >> 8);
+            if (ai == 0) last_carry = carry;
         }
-
+/*
+        //TODO this is part of the last carry optimization - remove once it is determined that new_limb can't overflow 16 bits
         for (int i = bj - 1; i >= 0; i--) {
             if (carry == 0) break;
             int sum = ret.limbs[i] + carry;
             ret.limbs[i] = (unsigned char) sum;
             carry = (unsigned char) (sum >> 8);
         }
+//*/
     }
 
     if (this_neg ^ other_neg) {
