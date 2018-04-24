@@ -1,35 +1,48 @@
 #ifndef __BIGNUM_H__
 #define __BIGNUM_H__
 
+#include <string>
+
+
+//TODO remove
+#include <iostream>
+
+
 
 class BigNum {
 private:
-    double _data;
+    unsigned int length;
+    unsigned char* limbs;
+
+    BigNum(int length);
 
 public:
     BigNum(double value);
+    ~BigNum();
 
-    double toDouble() { return _data; }
+    double toDouble() const;
 
-    BigNum operator + (BigNum other) { return _data + other._data; }
+    std::string toString() const;
 
-    BigNum operator + (double other) { return _data + other; }
+    bool isNegative() const;
 
-    BigNum operator - (BigNum other) { return _data - other._data; }
+    BigNum operator+(const BigNum& other) const;
 
-    BigNum operator - (double other) { return _data - other; }
+    BigNum operator+(double other) const { return *this + BigNum(other); }
 
-    BigNum operator * (BigNum other) { return _data * other._data; }
+    BigNum operator-() const;
 
-    BigNum operator * (double other) { return _data * other; }
+    BigNum operator-(const BigNum& other) const { return *this + -other; }
 
-    BigNum operator / (BigNum other) { return _data / other._data; }
+    BigNum operator-(double other) const { return *this + BigNum(-other); }
 
-    BigNum operator / (double other) { return _data / other; }
+    BigNum operator*(const BigNum& other) const;
 
-    bool operator > (BigNum other) { return _data > other._data; }
+    BigNum operator*(double other) const { return *this * BigNum(other); }
 
-    bool operator > (double other) { return _data > other; }
+    bool operator>(const BigNum& other) const;
+
+    bool operator>(double other) const { return *this > BigNum(other); }
 };
 
 
