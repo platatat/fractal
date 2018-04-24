@@ -1,7 +1,7 @@
 #include "renderer.h"
 
 
-Renderer::Renderer() : _origin({0, 0}), _zoom(8) {
+Renderer::Renderer() : _origin({0.0, 0.0}), _zoom(8) {
     _screen_buffer = new char [Constants::SCREEN_WIDTH * Constants::SCREEN_HEIGHT];
 }
 
