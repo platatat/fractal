@@ -116,11 +116,8 @@ BigNum BigNum::operator-() const {
 }
 
 BigNum BigNum::operator*(const BigNum& other) const {
-    //std::cout << "mult " << this << " * " << &other << "\n";
-
     int max_length = this->length > other.length ? this->length : other.length;
     BigNum ret(max_length);
-    //std::cout << "ret " << &ret << "\n";
 
     //Initialize ret to zero
     for (int i = 0; i < ret.length; i++) {
@@ -131,57 +128,40 @@ BigNum BigNum::operator*(const BigNum& other) const {
     bool other_neg = other.isNegative();
 
     const BigNum a = this_neg ? -*this : *this;
-    //std::cout << "a " << &a << "\n";
     const BigNum b = other_neg ? -other : other;
-    //std::cout << "b " << &b << "\n";
 
     for (int bj = ret.length - 1; bj >= 0; bj--) {
-        //std::cout << "bj " << bj << "\n";
         unsigned char extra_limb = 0; //TODO is this extra precision necessary?
         unsigned char carry = 0;
         unsigned char this_limb = bj < b.length ? b.limbs[bj] : 0;
-        //std::cout << "this_limb " << (int) this_limb << "\n";
+
         for (int ai = ret.length - bj; ai >= 0; ai--) {
-            //std::cout << "ai " << ai << "\n";
             int limb_index = bj + ai;
             unsigned char other_limb = ai < a.length ? a.limbs[ai] : 0;
-            //std::cout << "other_limb " << (int) other_limb << "\n";
-            //std::cout << "limb_index " << limb_index << "\n";
+
             int new_limb = this_limb * other_limb;
-            //std::cout << "this * other = " << new_limb << "\n";
             new_limb += carry;
-            //std::cout << "carry " << (int) carry << ", total = " << new_limb << "\n";
             if (limb_index < ret.length) {
                 new_limb += ret.limbs[limb_index];
-                //std::cout << "old_limb " << (int) ret.limbs[limb_index] << ", total " << new_limb << "\n";
                 ret.limbs[limb_index] = (unsigned char) new_limb;
-                //std::cout << "new_limb " << (int) ret.limbs[limb_index] << "\n";
             } else {
                 new_limb += extra_limb;
-                //std::cout << "old_extra_limb " << (int) extra_limb << ", total " << new_limb << "\n";
                 extra_limb = (unsigned char) new_limb;
-                //std::cout << "new_extra_limb " << (int) extra_limb << "\n";
             }
             carry = (unsigned char) (new_limb >> 8);
-            //std::cout << "new carry " << (int) carry << "\n";
         }
+
         for (int i = bj - 1; i >= 0; i--) {
-            //std::cout << "carrying " << (int) carry << " to index " << i << "\n";
             if (carry == 0) break;
             int sum = ret.limbs[i] + carry;
             ret.limbs[i] = (unsigned char) sum;
-            //std::cout << "ret.limbs[ " << i << "] now = " << (int) ret.limbs[i] << "\n";
             carry = (unsigned char) (sum >> 8);
         }
     }
 
     if (this_neg ^ other_neg) {
-        //std::cout << "negate ret\n";
-        std::cout << ret.toString() << " = " << ret.toDouble() << "\n";
         return -ret;
     } else {
-        //std::cout << "positive ret\n";
-        std::cout << ret.toString() << " = " << ret.toDouble() << "\n";
         return ret;
     }
 }
