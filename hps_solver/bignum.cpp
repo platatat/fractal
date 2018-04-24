@@ -129,10 +129,11 @@ BigNum BigNum::operator*(const BigNum& other) const {
 
     for (int bj = ret.length - 1; bj >= 0; bj--) {
         std::cout << "bj " << bj << "\n";
+        unsigned char extra_limb = 0; //TODO is this extra precision necessary?
         unsigned char carry = 0;
         unsigned char this_limb = bj < this->length ? this->limbs[bj] : 0;
         std::cout << "this_limb " << (int) this_limb << "\n";
-        for (int ai = ret.length - bj - 1; ai >= 0; ai--) {
+        for (int ai = ret.length - bj; ai >= 0; ai--) {
             std::cout << "ai " << ai << "\n";
             int limb_index = bj + ai;
             unsigned char other_limb = ai < other.length ? other.limbs[ai] : 0;
@@ -142,10 +143,17 @@ BigNum BigNum::operator*(const BigNum& other) const {
             std::cout << "this * other = " << new_limb << "\n";
             new_limb += carry;
             std::cout << "carry " << (int) carry << ", total = " << new_limb << "\n";
-            new_limb += ret.limbs[limb_index];
-            std::cout << "old_limb " << (int) ret.limbs[limb_index] << ", total " << new_limb << "\n";
-            ret.limbs[limb_index] = (unsigned char) new_limb;
-            std::cout << "new_limb " << (int) ret.limbs[limb_index] << "\n";
+            if (limb_index < ret.length) {
+                new_limb += ret.limbs[limb_index];
+                std::cout << "old_limb " << (int) ret.limbs[limb_index] << ", total " << new_limb << "\n";
+                ret.limbs[limb_index] = (unsigned char) new_limb;
+                std::cout << "new_limb " << (int) ret.limbs[limb_index] << "\n";
+            } else {
+                new_limb += extra_limb;
+                std::cout << "old_extra_limb " << (int) extra_limb << ", total " << new_limb << "\n";
+                extra_limb = (unsigned char) new_limb;
+                std::cout << "new_extra_limb " << (int) extra_limb << "\n";
+            }
             carry = (unsigned char) (new_limb >> 8);
             std::cout << "new carry " << (int) carry << "\n";
         }
