@@ -11,28 +11,19 @@ public:
     cairo_t *cr;
 };
 
-Renderer::Renderer() : _origin({0, 0}), _zoom(2) {
+Renderer::Renderer() {
     pimpl.reset(new Pimpl());
 
     pimpl->surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
                                                 Constants::SCREEN_WIDTH,
                                                 Constants::SCREEN_HEIGHT);
     pimpl->cr = cairo_create(pimpl->surface);
-
-    _tile_manager = TileManager(64);
 }
 
 
-void Renderer::render() {
+void Renderer::render(const TileManager::ViewportInfo& viewportInfo,
+                      const std::vector<Tile*>& tiles) {
     cairo_t *cr = pimpl->cr;
-
-    std::vector<Tile*> tiles;
-
-    double screen_width = pow(2, -_zoom) * Constants::SCREEN_WIDTH / Constants::TILE_WIDTH;
-    double screen_height = pow(2, -_zoom) * Constants::SCREEN_HEIGHT / Constants::TILE_HEIGHT;
-    complex screen_size = {screen_width, screen_height};
-
-    auto viewportInfo = _tile_manager.loadViewport(_origin, screen_size, (int) (_zoom), tiles);
 
     //printf("w: %i\th: %i\ts: %i\n", viewportInfo.tiles_width, viewportInfo.tiles_height, tiles.size());
 

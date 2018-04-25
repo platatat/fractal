@@ -6,6 +6,10 @@
 
 class Application {
 private:
+    complex _origin;
+    double _zoom;
+
+    TileManager _tile_manager;
     Renderer _renderer;
 
 public:
