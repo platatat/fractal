@@ -10,15 +10,13 @@ public:
     cairo_t *cr;
 };
 
-Renderer::Renderer() : _origin({0.0, 0.0}), _zoom(2) {
+Renderer::Renderer() : _origin({0.0, 0.0}), _zoom(2), _tile_manager(64) {
     pimpl.reset(new Pimpl());
 
     pimpl->surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
                                                 Constants::SCREEN_WIDTH,
                                                 Constants::SCREEN_HEIGHT);
     pimpl->cr = cairo_create(pimpl->surface);
-
-    _tile_manager = TileManager(64);
 }
 
 
@@ -47,6 +45,10 @@ void Renderer::render() {
     int tx = 0;
     int ty = 0;
     for (Tile* tile : tiles) {
+        if (tile == nullptr) {
+            continue;
+        }
+
         unsigned char* buffer = (unsigned char*) tile->getData();
 
         cairo_surface_t* imageSurface = cairo_image_surface_create_for_data(

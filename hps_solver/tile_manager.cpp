@@ -1,5 +1,6 @@
 #include "tile_manager.h"
 #include "tile_solver.h"
+#include <algorithm>
 #include <math.h>
 #include <iostream>
 
@@ -7,17 +8,56 @@ using std::chrono::system_clock;
 using std::chrono::time_point;
 
 
-TileManager::TileManager() {
-    _cache_size = 16;
-}
-
-
 TileManager::TileManager(unsigned int cache_size) {
     _cache_size = cache_size;
+    _worker_thread = std::thread(tileLoadingTask, this);
 }
 
 
-void TileManager::evictOldest() {
+void TileManager::tileLoadingTask(TileManager* tile_manager) {
+    std::unique_lock<std::mutex> lock(tile_manager->_mutex);
+
+    while (true) {
+        // Wait for queue to be non-empty.
+        tile_manager->_request_queue_nonempty.wait(lock);
+
+        while (tile_manager->_request_queue.size() > 0) {
+            TileHeader header = tile_manager->_request_queue.front();
+
+            // Release lock during tile computation.
+            lock.unlock();
+            Tile* tile = generateTile(header);
+
+            // Acquire lock to access the cache.
+            lock.lock();
+            tile_manager->cacheInsert(tile);
+            tile_manager->_request_queue.pop_front();
+        }
+    }
+}
+
+
+bool TileManager::requestQueueContains(TileHeader header) {
+    auto find_result = std::find(_request_queue.begin(), _request_queue.end(), header);
+    return find_result != _request_queue.end();
+}
+
+
+void TileManager::cacheInsert(Tile* tile) {
+    while (_cache.size() >= _cache_size - 1) {
+        cacheEvictOldest();
+    }
+
+    _cache[tile->getHeader()] = {tile, system_clock::now()};
+}
+
+
+bool TileManager::cacheContains(TileHeader header) {
+    return _cache.find(header) != _cache.end();
+}
+
+
+void TileManager::cacheEvictOldest() {
     time_point<system_clock> oldest_time = system_clock::now();
     TileHeader oldest_header;
 
@@ -33,24 +73,18 @@ void TileManager::evictOldest() {
 
 
 Tile* TileManager::requestTile(TileHeader header) {
-    // std::cout << "Requesting (" << header.x << ", " << header.y << ", " << header.z << ")\n";
-
-    // If cache hit, update timestamps and return tile.
-    auto cache_lookup = _cache.find(header);
-    if (cache_lookup != _cache.end()) {
-        cache_lookup->second.last_hit = system_clock::now();
-        return cache_lookup->second.tile;
+    if (cacheContains(header)) {
+        auto cache_result = _cache.find(header);
+        cache_result->second.last_hit = system_clock::now();
+        return cache_result->second.tile;
     }
-
-    // If cache miss, make room for a new tile.
-    while (_cache.size() >= _cache_size - 1) {
-        evictOldest();
+    else {
+        if (!requestQueueContains(header)) {
+            _request_queue.push_back(header);
+            _request_queue_nonempty.notify_one();
+        }
+        return nullptr;
     }
-
-    // Generate a new tile and add it to the cache.
-    Tile* tile = generateTile(header);
-    _cache[header] = {tile, system_clock::now()};
-    return tile;
 }
 
 
@@ -64,7 +98,10 @@ Tile* TileManager::generateTile(TileHeader header) {
 }
 
 
-TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size, int z, std::vector<Tile*>& tiles) {
+TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size, int z, 
+                                                    std::vector<Tile*>& tiles) {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     double tile_length = pow(2, -z);
     int left = (int) origin.real.toDouble() / tile_length;
     int right = (int) (origin.real + size.real).toDouble() / tile_length;
