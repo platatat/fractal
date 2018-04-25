@@ -12,6 +12,7 @@ add_executable(mandelbrot
     bignum.cpp
     main.cpp
     renderer.cpp
+    sdl_input_controller.cpp
     tile.cpp
     tile_manager.cpp
     tile_solver.cpp

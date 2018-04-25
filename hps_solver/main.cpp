@@ -54,6 +54,9 @@ int main( int argc, char* args[] )
                 exit = true;
             }
         }
+
+        // Sleep
+        SDL_Delay(16);
     }
 
     // Clean up

@@ -60,6 +60,7 @@ public:
 
     struct ViewportInfo {
         int tiles_width, tiles_height;
+        double fractional_x, fractional_y;
     };
 
     ViewportInfo loadViewport(complex origin, complex size, int z, std::vector<Tile*>& tiles);

@@ -73,7 +73,7 @@ public:
 };
 
 
-//*
+/*
 typedef MaxBigNum BigNum;
 //*/ typedef DoubleBigNum BigNum;
 

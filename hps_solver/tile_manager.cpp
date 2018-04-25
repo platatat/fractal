@@ -103,10 +103,15 @@ TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size
     std::unique_lock<std::mutex> lock(_mutex);
 
     double tile_length = pow(2, -z);
-    int left = (int) origin.real.toDouble() / tile_length;
-    int right = (int) (origin.real + size.real).toDouble() / tile_length;
-    int bottom = (int) origin.imag.toDouble() / tile_length;
-    int top = (int) (origin.imag + size.imag).toDouble() / tile_length;
+
+    double left_edge   = origin.real.toDouble() / tile_length;
+    double bottom_edge = origin.imag.toDouble() / tile_length;
+
+    int left = (int) std::floor(left_edge);
+    int right = (int) std::floor((origin.real + size.real).toDouble() / tile_length);
+
+    int bottom = (int) std::floor(bottom_edge);
+    int top = (int) std::floor((origin.imag + size.imag).toDouble() / tile_length);
 
     tiles.clear();
     for (int y = bottom; y <= top; y++) {
@@ -120,6 +125,9 @@ TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size
 
     out_info.tiles_width = right - left + 1;
     out_info.tiles_height = top - bottom + 1;
+
+    out_info.fractional_x = left_edge - left;
+    out_info.fractional_y = bottom_edge - bottom;
 
     return out_info;
 }

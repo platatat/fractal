@@ -2,18 +2,12 @@
 #define __RENDERER_H__
 
 #include <memory>
+#include <vector>
 
-#include "complex.h"
 #include "tile_manager.h"
-
 
 class Renderer {
 private:
-    complex _origin;
-    double _zoom;
-
-    TileManager _tile_manager;
-
     class Pimpl;
     std::unique_ptr<Pimpl> pimpl;
 
@@ -21,7 +15,8 @@ public:
     Renderer();
     ~Renderer();
 
-    void render();
+    void render(const TileManager::ViewportInfo& viewportInfo,
+                const std::vector<Tile*>& tiles);
 
     const unsigned char* getScreenBuffer();
     int getScreenBufferStride();
