@@ -10,11 +10,15 @@
 
 
 
-BigNum::BigNum(int length) : length(length), limbs(new unsigned char[length]) {
+MaxBigNum::MaxBigNum(int length) : length(length), limbs(new unsigned char[length]) {
     //std::cout << "-------------------> construct " << this << "\n";
 }
 
-BigNum::BigNum(double value) {
+MaxBigNum::MaxBigNum(double value) {
+    if (value >= 128 || value <= -128) {
+        std::cout << "ERROR: constructing bignum >= 128!\n";
+    }
+
     //std::cout << "-------------------> construct " << this << "\n";
     bool negative = value < 0;
     if (negative) value *= -1;
@@ -46,13 +50,13 @@ BigNum::BigNum(double value) {
     }
 }
 
-BigNum::~BigNum() {
+MaxBigNum::~MaxBigNum() {
     //TODO fix memory leak issues
     //std::cout << "<------------------- destruct " << this << "\n";
     //delete[] limbs;
 }
 
-std::string BigNum::toString() const {
+std::string MaxBigNum::toString() const {
     std::ostringstream str;
     for (int i = 0; i < this->length; i++) {
         if (i != 0) str << " ";
@@ -62,11 +66,11 @@ std::string BigNum::toString() const {
     return str.str();
 }
 
-bool BigNum::isNegative() const {
+bool MaxBigNum::isNegative() const {
     return this->limbs[0] > 127;
 }
 
-double BigNum::toDouble() const {
+double MaxBigNum::toDouble() const {
     bool negative = this->isNegative();
 
     unsigned char carry = negative ? 1 : 0;
@@ -86,9 +90,9 @@ double BigNum::toDouble() const {
     return ret;
 }
 
-BigNum BigNum::operator+(const BigNum& other) const {
+MaxBigNum MaxBigNum::operator+(const MaxBigNum& other) const {
     int max_length = this->length > other.length ? this->length : other.length;
-    BigNum ret(max_length);
+    MaxBigNum ret(max_length);
 
     unsigned char carry = 0;
     for (int i = max_length - 1; i >= 0; i--) {
@@ -102,8 +106,8 @@ BigNum BigNum::operator+(const BigNum& other) const {
     return ret;
 }
 
-BigNum BigNum::operator-() const {
-    BigNum ret = BigNum((int) this->length);
+MaxBigNum MaxBigNum::operator-() const {
+    MaxBigNum ret = MaxBigNum((int) this->length);
 
     unsigned char carry = 1;
     for (int i = this->length - 1; i >= 0; i--) {
@@ -115,9 +119,9 @@ BigNum BigNum::operator-() const {
     return ret;
 }
 
-BigNum BigNum::operator*(const BigNum& other) const {
+MaxBigNum MaxBigNum::operator*(const MaxBigNum& other) const {
     int max_length = this->length > other.length ? this->length : other.length;
-    BigNum ret(max_length);
+    MaxBigNum ret(max_length);
 
     //Initialize ret to zero
     for (int i = 0; i < ret.length; i++) {
@@ -127,8 +131,8 @@ BigNum BigNum::operator*(const BigNum& other) const {
     bool this_neg = this->isNegative();
     bool other_neg = other.isNegative();
 
-    const BigNum a = this_neg ? -*this : *this;
-    const BigNum b = other_neg ? -other : other;
+    const MaxBigNum a = this_neg ? -*this : *this;
+    const MaxBigNum b = other_neg ? -other : other;
 
     unsigned char last_carry = 0;
     for (int bj = ret.length - 1; bj >= 0; bj--) {
@@ -171,7 +175,7 @@ BigNum BigNum::operator*(const BigNum& other) const {
     }
 }
 
-bool BigNum::operator>(const BigNum& other) const {
+bool MaxBigNum::operator>(const MaxBigNum& other) const {
     return (*this - other).toDouble() > 0;
 }
 
