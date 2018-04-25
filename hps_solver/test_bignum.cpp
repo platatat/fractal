@@ -40,6 +40,8 @@ int main(int argc, char* argv[])
     int num_tests = 100000;
 
     std::cout << "Testing double conversion\n";
+    BigNum zero(0.0);
+    assertEquals(0, zero);
     for (int i = 0; i < num_tests; i++) {
         double val = get_rand();
         BigNum num(val);
