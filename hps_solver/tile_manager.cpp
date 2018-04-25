@@ -66,10 +66,12 @@ Tile* TileManager::generateTile(TileHeader header) {
 
 TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size, int z, std::vector<Tile*>& tiles) {
     double tile_length = pow(2, -z);
-    int left = (int) origin.real.toDouble() / tile_length;
-    int right = (int) (origin.real + size.real).toDouble() / tile_length;
-    int bottom = (int) origin.imag.toDouble() / tile_length;
-    int top = (int) (origin.imag + size.imag).toDouble() / tile_length;
+
+    int left = (int) std::floor(origin.real.toDouble() / tile_length);
+    int right = (int) std::floor((origin.real + size.real).toDouble() / tile_length);
+
+    int bottom = (int) std::floor(origin.imag.toDouble() / tile_length);
+    int top = (int) std::floor((origin.imag + size.imag).toDouble() / tile_length);
 
     tiles.clear();
     for (int y = bottom; y <= top; y++) {
