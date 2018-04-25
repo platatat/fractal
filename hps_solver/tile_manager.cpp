@@ -64,17 +64,25 @@ Tile* TileManager::generateTile(TileHeader header) {
 }
 
 
-void TileManager::loadViewport(complex origin, complex size, int z, std::vector<Tile*>& tiles) {
+TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size, int z, std::vector<Tile*>& tiles) {
     double tile_length = pow(2, -z);
     int left = (int) origin.real.toDouble() / tile_length;
     int right = (int) (origin.real + size.real).toDouble() / tile_length;
     int bottom = (int) origin.imag.toDouble() / tile_length;
     int top = (int) (origin.imag + size.imag).toDouble() / tile_length;
 
+    tiles.clear();
     for (int y = bottom; y <= top; y++) {
         for (int x = left; x <= right; x++) {
             Tile* tile = requestTile({x, y, z});
             tiles.push_back(tile);
         }
     }
+
+    ViewportInfo out_info = {0, };
+
+    out_info.tiles_width = right - left + 1;
+    out_info.tiles_height = top - bottom + 1;
+
+    return out_info;
 }

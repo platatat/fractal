@@ -10,7 +10,7 @@ public:
     cairo_t *cr;
 };
 
-Renderer::Renderer() : _origin({0.0, 0.0}), _zoom(0) {
+Renderer::Renderer() : _origin({0.0, 0.0}), _zoom(2) {
     pimpl.reset(new Pimpl());
 
     pimpl->surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
@@ -31,18 +31,42 @@ void Renderer::render() {
     double screen_height = pow(2, -_zoom) * Constants::SCREEN_HEIGHT / Constants::TILE_HEIGHT;
     complex screen_size = {screen_width, screen_height};
 
-    //_tile_manager.loadViewport(_origin, screen_size, (int) (_zoom), tiles);
-    unsigned char* buffer = (unsigned char*) _tile_manager.requestTile({0, 0, 0});
+    auto viewportInfo = _tile_manager.loadViewport(_origin, screen_size, (int) (_zoom), tiles);
 
+    //printf("w: %i\th: %i\ts: %i\n", viewportInfo.tiles_width, viewportInfo.tiles_height, tiles.size());
+
+    //cairo_set_source_rgb(cr, 0, 0, 1.0);
     cairo_set_source_rgb(cr, 1.0, 0.7, 1.0);
     cairo_rectangle (cr, 0, 0, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
     cairo_fill (cr);
 
-    cairo_surface_t* image_surface = cairo_image_surface_create_for_data(
-            buffer, CAIRO_FORMAT_A8, Constants::TILE_WIDTH, 
-            Constants::TILE_HEIGHT, Constants::TILE_WIDTH);
-    cairo_set_source_surface (cr, image_surface, 0, 0);
-    cairo_paint(cr);
+    cairo_save(cr);
+
+    //cairo_scale(cr, 1.2, 1.2);
+
+    int tx = 0;
+    int ty = 0;
+    for (Tile* tile : tiles) {
+        unsigned char* buffer = (unsigned char*) tile->getData();
+
+        cairo_surface_t* imageSurface = cairo_image_surface_create_for_data(
+                buffer, CAIRO_FORMAT_A8, Constants::TILE_WIDTH, 
+                Constants::TILE_HEIGHT, Constants::TILE_WIDTH);
+        cairo_set_source_surface (cr, imageSurface,
+                                  tx * Constants::TILE_WIDTH,
+                                  ty * Constants::TILE_HEIGHT);
+        cairo_paint(cr);
+
+        cairo_surface_destroy(imageSurface);
+
+        tx += 1;
+        if (tx >= viewportInfo.tiles_width) {
+            tx = 0;
+            ty += 1;
+        }
+    }
+
+    cairo_restore(cr);
 
     cairo_surface_flush(pimpl->surface); 
 }
