@@ -4,11 +4,11 @@
 
 class Constants {
 public:
-    static const int SCREEN_WIDTH      = 200;
-    static const int SCREEN_HEIGHT     = 200;
-    static const int TILE_WIDTH        = 200;
-    static const int TILE_HEIGHT       = 200;
-    static const int ITERATIONS        = 16;
+    static const int SCREEN_WIDTH      = 512;
+    static const int SCREEN_HEIGHT     = 512;
+    static const int TILE_WIDTH        = 128;
+    static const int TILE_HEIGHT       = 128;
+    static const int ITERATIONS        = 32;
 };
 
 
