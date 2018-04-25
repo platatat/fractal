@@ -31,42 +31,18 @@ void Renderer::render() {
     double screen_height = pow(2, -_zoom) * Constants::SCREEN_HEIGHT / Constants::TILE_HEIGHT;
     complex screen_size = {screen_width, screen_height};
 
-    _tile_manager.loadViewport(_origin, screen_size, (int) (_zoom), tiles);
+    //_tile_manager.loadViewport(_origin, screen_size, (int) (_zoom), tiles);
+    unsigned char* buffer = (unsigned char*) _tile_manager.requestTile({0, 0, 0});
 
     cairo_set_source_rgb(cr, 1.0, 0.7, 1.0);
     cairo_rectangle (cr, 0, 0, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
     cairo_fill (cr);
 
-    for (Tile* tile : tiles) {
-        unsigned char* buffer = (unsigned char*) tile->getData();
-        TileHeader header = tile->getHeader();
-        complex tile_origin = tile->getOrigin();
-        double tile_size = tile->getSize();
-
-        double left = (tile_origin.real - _origin.real).toDouble() / screen_width;
-        double right = (tile_origin.real + tile_size - _origin.real).toDouble() / screen_width;
-        double bottom = (tile_origin.imag - _origin.imag).toDouble() / screen_height;
-        double top = (tile_origin.imag + tile_size - _origin.imag).toDouble() / screen_height;
-
-        double left_px = left * Constants::SCREEN_WIDTH;
-        double top_px = (1 - top) * Constants::SCREEN_HEIGHT;
-
-        double x_scale = (right - left) * Constants::SCREEN_WIDTH / Constants::TILE_WIDTH;
-        double y_scale = (top - bottom) * Constants::SCREEN_HEIGHT / Constants::TILE_HEIGHT;
-
-        std::cout << header.y << ", " << top_px << ", " << y_scale << "\n";
-
-        cairo_save(cr);
-        cairo_scale(cr, x_scale, y_scale);
-        cairo_surface_t* imageSurface = cairo_image_surface_create_for_data(
-                buffer, CAIRO_FORMAT_A8, Constants::TILE_WIDTH, 
-                Constants::TILE_HEIGHT, Constants::TILE_WIDTH);
-        cairo_set_source_surface (cr, imageSurface, left_px, top_px);
-        cairo_paint(cr);
-        cairo_restore(cr);
-
-        cairo_surface_flush(pimpl->surface);
-    }
+    cairo_surface_t* image_surface = cairo_image_surface_create_for_data(
+            buffer, CAIRO_FORMAT_A8, Constants::TILE_WIDTH, 
+            Constants::TILE_HEIGHT, Constants::TILE_WIDTH);
+    cairo_set_source_surface (cr, image_surface, 0, 0);
+    cairo_paint(cr);
 
     cairo_surface_flush(pimpl->surface); 
 }
