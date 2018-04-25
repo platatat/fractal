@@ -34,7 +34,9 @@ void Renderer::render(const TileManager::ViewportInfo& viewportInfo,
     cairo_save(cr);
 
     cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
-    cairo_scale(cr, 0.8, 0.8);
+    cairo_translate(cr,
+                    -viewportInfo.fractional_x * Constants::TILE_WIDTH,
+                    -viewportInfo.fractional_y * Constants::TILE_HEIGHT);
 
     int tx = 0;
     int ty = 0;
