@@ -16,7 +16,8 @@ public:
     ~Renderer();
 
     void render(const TileManager::ViewportInfo& viewportInfo,
-                const std::vector<Tile*>& tiles);
+                const std::vector<Tile*>& tiles,
+                double fractional_scale);
 
     const unsigned char* getScreenBuffer();
     int getScreenBufferStride();

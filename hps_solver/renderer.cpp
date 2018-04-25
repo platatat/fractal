@@ -22,7 +22,8 @@ Renderer::Renderer() {
 
 
 void Renderer::render(const TileManager::ViewportInfo& viewportInfo,
-                      const std::vector<Tile*>& tiles) {
+                      const std::vector<Tile*>& tiles,
+                      double fractional_scale) {
     cairo_t *cr = pimpl->cr;
 
     //printf("w: %i\th: %i\ts: %i\n", viewportInfo.tiles_width, viewportInfo.tiles_height, tiles.size());
@@ -34,6 +35,9 @@ void Renderer::render(const TileManager::ViewportInfo& viewportInfo,
     cairo_save(cr);
 
     cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
+
+    cairo_scale(cr, fractional_scale, fractional_scale);
+
     cairo_translate(cr,
                     -viewportInfo.fractional_x * Constants::TILE_WIDTH,
                     -viewportInfo.fractional_y * Constants::TILE_HEIGHT);
