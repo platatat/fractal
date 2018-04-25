@@ -2,11 +2,13 @@
 
 
 Application::Application() {
-    _renderer = Renderer();
 }
 
-
-char* Application::display() {
+const unsigned char* Application::display() {
     _renderer.render();
     return _renderer.getScreenBuffer();
+}
+
+int Application::getDisplayStride() {
+    return _renderer.getScreenBufferStride();
 }
