@@ -36,14 +36,14 @@ void Renderer::render() {
 
     //printf("w: %i\th: %i\ts: %i\n", viewportInfo.tiles_width, viewportInfo.tiles_height, tiles.size());
 
-    //cairo_set_source_rgb(cr, 0, 0, 1.0);
-    cairo_set_source_rgb(cr, 1.0, 0.7, 1.0);
+    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
     cairo_rectangle (cr, 0, 0, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
     cairo_fill (cr);
 
     cairo_save(cr);
 
-    //cairo_scale(cr, 1.2, 1.2);
+    cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
+    cairo_scale(cr, 0.8, 0.8);
 
     int tx = 0;
     int ty = 0;
@@ -53,10 +53,18 @@ void Renderer::render() {
         cairo_surface_t* imageSurface = cairo_image_surface_create_for_data(
                 buffer, CAIRO_FORMAT_A8, Constants::TILE_WIDTH, 
                 Constants::TILE_HEIGHT, Constants::TILE_WIDTH);
+
+        cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+        cairo_mask_surface(cr, imageSurface,
+                           tx * Constants::TILE_WIDTH,
+                           ty * Constants::TILE_HEIGHT);
+
+        /*
         cairo_set_source_surface (cr, imageSurface,
                                   tx * Constants::TILE_WIDTH,
                                   ty * Constants::TILE_HEIGHT);
         cairo_paint(cr);
+        */
 
         cairo_surface_destroy(imageSurface);
 
