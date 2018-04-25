@@ -2,10 +2,13 @@ cmake_minimum_required(VERSION 3.5)
 
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/")
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 project(mandelbrot CXX)
 
 if(UNIX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -std=gnu++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 endif()
 
 add_executable(mandelbrot
