@@ -1,5 +1,6 @@
 #include "application.h"
 
+#include "sdl_input_controller.h"
 
 Application::Application() :
     _origin({0, 0}),
@@ -10,6 +11,13 @@ Application::Application() :
 }
 
 const unsigned char* Application::display() {
+    // Process input
+    SdlInputController inputController;
+    auto input = inputController.getInput();
+
+    _origin.real = _origin.real + (input.dx * 0.02);
+    _origin.imag = _origin.imag - (input.dy * 0.02);
+
     // Generate the tiles
     std::vector<Tile*> tiles;
 
