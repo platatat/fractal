@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include <math.h>
-
 #include <cairo.h>
 
 class Renderer::Pimpl {
@@ -10,6 +9,7 @@ public:
     cairo_surface_t *surface;
     cairo_t *cr;
 };
+
 
 Renderer::Renderer() {
     pimpl.reset(new Pimpl());

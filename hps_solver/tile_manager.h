@@ -3,16 +3,36 @@
 
 #include "complex.h"
 #include "tile.h"
-#include <vector>
-#include <unordered_map>
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
+#include <deque>
+#include <thread>
+#include <unordered_map>
+#include <vector>
 
 
 class TileManager {
 private:
-    Tile* generateTile(TileHeader header);
+    unsigned int _cache_size;
 
-    void evictOldest();
+    std::deque<TileHeader> _request_queue;
+
+    std::mutex _mutex;
+
+    std::condition_variable _request_queue_nonempty;
+
+    std::thread _worker_thread;
+
+    static void tileLoadingTask(TileManager* tile_manager);
+
+    bool requestQueueContains(TileHeader header);
+
+    void cacheInsert(Tile* tile);
+
+    bool cacheContains(TileHeader header);
+
+    void cacheEvictOldest();
 
     struct CachedTile {
         Tile* tile;
@@ -29,14 +49,12 @@ private:
         }
     };
 
-    unsigned int _cache_size;
-
     std::unordered_map<TileHeader, CachedTile, TileHeaderHasher> _cache;
 
-public:
-    TileManager();
+    static Tile* generateTile(TileHeader header);
 
-    TileManager(unsigned int cache_size);
+public:
+    TileManager(unsigned int cache_size = 16);
 
     Tile* requestTile(TileHeader header);
 

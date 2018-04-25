@@ -3,7 +3,7 @@
 #include "sdl_input_controller.h"
 
 Application::Application() :
-    _origin({0, 0}),
+    _origin({0.0, 0.0}),
     _zoom(2),
     _tile_manager(512),
     _renderer()

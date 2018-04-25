@@ -1,36 +1,81 @@
-#ifndef __BIGNUM_H__
-#define __BIGNUM_H__
+#ifndef __BIG_NUM_H__
+#define __BIG_NUM_H__
+
+#include <string>
 
 
-class BigNum {
+class MaxBigNum {
 private:
-    double _data;
+    unsigned int length;
+    unsigned char* limbs;
+
+    MaxBigNum(int length);
 
 public:
-    BigNum(double value);
+    MaxBigNum(double value);
+    ~MaxBigNum();
 
-    double toDouble() { return _data; }
+    double toDouble() const;
 
-    BigNum operator + (BigNum other) { return _data + other._data; }
+    std::string toString() const;
 
-    BigNum operator + (double other) { return _data + other; }
+    bool isNegative() const;
 
-    BigNum operator - (BigNum other) { return _data - other._data; }
+    MaxBigNum operator+(const MaxBigNum& other) const;
 
-    BigNum operator - (double other) { return _data - other; }
+    MaxBigNum operator+(double other) const { return *this + MaxBigNum(other); }
 
-    BigNum operator * (BigNum other) { return _data * other._data; }
+    MaxBigNum operator-() const;
 
-    BigNum operator * (double other) { return _data * other; }
+    MaxBigNum operator-(const MaxBigNum& other) const { return *this + -other; }
 
-    BigNum operator / (BigNum other) { return _data / other._data; }
+    MaxBigNum operator-(double other) const { return *this + MaxBigNum(-other); }
 
-    BigNum operator / (double other) { return _data / other; }
+    MaxBigNum operator*(const MaxBigNum& other) const;
 
-    bool operator > (BigNum other) { return _data > other._data; }
+    MaxBigNum operator*(double other) const { return *this * MaxBigNum(other); }
 
-    bool operator > (double other) { return _data > other; }
+    bool operator>(const MaxBigNum& other) const;
+
+    bool operator>(double other) const { return *this > MaxBigNum(other); }
 };
+
+
+class DoubleBigNum {
+private:
+    double _value;
+
+public:
+    DoubleBigNum(double value) { _value = value; }
+    ~DoubleBigNum() {}
+
+    double toDouble() const { return _value; }
+
+    bool isNegative() const { return _value < 0; }
+
+    DoubleBigNum operator+(const DoubleBigNum& other) const { return _value + other._value; }
+
+    DoubleBigNum operator+(double other) const { return *this + DoubleBigNum(other); }
+
+    DoubleBigNum operator-() const { return -_value; }
+
+    DoubleBigNum operator-(const DoubleBigNum& other) const { return *this + -other; }
+
+    DoubleBigNum operator-(double other) const { return *this + DoubleBigNum(-other); }
+
+    DoubleBigNum operator*(const DoubleBigNum& other) const { return _value * other._value; }
+
+    DoubleBigNum operator*(double other) const { return *this * DoubleBigNum(other); }
+
+    bool operator>(const DoubleBigNum& other) const { return _value > other._value; }
+
+    bool operator>(double other) const { return *this > DoubleBigNum(other); }
+};
+
+
+/*
+typedef MaxBigNum BigNum;
+//*/ typedef DoubleBigNum BigNum;
 
 
 #endif

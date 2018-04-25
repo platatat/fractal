@@ -5,12 +5,13 @@
 void TileSolver::solveTile(Tile* tile, int iterations) {
     complex origin = tile->getOrigin();
     complex size = {tile->getSize(), tile->getSize()};
-    complex stride = {size.real / Constants::TILE_WIDTH, size.imag / Constants::TILE_HEIGHT};
+    complex stride = {size.real.toDouble() / Constants::TILE_WIDTH, 
+                      size.imag.toDouble() / Constants::TILE_HEIGHT};
 
     for (int y_index = 0; y_index < Constants::TILE_HEIGHT; y_index++) {
         for (int x_index = 0; x_index < Constants::TILE_WIDTH; x_index++) {
-            complex c = {stride.real * x_index + origin.real, 
-                         stride.imag * y_index + origin.imag};
+            complex c = {stride.real.toDouble() * x_index + origin.real.toDouble(),
+                         stride.imag.toDouble() * y_index + origin.imag.toDouble()};
             int solution = solvePixel(c, iterations);
             tile->setPoint(x_index, y_index, 255 - (solution * 8));
         }
