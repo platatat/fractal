@@ -1,5 +1,6 @@
 #include "application.h"
 
+#include <cmath>
 #include "sdl_input_controller.h"
 
 Application::Application() :
