@@ -11,6 +11,8 @@ private:
     class Pimpl;
     std::unique_ptr<Pimpl> pimpl;
 
+    void histogramColor(unsigned char* screen);
+
 public:
     Renderer();
     ~Renderer();

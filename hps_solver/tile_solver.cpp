@@ -13,7 +13,7 @@ void TileSolver::solveTile(Tile* tile, int iterations) {
             complex c = {stride.real.toDouble() * x_index + origin.real.toDouble(),
                          stride.imag.toDouble() * y_index + origin.imag.toDouble()};
             int solution = solvePixel(c, iterations);
-            tile->setPoint(x_index, y_index, 255 - (solution * 8));
+            tile->setPoint(x_index, y_index, solution * 7);
         }
     }
 }
@@ -22,7 +22,7 @@ void TileSolver::solveTile(Tile* tile, int iterations) {
 int TileSolver::solvePixel(complex c, int iterations) {
     complex z = c;
 
-    for (int i = 0; i < iterations; i++) {
+    for (int i = 0; i < iterations - 1; i++) {
         BigNum z_real_new = (z.real * z.real) - (z.imag * z.imag) + c.real;
         BigNum z_imag_new = (z.imag * z.real * 2) + c.imag;
         z = {.real = z_real_new, .imag = z_imag_new};
@@ -33,5 +33,5 @@ int TileSolver::solvePixel(complex c, int iterations) {
         }
     }
 
-    return -1;
+    return iterations;
 }

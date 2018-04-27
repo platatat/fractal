@@ -2,7 +2,7 @@
 
 
 Tile::Tile(TileHeader header) : _header(header) {
-    _data = new char [Constants::TILE_WIDTH * Constants::TILE_HEIGHT];
+    _data = new unsigned char [Constants::TILE_WIDTH * Constants::TILE_HEIGHT];
 }
 
 

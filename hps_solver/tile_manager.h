@@ -3,10 +3,11 @@
 
 #include "complex.h"
 #include "tile.h"
+#include "tile_request_heap.h"
+#include <algorithm>
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
-#include <deque>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -16,11 +17,13 @@ class TileManager {
 private:
     unsigned int _cache_size;
 
-    std::deque<TileHeader> _request_queue;
+    TileRequestHeap _request_heap;
+
+    TileHeader _current_request;
 
     std::mutex _mutex;
 
-    std::condition_variable _request_queue_nonempty;
+    std::condition_variable _requests_nonempty;
 
     std::thread _worker_thread;
 
