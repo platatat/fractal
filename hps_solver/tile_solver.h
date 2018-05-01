@@ -4,11 +4,12 @@
 
 #include "complex.h"
 #include "tile.h"
+#include <memory>
 
 
 class TileSolver {
 public:
-    static void solveTile(Tile* tile, int iterations);
+    static void solveTile(std::shared_ptr<Tile> tile, int iterations);
 
     static int solvePixel(complex c, int iterations);
 };

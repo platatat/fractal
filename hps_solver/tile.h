@@ -10,10 +10,10 @@
 class Tile {
 private:
     TileHeader _header;
-    unsigned char* _data;
+    unsigned char* const _data;
 
 public:
-    Tile(TileHeader header);
+    Tile(TileHeader header, unsigned char* data);
 
     ~Tile();
 
@@ -23,7 +23,7 @@ public:
 
     TileHeader getHeader() const { return _header; }
 
-    unsigned char* getData() const { return _data; }
+    unsigned char* const getData() const { return _data; }
 
     int getPoint(int x, int y) const { return _data[x + y * Constants::TILE_WIDTH]; }
 

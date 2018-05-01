@@ -27,26 +27,31 @@ private:
 
     std::thread _worker_thread;
 
+    unsigned char* _placeholder_data;
+
     static void tileLoadingTask(TileManager* tile_manager);
+
+    static void loadPlaceholder(unsigned char* data_buffer);
 
     bool requestQueueContains(TileHeader header);
 
-    void cacheInsert(Tile* tile);
+    void cacheInsert(std::shared_ptr<Tile> tile);
 
     bool cacheContains(TileHeader header);
 
     void cacheEvictOldest();
 
     struct CachedTile {
-        Tile* tile;
+        std::shared_ptr<Tile> tile;
         std::chrono::time_point<std::chrono::system_clock> last_hit;
     };
 
     struct TileHeaderHasher {
         std::size_t operator()(const TileHeader& header) const {
             size_t h = 0;
-            h = header.x + (h << 6) + (h << 16) - h;
-            h = header.y + (h << 6) + (h << 16) - h;
+            // TODO: smarter way of hashing big ints would be good.
+            h = header.x.toLong() + (h << 6) + (h << 16) - h;
+            h = header.y.toLong() + (h << 6) + (h << 16) - h;
             h = header.z + (h << 6) + (h << 16) - h;
             return h;
         }
@@ -54,19 +59,21 @@ private:
 
     std::unordered_map<TileHeader, CachedTile, TileHeaderHasher> _cache;
 
-    static Tile* generateTile(TileHeader header);
+    static std::shared_ptr<Tile> generateTile(TileHeader header);
 
 public:
     TileManager(unsigned int cache_size = 16);
 
-    Tile* requestTile(TileHeader header);
+    ~TileManager();
+
+    std::shared_ptr<Tile> requestTile(TileHeader header);
 
     struct ViewportInfo {
         int tiles_width, tiles_height;
-        double fractional_x, fractional_y;
+        BFloat fractional_x, fractional_y;
     };
 
-    ViewportInfo loadViewport(complex origin, complex size, int z, std::vector<Tile*>& tiles);
+    ViewportInfo loadViewport(complex origin, complex size, int z, std::vector<std::shared_ptr<Tile>>& tiles);
 };
 
 

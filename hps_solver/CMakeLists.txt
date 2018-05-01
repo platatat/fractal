@@ -5,11 +5,15 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+add_definitions(-Wfatal-errors)
+
 project(mandelbrot CXX)
 
 add_executable(mandelbrot
     application.cpp
     bignum.cpp
+    big_int.cpp
+    big_float.cpp
     main.cpp
     renderer.cpp
     sdl_input_controller.cpp
@@ -35,3 +39,7 @@ target_link_libraries(mandelbrot ${CAIRO_LIBRARIES})
 pkg_check_modules(SDL2 REQUIRED sdl2)
 target_include_directories(mandelbrot PRIVATE ${SDL2_INCLUDE_DIRS})
 target_link_libraries(mandelbrot ${SDL2_LIBRARIES})
+
+pkg_check_modules(SDL2IMAGE REQUIRED SDL2_image)
+target_include_directories(mandelbrot PRIVATE ${SDL2IMAGE_INCLUDE_DIRS})
+target_link_libraries(mandelbrot ${SDL2IMAGE_LIBRARIES})

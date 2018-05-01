@@ -37,7 +37,7 @@ int main( int argc, char* args[] )
         surf = SDL_CreateRGBSurfaceFrom((void*) buffer,
                                         Constants::SCREEN_WIDTH,
                                         Constants::SCREEN_HEIGHT,
-                                        32, 
+                                        24, 
                                         app.getDisplayStride(),
                                         0, 0, 0, 0);
 

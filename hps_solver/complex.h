@@ -1,12 +1,12 @@
 #ifndef __COMPLEX_H__
 #define __COMPLEX_H__
 
-#include "bignum.h"
+#include "big_float.h"
 
 
 struct complex {
-    BigNum real;
-    BigNum imag;
+    BFloat real;
+    BFloat imag;
 };
 
 

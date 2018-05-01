@@ -2,7 +2,7 @@
 #include "constants.h"
 
 
-void TileSolver::solveTile(Tile* tile, int iterations) {
+void TileSolver::solveTile(std::shared_ptr<Tile> tile, int iterations) {
     complex origin = tile->getOrigin();
     complex size = {tile->getSize(), tile->getSize()};
     complex stride = {size.real.toDouble() / Constants::TILE_WIDTH, 
@@ -13,7 +13,7 @@ void TileSolver::solveTile(Tile* tile, int iterations) {
             complex c = {stride.real.toDouble() * x_index + origin.real.toDouble(),
                          stride.imag.toDouble() * y_index + origin.imag.toDouble()};
             int solution = solvePixel(c, iterations);
-            tile->setPoint(x_index, y_index, solution * 7);
+            tile->setPoint(x_index, y_index, solution);
         }
     }
 }
@@ -22,16 +22,15 @@ void TileSolver::solveTile(Tile* tile, int iterations) {
 int TileSolver::solvePixel(complex c, int iterations) {
     complex z = c;
 
-    for (int i = 0; i < iterations - 1; i++) {
-        BigNum z_real_new = (z.real * z.real) - (z.imag * z.imag) + c.real;
-        BigNum z_imag_new = (z.imag * z.real * 2) + c.imag;
+    for (int i = 1; i < iterations - 1; i++) {
+        BFloat z_real_new = (z.real * z.real) - (z.imag * z.imag) + c.real;
+        BFloat z_imag_new = (z.imag * z.real * 2) + c.imag;
         z = {.real = z_real_new, .imag = z_imag_new};
 
         if (z.real * z.real + z.imag * z.imag > 4) {
-            // Add 1 because we skip an iteration with z0 = c.
-            return i + 1;
+            return i;
         }
     }
 
-    return iterations;
+    return iterations - 1;
 }
