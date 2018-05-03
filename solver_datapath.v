@@ -302,8 +302,8 @@ reg  [(LIMB_SIZE_BITS<<1)-1:0] X_m1_old;
 wire X_diverged;
 
 localparam ACCUMULATOR_BITS = (LIMB_SIZE_BITS << 1) + LIMB_INDEX_BITS;
-reg  [ACCUMULATOR_BITS-1:0] X_zre_acc; //zre accumulator
-reg  [ACCUMULATOR_BITS-1:0] X_zim_acc; //zim accumulator
+reg  signed [ACCUMULATOR_BITS-1:0] X_zre_acc; //zre accumulator
+reg  signed [ACCUMULATOR_BITS-1:0] X_zim_acc; //zim accumulator
 
 reg  [ACCUMULATOR_BITS-1:0] X_zre_partial;
 reg  [ACCUMULATOR_BITS-1:0] X_zim_partial;
@@ -334,14 +334,14 @@ always @* begin
         //Multiply operation
         case (X_zre_acc_sel)
             0: X_zre_acc_next = X_zre_partial + X_zre_acc;                                      //Add partial into the accumulator
-            1: X_zre_acc_next = X_zre_partial + (X_zre_acc >>> LIMB_SIZE_BITS) + X_cre_limb;    //Shift accumulator to only store the carry and add partial and c
+            1: X_zre_acc_next = X_zre_partial + $signed(X_zre_acc >>> LIMB_SIZE_BITS) + X_cre_limb;    //Shift accumulator to only store the carry and add partial and c
             2: X_zre_acc_next = X_zre_partial + 0;                                              //Set accumulator to partial
             3: X_zre_acc_next = X_zre_acc_next;                                                 //Do nothing
             default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for multiply op", X_zre_acc_sel);
         endcase
         case (X_zim_acc_sel)
             0: X_zim_acc_next = X_zim_partial + X_zim_acc;                                      //Add partial into the accumulator
-            1: X_zim_acc_next = X_zim_partial + (X_zim_acc >>> LIMB_SIZE_BITS) + X_cim_limb;    //Shift accumulator to only store the carry and add partial and c
+            1: X_zim_acc_next = X_zim_partial + $signed(X_zim_acc >>> LIMB_SIZE_BITS) + X_cim_limb;    //Shift accumulator to only store the carry and add partial and c
             2: X_zim_acc_next = X_zim_partial + 0;                                              //Set accumulator to partial
         3: X_zim_acc_next = X_zim_acc_next;                                                     //Do nothing
             default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for multiply op", X_zim_acc_sel);
@@ -457,31 +457,59 @@ always @(posedge clock) begin
 end
 
 always @(posedge clock) begin
-    /*if (X_op_sel == 1'b1) begin
+    //*
+    if (X_op_sel == 1'b1) begin
+        //$display("NNNNNNNNNEEEEEEEEEEEEEEEEGGGGGGGGGGGGGGAAAAAAAAAAAAATTTTTTTTTTTTIIIIIIIIIIIINNNNNNNNNNNNNNGGGGGGGGGGGGGG");
+        /*
         case (X_zre_acc_sel)
             0: $display("X_zre_acc_next(%h) =  X_zre_limb(%h); //Do not modify z limb", X_zre_acc_next, X_zre_limb);
             1: $display("X_zre_acc_next(%h) = (X_zre_limb(%h) ^ {(LIMB_SIZE_BITS){1'b1}})(%h) + 1; //Invert z limb and add 1", X_zre_acc_next, X_zre_limb, X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}});
             2: $display("X_zre_acc_next(%h) = (X_zre_limb(%h) ^ {(LIMB_SIZE_BITS){1'b1}})(%h) + (X_zre_acc(%h) >>> LIMB_SIZE_BITS)(%h); //Invert z limb and add carry", X_zre_acc_next, X_zre_limb, X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}}, X_zre_acc, X_zre_acc >>> LIMB_SIZE_BITS);
             default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for negate op", X_zre_acc_sel);
         endcase
-    end*/
+        //*/
+        /*
+        case (X_zim_acc_sel)
+            0: $display("X_zim_acc_next(%h) =  X_zim_limb(%h); //Do not modify z limb", X_zim_acc_next, X_zim_limb);
+            1: $display("X_zim_acc_next(%h) = (X_zim_limb(%h) ^ {(LIMB_SIZE_BITS){1'b1}})(%h) + 1; //Invert z limb and add 1", X_zim_acc_next, X_zim_limb, X_zim_limb ^ {(LIMB_SIZE_BITS){1'b1}});
+            2: $display("X_zim_acc_next(%h) = (X_zim_limb(%h) ^ {(LIMB_SIZE_BITS){1'b1}})(%h) + (X_zim_acc(%h) >>> LIMB_SIZE_BITS)(%h); //Invert z limb and add carry", X_zim_acc_next, X_zim_limb, X_zim_limb ^ {(LIMB_SIZE_BITS){1'b1}}, X_zim_acc, X_zim_acc >>> LIMB_SIZE_BITS);
+            default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for negate op", X_zim_acc_sel);
+        endcase
+        //*/
+    end
+    //*/
 
     //$display("C_op_sel %b -> R_op_sel %b -> M_op_sel %b -> X_op_sel %b", C_op_sel, R_op_sel, M_op_sel, X_op_sel);
-    /*$display("R | cre[%d] -> %d | cim[%d] -> %d | zre[%d] -> %d | zim[%d] -> %d", R_limb_ind, R_cre_limb, R_limb_ind, R_cim_limb, R_zre_ind, R_zre_limb, R_zim_ind, R_zim_limb);
-    $display("M | m1: %d * %d = %d | m2: %d * %d = %d", M_m1_a, M_m1_b, M_m1_out, M_m2_a, M_m2_b, M_m2_out);
+    //$display("R | cre[%d] -> %h | cim[%d] -> %h | zre[%d] -> %h | zim[%d] -> %h", R_limb_ind, R_cre_limb, R_limb_ind, R_cim_limb, R_zre_ind, R_zre_limb, R_zim_ind, R_zim_limb);
+    //$display("M | m1: %h * %h = %h | m2: %h * %h = %h", M_m1_a, M_m1_b, M_m1_out, M_m2_a, M_m2_b, M_m2_out);
+    /*
     case (X_zre_partial_sel)
-        0: $display("X | zre_partial(%d) = [ m1_out(%d) << 1](%d)", X_zre_partial, X_m1_out, X_m1_out << 1);
-        1: $display("X | zre_partial(%d) = [-m1_out(%d) << 1](%d)", X_zre_partial, X_m1_out, -X_m1_out << 1);
-        2: $display("X | zre_partial(%d) = [ m1_out(%d)](%d)", X_zre_partial, X_m1_out, X_m1_out);
-        3: $display("X | zre_partial(%d) = [-m1_out(%d)](%d)", X_zre_partial, X_m1_out, -X_m1_out);
+        0: $display("X | zre_partial(%h) = [ m1_out(%h) << 1](%h)", X_zre_partial, X_m1_out, X_m1_out << 1);
+        1: $display("X | zre_partial(%h) = [-m1_out(%h) << 1](%h)", X_zre_partial, X_m1_out, -X_m1_out << 1);
+        2: $display("X | zre_partial(%h) = [ m1_out(%h)](%h)", X_zre_partial, X_m1_out, X_m1_out);
+        3: $display("X | zre_partial(%h) = [-m1_out(%h)](%h)", X_zre_partial, X_m1_out, -X_m1_out);
     endcase
     case (X_zre_acc_sel)
-        0: $display("X | zre_acc(%d) := partial(%d) + zre_acc(%d) //Add partial into the accumulator", X_zre_acc_next, X_zre_partial, X_zre_acc);
-        1: $display("X | zre_acc(%d) := partial(%d) + [zre_acc(%d)>>>%d](%d) + cre_limb(%d) //Shift accumulator to only store the carry and add partial and c", X_zre_acc_next, X_zre_partial, X_zre_acc, LIMB_SIZE_BITS, X_zre_acc >>> LIMB_SIZE_BITS, X_cre_limb);
-        2: $display("X | zre_acc(%d) := partial(%d) + 0 //Set accumulator to partial", X_zre_acc_next, X_zre_partial);
-        3: $display("X | zre_acc(%d) := zre_acc(%d) //Do nothing", X_zre_acc_next, X_zre_acc_next);
+        0: $display("X | zre_acc(%h) := partial(%h) + zre_acc(%h) //Add partial into the accumulator", X_zre_acc_next, X_zre_partial, X_zre_acc);
+        1: $display("X | zre_acc(%h) := partial(%h) + [zre_acc(%h)>>>%d](%h) + cre_limb(%h) //Shift accumulator to only store the carry and add partial and c", X_zre_acc_next, X_zre_partial, X_zre_acc, LIMB_SIZE_BITS, X_zre_acc >>> LIMB_SIZE_BITS, X_cre_limb);
+        2: $display("X | zre_acc(%h) := partial(%h) + 0 //Set accumulator to partial", X_zre_acc_next, X_zre_partial);
+        3: $display("X | zre_acc(%h) := zre_acc(%h) //Do nothing", X_zre_acc_next, X_zre_acc_next);
         default: $display("[ERROR] X_zre_acc_sel has illegal value: %b", X_zre_acc_sel);
-    endcase*/
+    endcase
+    //*/
+    /*
+    case (X_zim_partial_sel)
+        0: $display("X | zim_partial(%h) = [ m2_out(%h) << 1](%h)", X_zim_partial, X_m2_out, X_m2_out << 1);
+        1: $display("X | zim_partial(%h) = [-m2_out(%h) << 1](%h)", X_zim_partial, X_m2_out, -X_m2_out << 1);
+    endcase
+    case (X_zim_acc_sel)
+        0: $display("X | zim_acc(%h) := partial(%h) + zim_acc(%h) //Add partial into the accumulator", X_zim_acc_next, X_zim_partial, X_zim_acc);
+        1: $display("X | zim_acc(%h) := partial(%h) + [zim_acc(%h)>>>%d](%h) + cim_limb(%h) //Shift accumulator to only store the carry and add partial and c", X_zim_acc_next, X_zim_partial, X_zim_acc, LIMB_SIZE_BITS, X_zim_acc >>> LIMB_SIZE_BITS, X_cre_limb);
+        2: $display("X | zim_acc(%h) := partial(%h) + 0 //Set accumulator to partial", X_zim_acc_next, X_zim_partial);
+        3: $display("X | zim_acc(%h) := zim_acc(%h) //Do nothing", X_zim_acc_next, X_zim_acc_next);
+        default: $display("[ERROR] X_zim_acc_sel has illegal value: %b", X_zim_acc_sel);
+    endcase
+    //*/
 end
 
 endmodule

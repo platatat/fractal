@@ -42,28 +42,75 @@ module top();
         #20
         reset <= 0;
 
-        //Load 1.5 into cre and 0.5 into cim
+        //Load 0.5 into cre and -1.5 into cim
         C_cre_wr_en <= 1;
         C_cim_wr_en <= 1;
         C_limb_ind <= 0;
-        C_cre_limb <= 0;
-        C_cim_limb <= 1;
+        C_cre_limb <= 8'h00;
+        C_cim_limb <= 8'hfe;
         #20
 
         C_limb_ind <= 1;
-        C_cre_limb <= 128;
-        C_cim_limb <= 128;
+        C_cre_limb <= 8'h80;
+        C_cim_limb <= 8'h80;
         #20
 
         C_limb_ind <= 2;
-        C_cre_limb <= 0;
-        C_cim_limb <= 0;
+        C_cre_limb <= 8'h00;
+        C_cim_limb <= 8'h00;
         #20
 
         C_cre_wr_en <= 0;
         C_cim_wr_en <= 0;
         C_cre_limb <= 0;
         C_cim_limb <= 0;
+
+        //Wait for pipeline to flush
+        C_zre_wr_en   <= 0;
+        C_zim_wr_en   <= 0;
+        C_zre_ind     <= 0;
+        C_zim_ind     <= 0;
+        C_zre_acc_sel <= 0;
+        C_zim_acc_sel <= 0;
+        #20
+        #20
+        #20
+        #20
+        #20
+
+        //Negate zim
+        C_op_sel <= 1;
+        C_zre_wr_en <= 1;
+        C_zim_wr_en <= 1;
+
+        C_limb_ind <= 1;
+        C_zre_ind <= 1;
+        C_zim_ind <= 1;
+        C_zre_acc_sel <= 0;
+        C_zim_acc_sel <= 1;
+        #20
+
+        C_limb_ind <= 0;
+        C_zre_ind <= 0;
+        C_zim_ind <= 0;
+        C_zre_acc_sel <= 0;
+        C_zim_acc_sel <= 2;
+        #20
+
+        C_op_sel <= 0;
+
+        //Wait for pipeline to flush
+        C_zre_wr_en   <= 0;
+        C_zim_wr_en   <= 0;
+        C_zre_ind     <= 0;
+        C_zim_ind     <= 0;
+        C_zre_acc_sel <= 0;
+        C_zim_acc_sel <= 0;
+        #20
+        #20
+        #20
+        #20
+        #20
 
         //Compute the z series
         //iter 0
@@ -77,7 +124,7 @@ module top();
         C_m2_a_sel <= 0;
         C_m2_b_sel <= 1;
         C_zre_partial_sel <= 2;
-        C_zim_partial_sel <= 0;
+        C_zim_partial_sel <= 1;
         C_zre_acc_sel <= 2;
         C_zim_acc_sel <= 2;
         C_zre_wr_en <= 0;
@@ -94,7 +141,7 @@ module top();
         C_m2_a_sel <= 0;
         C_m2_b_sel <= 1;
         C_zre_partial_sel <= 3;
-        C_zim_partial_sel <= 0;
+        C_zim_partial_sel <= 1;
         C_zre_acc_sel <= 0;
         C_zim_acc_sel <= 3;
         C_zre_wr_en <= 0;
@@ -111,7 +158,7 @@ module top();
         C_m2_a_sel <= 0;
         C_m2_b_sel <= 1;
         C_zre_partial_sel <= 0;
-        C_zim_partial_sel <= 0;
+        C_zim_partial_sel <= 1;
         C_zre_acc_sel <= 3;
         C_zim_acc_sel <= 1;
         C_zre_wr_en <= 0;
@@ -128,7 +175,7 @@ module top();
         C_m2_a_sel <= 2;
         C_m2_b_sel <= 3;
         C_zre_partial_sel <= 0;
-        C_zim_partial_sel <= 0;
+        C_zim_partial_sel <= 1;
         C_zre_acc_sel <= 1;
         C_zim_acc_sel <= 0;
         C_zre_wr_en <= 0;
@@ -145,7 +192,7 @@ module top();
         C_m2_a_sel <= 2;
         C_m2_b_sel <= 3;
         C_zre_partial_sel <= 1;
-        C_zim_partial_sel <= 0;
+        C_zim_partial_sel <= 1;
         C_zre_acc_sel <= 0;
         C_zim_acc_sel <= 3;
         C_zre_wr_en <= 1;
@@ -162,7 +209,7 @@ module top();
         C_m2_a_sel <= 0;
         C_m2_b_sel <= 1;
         C_zre_partial_sel <= 2;
-        C_zim_partial_sel <= 0;
+        C_zim_partial_sel <= 1;
         C_zre_acc_sel <= 1;
         C_zim_acc_sel <= 1;
         C_zre_wr_en <= 0;
@@ -179,7 +226,7 @@ module top();
         C_m2_a_sel <= 0;
         C_m2_b_sel <= 1;
         C_zre_partial_sel <= 3;
-        C_zim_partial_sel <= 0;
+        C_zim_partial_sel <= 1;
         C_zre_acc_sel <= 0;
         C_zim_acc_sel <= 3;
         C_zre_wr_en <= 1;
@@ -199,7 +246,7 @@ module top();
         #20
         #20
 
-        //Negate zre
+        //Negate zre, zim
         C_op_sel <= 1;
         C_zre_wr_en <= 1;
         C_zim_wr_en <= 1;
@@ -208,15 +255,17 @@ module top();
         C_zre_ind <= 1;
         C_zim_ind <= 1;
         C_zre_acc_sel <= 1;
-        C_zim_acc_sel <= 0;
+        C_zim_acc_sel <= 1;
         #20
 
         C_limb_ind <= 0;
         C_zre_ind <= 0;
         C_zim_ind <= 0;
         C_zre_acc_sel <= 2;
-        C_zim_acc_sel <= 0;
+        C_zim_acc_sel <= 2;
         #20
+
+        C_op_sel <= 0;
 
         //Wait for pipeline to flush
         C_zre_wr_en   <= 0;
