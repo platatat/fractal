@@ -295,13 +295,13 @@ reg  [LIMB_SIZE_BITS-1:0] X_cim_limb;
 reg  [LIMB_SIZE_BITS-1:0] X_zre_limb;
 reg  [LIMB_SIZE_BITS-1:0] X_zim_limb;
 
-reg  [(LIMB_SIZE_BITS<<1)-1:0] X_m1_out;
-reg  [(LIMB_SIZE_BITS<<1)-1:0] X_m2_out;
-reg  [(LIMB_SIZE_BITS<<1)-1:0] X_m1_old;
+localparam ACCUMULATOR_BITS = (LIMB_SIZE_BITS << 1) + LIMB_INDEX_BITS;
+reg  [ACCUMULATOR_BITS-1:0] X_m1_out;
+reg  [ACCUMULATOR_BITS-1:0] X_m2_out;
+reg  [ACCUMULATOR_BITS-1:0] X_m1_old;
 
 wire X_diverged;
 
-localparam ACCUMULATOR_BITS = (LIMB_SIZE_BITS << 1) + LIMB_INDEX_BITS;
 reg  signed [ACCUMULATOR_BITS-1:0] X_zre_acc; //zre accumulator
 reg  signed [ACCUMULATOR_BITS-1:0] X_zim_acc; //zim accumulator
 
