@@ -10,11 +10,9 @@ add_definitions(-Wfatal-errors)
 project(mandelbrot CXX)
 
 add_executable(mandelbrot
+    main.cpp
     application.cpp
     bignum.cpp
-    big_int.cpp
-    big_float.cpp
-    main.cpp
     renderer.cpp
     sdl_input_controller.cpp
     tile.cpp

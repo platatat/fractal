@@ -11,7 +11,11 @@ private:
     unsigned char* _data_buffer;
     unsigned char* _screen_buffer;
 
+    unsigned int* _iterations_pdf;
+    double* _iterations_cdf;
+
     void histogramColor();
+    void cyclicColor();
 
 public:
     Renderer();

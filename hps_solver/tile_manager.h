@@ -50,8 +50,8 @@ private:
         std::size_t operator()(const TileHeader& header) const {
             size_t h = 0;
             // TODO: smarter way of hashing big ints would be good.
-            h = header.x.toLong() + (h << 6) + (h << 16) - h;
-            h = header.y.toLong() + (h << 6) + (h << 16) - h;
+            h = header.x.get_si() + (h << 6) + (h << 16) - h;
+            h = header.y.get_si() + (h << 6) + (h << 16) - h;
             h = header.z + (h << 6) + (h << 16) - h;
             return h;
         }
@@ -70,7 +70,7 @@ public:
 
     struct ViewportInfo {
         int tiles_width, tiles_height;
-        BFloat fractional_x, fractional_y;
+        double fractional_x, fractional_y;
     };
 
     ViewportInfo loadViewport(complex origin, complex size, int z, std::vector<std::shared_ptr<Tile>>& tiles);

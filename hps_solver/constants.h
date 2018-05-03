@@ -10,7 +10,7 @@ public:
     static const int TILE_WIDTH         = 128;
     static const int TILE_HEIGHT        = 128;
 
-    static const int ITERATIONS         = 16;
+    static const int ITERATIONS         = 64;
     static const int MPF_PRECISION      = 64;
 
     static const int SCREEN_PIXELS      = SCREEN_WIDTH * SCREEN_HEIGHT;

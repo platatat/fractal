@@ -1,17 +1,17 @@
 #ifndef __TILE_HEADER_H__
 #define __TILE_HEADER_H__
 
-#include "big_int.h"
+#include <gmpxx.h>
 
 
 struct TileHeader {
-    BInt x;
-    BInt y;
+    mpz_class x;
+    mpz_class y;
     long z;
 
     bool operator==(const TileHeader& other) const {
-            return (x == other.x) && (y == other.y) && (z == other.z);
-        }
+        return (x == other.x) && (y == other.y) && (z == other.z);
+    }
 };
 
 

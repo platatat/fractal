@@ -1,12 +1,11 @@
 #include "application.h"
 #include "constants.h"
-
+#include "tile_solver.h"
 #include <SDL2/SDL.h>
 #include <iostream>
 
 
-int main( int argc, char* args[] )
-{
+int runApp() {
     Application app;
 
     // Initialize SDL
@@ -66,4 +65,12 @@ int main( int argc, char* args[] )
     SDL_Quit();
 
     return 0;
+}
+
+
+int main(int argc, char* args[])
+{
+    runApp();
+
+    // TileSolver::solvePixel({1.0, 0.5}, 5);
 }

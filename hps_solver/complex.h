@@ -1,12 +1,12 @@
 #ifndef __COMPLEX_H__
 #define __COMPLEX_H__
 
-#include "big_float.h"
+#include <gmpxx.h>
 
 
 struct complex {
-    BFloat real;
-    BFloat imag;
+    mpf_class real;
+    mpf_class imag;
 };
 
 

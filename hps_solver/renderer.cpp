@@ -6,83 +6,90 @@
 
 
 Renderer::Renderer() {
-    int pixel_count = Constants::SCREEN_WIDTH * Constants::SCREEN_HEIGHT;
-    _data_buffer = new unsigned char [pixel_count];
-    _screen_buffer = new unsigned char [pixel_count * 3];
+    _data_buffer = new unsigned char [Constants::SCREEN_PIXELS];
+    _screen_buffer = new unsigned char [Constants::SCREEN_PIXELS * 3];
+
+    _iterations_pdf = new unsigned int [Constants::ITERATIONS];
+    _iterations_cdf = new double [Constants::ITERATIONS];
 }
 
 
-void Renderer::render(const TileManager::ViewportInfo& viewportInfo,
+Renderer::~Renderer() {
+    delete[] _data_buffer;
+    delete[] _screen_buffer;
+
+    delete[] _iterations_pdf;
+    delete[] _iterations_cdf;
+}
+
+
+void Renderer::render(const TileManager::ViewportInfo& viewport_info,
                       const std::vector<std::shared_ptr<Tile>>& tiles,
                       double fractional_scale) {
-    BFloat translate_x = -viewportInfo.fractional_x * (Constants::TILE_WIDTH);
-    BFloat translate_y = -viewportInfo.fractional_y * (Constants::TILE_HEIGHT);
+    // Clear PDF for coloring.
+    for (int i = 0; i < Constants::ITERATIONS; i++) {
+        _iterations_pdf[i] = 0;
+    }
 
-    int tx = 0;
-    int ty = 0;
+    double translate_x = -viewport_info.fractional_x * (Constants::TILE_WIDTH);
+    double translate_y = -viewport_info.fractional_y * (Constants::TILE_HEIGHT);
 
-    for (std::shared_ptr<Tile> tile : tiles) {
-        if (tile != nullptr) {
-            unsigned char* tile_buffer = tile->getData();
-            
+    for (int tile_x = 0; tile_x < viewport_info.tiles_width; tile_x++) {
+        for (int tile_y = 0; tile_y < viewport_info.tiles_height; tile_y++) {
+            int tile_index = tile_y * viewport_info.tiles_width + tile_x;
+            std::shared_ptr<Tile> tile = tiles[tile_index];
+
+            int tile_screen_x = tile_x * Constants::TILE_WIDTH;
+            int tile_screen_y = tile_y * Constants::TILE_HEIGHT;
+
             for (int y = 0; y < Constants::TILE_HEIGHT; y++) {
                 for (int x = 0; x < Constants::TILE_WIDTH; x++) {
-                    int screen_x = tx * Constants::TILE_WIDTH + x;
-                    int screen_y = ty * Constants::TILE_HEIGHT + y;
+                    int screen_x = tile_screen_x + x;
+                    int screen_y = tile_screen_y + y;
 
                     // Apply viewport transformations.
-                    screen_x = ((translate_x + screen_x) * fractional_scale).floor().toLong();
-                    screen_y = ((translate_y + screen_y) * fractional_scale).floor().toLong();
+                    screen_x = std::floor((translate_x + screen_x) * fractional_scale);
+                    screen_y = std::floor((translate_y + screen_y) * fractional_scale);
 
                     // Draw pixels.
                     if (screen_x >= 0 && screen_x < Constants::SCREEN_WIDTH) {
                         if (screen_y >= 0 && screen_y < Constants::SCREEN_HEIGHT) {
                             unsigned char tile_value = tile->getPoint(x, y);
                             _data_buffer[screen_x + screen_y * Constants::SCREEN_WIDTH] = tile_value;
+                            if (!tile->isPlaceholder() && tile_value) {
+                                _iterations_pdf[tile_value] += 1;
+                            }
                         }
                     }
                 }
             }
         }
-
-        tx += 1;
-        if (tx >= viewportInfo.tiles_width) {
-            tx = 0;
-            ty += 1;
-        }
     }
 
-    histogramColor();
+    // Recompute CDF by normalizing and integrating new PDF.
+    double pdf_sum = 0;
+    for (int i = 1; i < Constants::ITERATIONS - 1; i++) {
+        pdf_sum += _iterations_pdf[i];
+    }
+
+    _iterations_cdf[0] = _iterations_pdf[0] / pdf_sum;
+    for (int i = 1; i < Constants::ITERATIONS; i++) {
+        _iterations_cdf[i] = _iterations_cdf[i - 1] + (_iterations_pdf[i] / pdf_sum);
+    }
+
+    // histogramColor();
+    cyclicColor();
 }
 
 
 void Renderer::histogramColor() {
-    // TODO: why the hell can't I stack allocate these?
-    int* pdf = new int [256];
-    int* cdf = new int [256];
-
-    // Initialize PDF and CDF to zero.
-    for (int i = 0; i < 256; i++) {
-        pdf[i] = 0;
-        cdf[i] = 0;
-    }
-
-    // Compute PDF from red channel (can use any except alpha).
     for (int i = 0; i < Constants::SCREEN_PIXELS; i++) {
         unsigned char value = _data_buffer[i];
-        pdf[value] += 1;
-    }
+        double color = _iterations_cdf[value];
 
-    // Compute CDF by integrating PDF.
-    cdf[0] = pdf[0];
-    for (int i = 1; i < 256; i++) {
-        cdf[i] = cdf[i - 1] + pdf[i];
-    }
-
-    // Recolor pixels from CDF.
-    for (int i = 0; i < Constants::SCREEN_PIXELS; i++) {
-        unsigned char value = _data_buffer[i];
-        double color = (double) cdf[value] / Constants::SCREEN_PIXELS;
+        if (value == Constants::ITERATIONS - 1) {
+            color = 1.0;
+        }
 
         unsigned char red   = color * 255;
         unsigned char green = color * 255;
@@ -92,10 +99,32 @@ void Renderer::histogramColor() {
         _screen_buffer[3 * i + 1] = green;
         _screen_buffer[3 * i + 0] = blue;
     }
-
-    delete[] pdf;
-    delete[] cdf;
 }
+
+
+void Renderer::cyclicColor() {
+    double cycle_period = 5;
+
+    for (int i = 0; i < Constants::SCREEN_PIXELS; i++) {
+        unsigned char value = _data_buffer[i];
+        double phase = value / cycle_period;
+
+        unsigned char red   = 0;
+        unsigned char green = (sin(phase) * 127) + 128;
+        unsigned char blue  = (sin(phase) * 127) + 128;
+
+        if (value == Constants::ITERATIONS - 1) {
+            red     = 255;
+            blue    = 255;
+            green   = 255;
+        }
+
+        _screen_buffer[3 * i + 2] = red;
+        _screen_buffer[3 * i + 1] = green;
+        _screen_buffer[3 * i + 0] = blue;
+    }
+}
+
 
 const unsigned char* Renderer::getScreenBuffer() {
     return _screen_buffer;
@@ -105,6 +134,3 @@ const unsigned char* Renderer::getScreenBuffer() {
 int Renderer::getScreenBufferStride() {
     return Constants::SCREEN_WIDTH * 3;
 }
-
-
-Renderer::~Renderer(){}
