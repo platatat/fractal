@@ -39,6 +39,7 @@ module solver_datapath #(
     input [1:0] C_m2_b_sel,
 
     //Execute (X) control signals
+    input       C_op_sel,
     input [1:0] C_zre_partial_sel,
     input       C_zim_partial_sel,
     input [1:0] C_zre_acc_sel,
@@ -66,6 +67,7 @@ reg  [1:0] R_m1_a_sel;
 reg  [1:0] R_m1_b_sel;
 reg  [1:0] R_m2_a_sel;
 reg  [1:0] R_m2_b_sel;
+reg        R_op_sel;
 reg  [1:0] R_zre_partial_sel;
 reg        R_zim_partial_sel;
 reg  [1:0] R_zre_acc_sel;
@@ -112,6 +114,7 @@ always @(posedge clock) begin
         R_m1_b_sel        <= 0;
         R_m2_a_sel        <= 0;
         R_m2_b_sel        <= 0;
+        R_op_sel          <= 0;
         R_zre_partial_sel <= 0;
         R_zim_partial_sel <= 0;
         R_zre_acc_sel     <= 0;
@@ -135,6 +138,7 @@ always @(posedge clock) begin
         R_m1_b_sel        <= C_m1_b_sel;
         R_m2_a_sel        <= C_m2_a_sel;
         R_m2_b_sel        <= C_m2_b_sel;
+        R_op_sel          <= C_op_sel;
         R_zre_partial_sel <= C_zre_partial_sel;
         R_zim_partial_sel <= C_zim_partial_sel;
         R_zre_acc_sel     <= C_zre_acc_sel;
@@ -173,6 +177,7 @@ reg  [1:0] M_m1_a_sel;
 reg  [1:0] M_m1_b_sel;
 reg  [1:0] M_m2_a_sel;
 reg  [1:0] M_m2_b_sel;
+reg        M_op_sel;
 reg  [1:0] M_zre_partial_sel;
 reg        M_zim_partial_sel;
 reg  [1:0] M_zre_acc_sel;
@@ -233,6 +238,7 @@ always @(posedge clock) begin
         M_m1_b_sel        <= 0;
         M_m2_a_sel        <= 0;
         M_m2_b_sel        <= 0;
+        M_op_sel          <= 0;
         M_zre_partial_sel <= 0;
         M_zim_partial_sel <= 0;
         M_zre_acc_sel     <= 0;
@@ -252,6 +258,7 @@ always @(posedge clock) begin
         M_m1_b_sel        <= R_m1_b_sel;
         M_m2_a_sel        <= R_m2_a_sel;
         M_m2_b_sel        <= R_m2_b_sel;
+        M_op_sel          <= R_op_sel;
         M_zre_partial_sel <= R_zre_partial_sel;
         M_zim_partial_sel <= R_zim_partial_sel;
         M_zre_acc_sel     <= R_zre_acc_sel;
@@ -272,6 +279,7 @@ end
 // ---------- Execute Stage (X) -----------------------------------------------
 
 //Control signals
+reg        X_op_sel;
 reg  [1:0] X_zre_partial_sel;
 reg        X_zim_partial_sel;
 reg  [1:0] X_zre_acc_sel;
@@ -322,25 +330,45 @@ always @* begin
         1: X_zim_partial = -X_m2_out << 1;
     endcase
 
-    case (X_zre_acc_sel)
-        0: X_zre_acc_next = X_zre_partial + X_zre_acc;                                   //Add partial into the accumulator
-        1: X_zre_acc_next = X_zre_partial + (X_zre_acc >>> LIMB_SIZE_BITS) + X_cre_limb; //Shift accumulator to only store the carry and add partial and c
-        2: X_zre_acc_next = X_zre_partial + 0;                                           //Set accumulator to partial
-        3: X_zre_acc_next = X_zre_acc_next;                                              //Do nothing
-        default: $display("[ERROR] X_zre_acc_sel has illegal value: %b", X_zre_acc_sel);
-    endcase
-    case (X_zim_acc_sel)
-        0: X_zim_acc_next = X_zim_partial + X_zim_acc;                                   //Add partial into the accumulator
-        1: X_zim_acc_next = X_zim_partial + (X_zim_acc >>> LIMB_SIZE_BITS) + X_cim_limb; //Shift accumulator to only store the carry and add partial and c
-        2: X_zim_acc_next = X_zim_partial + 0;                                           //Set accumulator to partial
-        3: X_zim_acc_next = X_zim_acc_next;                                              //Do nothing
-        default: $display("[ERROR] X_zim_acc_sel has illegal value: %b", X_zim_acc_sel);
-    endcase
+    if (X_op_sel == 1'b0) begin
+        //Multiply operation
+        case (X_zre_acc_sel)
+            0: X_zre_acc_next = X_zre_partial + X_zre_acc;                                      //Add partial into the accumulator
+            1: X_zre_acc_next = X_zre_partial + (X_zre_acc >>> LIMB_SIZE_BITS) + X_cre_limb;    //Shift accumulator to only store the carry and add partial and c
+            2: X_zre_acc_next = X_zre_partial + 0;                                              //Set accumulator to partial
+            3: X_zre_acc_next = X_zre_acc_next;                                                 //Do nothing
+            default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for multiply op", X_zre_acc_sel);
+        endcase
+        case (X_zim_acc_sel)
+            0: X_zim_acc_next = X_zim_partial + X_zim_acc;                                      //Add partial into the accumulator
+            1: X_zim_acc_next = X_zim_partial + (X_zim_acc >>> LIMB_SIZE_BITS) + X_cim_limb;    //Shift accumulator to only store the carry and add partial and c
+            2: X_zim_acc_next = X_zim_partial + 0;                                              //Set accumulator to partial
+        3: X_zim_acc_next = X_zim_acc_next;                                                     //Do nothing
+            default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for multiply op", X_zim_acc_sel);
+        endcase
+    end else if (X_op_sel == 1'b1) begin
+        //Negate operation
+        case (X_zre_acc_sel)
+            0: X_zre_acc_next =  X_zre_limb;                                                                //Do not modify z limb
+            1: X_zre_acc_next = (X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}}) + 1;                                //Invert z limb and add 1
+            2: X_zre_acc_next = (X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}}) + (X_zre_acc >>> LIMB_SIZE_BITS);   //Invert z limb and add carry
+            default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for negate op", X_zre_acc_sel);
+        endcase
+        case (X_zim_acc_sel)
+            0: X_zim_acc_next =  X_zim_limb;                                                                //Do not modify z limb
+            1: X_zim_acc_next = (X_zim_limb ^ {(LIMB_SIZE_BITS){1'b1}}) + 1;                                //Invert z limb and add 1
+            2: X_zim_acc_next = (X_zim_limb ^ {(LIMB_SIZE_BITS){1'b1}}) + (X_zim_acc >>> LIMB_SIZE_BITS);   //Invert z limb and add carry
+            default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for negate op", X_zim_acc_sel);
+        endcase
+    end else begin
+        $display("[ERROR] X_op_sel has illegal value: %b", X_op_sel);
+    end
 end
 
 always @(posedge clock) begin
     if (reset) begin
         //Control
+        X_op_sel          <= 0;
         X_zre_partial_sel <= 0;
         X_zim_partial_sel <= 0;
         X_zre_acc_sel     <= 0;
@@ -352,6 +380,8 @@ always @(posedge clock) begin
         X_limb_ind <= 0;
         X_cre_limb <= 0;
         X_cim_limb <= 0;
+        X_zre_limb <= 0;
+        X_zim_limb <= 0;
         X_m1_out   <= 0;
         X_m2_out   <= 0;
         X_m1_old   <= 0;
@@ -367,9 +397,12 @@ always @(posedge clock) begin
         X_zim_wr_en       <= M_zim_wr_en;
 
         //Datapath
+        X_op_sel   <= M_op_sel;
         X_limb_ind <= M_limb_ind;
         X_cre_limb <= M_cre_limb;
         X_cim_limb <= M_cim_limb;
+        X_zre_limb <= M_zre_limb;
+        X_zim_limb <= M_zim_limb;
         X_m1_out   <= M_m1_out;
         X_m2_out   <= M_m2_out;
         X_m1_old   <= X_m1_out;
@@ -424,6 +457,16 @@ always @(posedge clock) begin
 end
 
 always @(posedge clock) begin
+    /*if (X_op_sel == 1'b1) begin
+        case (X_zre_acc_sel)
+            0: $display("X_zre_acc_next(%h) =  X_zre_limb(%h); //Do not modify z limb", X_zre_acc_next, X_zre_limb);
+            1: $display("X_zre_acc_next(%h) = (X_zre_limb(%h) ^ {(LIMB_SIZE_BITS){1'b1}})(%h) + 1; //Invert z limb and add 1", X_zre_acc_next, X_zre_limb, X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}});
+            2: $display("X_zre_acc_next(%h) = (X_zre_limb(%h) ^ {(LIMB_SIZE_BITS){1'b1}})(%h) + (X_zre_acc(%h) >>> LIMB_SIZE_BITS)(%h); //Invert z limb and add carry", X_zre_acc_next, X_zre_limb, X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}}, X_zre_acc, X_zre_acc >>> LIMB_SIZE_BITS);
+            default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for negate op", X_zre_acc_sel);
+        endcase
+    end*/
+
+    //$display("C_op_sel %b -> R_op_sel %b -> M_op_sel %b -> X_op_sel %b", C_op_sel, R_op_sel, M_op_sel, X_op_sel);
     /*$display("R | cre[%d] -> %d | cim[%d] -> %d | zre[%d] -> %d | zim[%d] -> %d", R_limb_ind, R_cre_limb, R_limb_ind, R_cim_limb, R_zre_ind, R_zre_limb, R_zim_ind, R_zim_limb);
     $display("M | m1: %d * %d = %d | m2: %d * %d = %d", M_m1_a, M_m1_b, M_m1_out, M_m2_a, M_m2_b, M_m2_out);
     case (X_zre_partial_sel)

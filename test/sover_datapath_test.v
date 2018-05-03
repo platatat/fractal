@@ -28,6 +28,7 @@ module top();
         C_m1_b_sel <= 0;
         C_m2_a_sel <= 0;
         C_m2_b_sel <= 0;
+        C_op_sel <= 0;
         C_zre_partial_sel <= 0;
         C_zim_partial_sel <= 0;
         C_zre_acc_sel <= 0;
@@ -198,6 +199,38 @@ module top();
         #20
         #20
 
+        //Negate zre
+        C_op_sel <= 1;
+        C_zre_wr_en <= 1;
+        C_zim_wr_en <= 1;
+
+        C_limb_ind <= 1;
+        C_zre_ind <= 1;
+        C_zim_ind <= 1;
+        C_zre_acc_sel <= 1;
+        C_zim_acc_sel <= 0;
+        #20
+
+        C_limb_ind <= 0;
+        C_zre_ind <= 0;
+        C_zim_ind <= 0;
+        C_zre_acc_sel <= 2;
+        C_zim_acc_sel <= 0;
+        #20
+
+        //Wait for pipeline to flush
+        C_zre_wr_en   <= 0;
+        C_zim_wr_en   <= 0;
+        C_zre_ind     <= 0;
+        C_zim_ind     <= 0;
+        C_zre_acc_sel <= 0;
+        C_zim_acc_sel <= 0;
+        #20
+        #20
+        #20
+        #20
+        #20
+
         $finish;
     end
 
@@ -230,6 +263,7 @@ module top();
     reg [1:0] C_m2_b_sel;
 
     //Execute (X) control signals
+    reg       C_op_sel;
     reg [1:0] C_zre_partial_sel;
     reg       C_zim_partial_sel;
     reg [1:0] C_zre_acc_sel;
@@ -258,6 +292,7 @@ module top();
         .C_m1_b_sel(C_m1_b_sel),
         .C_m2_a_sel(C_m2_a_sel),
         .C_m2_b_sel(C_m2_b_sel),
+        .C_op_sel(C_op_sel),
         .C_zre_partial_sel(C_zre_partial_sel),
         .C_zim_partial_sel(C_zim_partial_sel),
         .C_zre_acc_sel(C_zre_acc_sel),
