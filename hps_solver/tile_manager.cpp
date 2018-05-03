@@ -36,6 +36,7 @@ void TileManager::tileLoadingTask(TileManager* tile_manager) {
             // Release lock during tile computation.
             lock.unlock();
             std::shared_ptr<Tile> tile = generateTile(tile_manager->_current_request);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
             // Acquire lock to access the cache.
             lock.lock();
@@ -161,28 +162,46 @@ TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size
         for (mpz_class x = left; x <= right; x++) {
             std::shared_ptr<Tile> tile = requestTile({x, y, viewport_z});
             tiles.push_back(tile);
-            // break;
         }
-        // break;
     }
 
-    // // Pre-fetching for tiles close to the current viewport.
-    // for (int y = bottom; y <= top; y++) {
-    //     for (int x = left; x <= right; x++) {
-    //         TileHeader header = {x, y, z};
-    //         if (!cacheContains(header) && !requestQueueContains(header)) {
-    //             _request_heap.push(header);
-    //             _requests_nonempty.notify_one();
-    //         }
-    //     }
-    // }
+    // Pre-fetching for tiles close to the current viewport.
+    for (int z = viewport_z; z <= viewport_z + 1; z++) {
+        int zoom_scale = 1 << (z - viewport_z);
+        mpz_class z_left    = left * zoom_scale;
+        mpz_class z_bottom  = bottom * zoom_scale;
+        mpz_class z_right   = right * zoom_scale;
+        mpz_class z_top     = top * zoom_scale;
+
+        for (mpz_class y = z_bottom; y <= z_top; y++) {
+            for (mpz_class x = z_left; x <= z_right; x++) {
+                TileHeader header = {x, y, z};
+                if (!cacheContains(header) && !requestQueueContains(header)) {
+                    _request_heap.push(header);
+                    _requests_nonempty.notify_one();
+                }
+            }
+        }
+    }
 
     // Re-prioritize the tile request heap based on the current viewport.
     _request_heap.rebuild([left, right, top, bottom, viewport_z](TileHeader& header) {
-        double x_dist = std::abs(header.x.get_si() - (left.get_si() + right.get_si()) * 0.5);
-        double y_dist = std::abs(header.y.get_si() - (bottom.get_si() + top.get_si()) * 0.5);
-        double z_dist = std::abs(header.z - viewport_z);
-        return x_dist + y_dist + 4 * z_dist;
+        int z_dist = header.z - viewport_z;
+
+        mpz_class center_x = (left.get_si() + right.get_si()) / 2;
+        mpz_class center_y = (bottom.get_si() + top.get_si()) / 2;
+
+        mpz_class header_x_eff = header.x / (1 << z_dist);
+        mpz_class header_y_eff = header.y / (1 << z_dist);
+
+        mpz_class x_dist = header_x_eff - center_x;
+        mpz_class y_dist = header_y_eff - center_y;
+
+        double loss_x = std::abs(x_dist.get_si());
+        double loss_y = std::abs(y_dist.get_si());
+        double loss_z = 4 * z_dist;
+
+        return loss_x + loss_y + loss_z;
     });
 
     ViewportInfo out_info = {0, };
