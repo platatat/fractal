@@ -7,13 +7,16 @@ module solver #(
     parameter LIMB_SIZE_BITS    = 27,
     parameter DIVERGENCE_RADIUS = 4
 ) (
-    input clock,
-    input reset,
+    input                       clock,
+    input                       reset,
 
-    input                   wr_en,
-    input                   wr_sel,     // 0 = write c_re, 1 = write c_im
-    input [LIMB_INDEX_BITS] wr_limb,    // Which limb to write
-    input [LIMB_SIZE_BITS]  wr_data     // Data to write to the limb
+    input                       wr_en,
+    input                       wr_sel,     // 0 = write c_re, 1 = write c_im
+    input [LIMB_INDEX_BITS]     wr_limb,    // Which limb to write
+    input [LIMB_SIZE_BITS]      wr_data,    // Data to write to the limb
+
+    output                      out_ready,
+    output [LIMB_SIZE_BITS-1:0] iterations
 );
     wire        cre_wr_en;
     wire        cim_wr_en;
@@ -39,7 +42,7 @@ module solver #(
 
     solver_control #(LIMB_INDEX_BITS) control_path (
         .clock              (clock),
-        .reset              (),
+        .reset              (reset),
         .wr_en              (wr_en),
         .wr_limb            (wr_limbm),
         .cre_limb           (cre_limb),
@@ -67,7 +70,7 @@ module solver #(
 
     solver_datapath #(LIMB_INDEX_BITS, LIMB_SIZE_BITS, DIVERGENCE_RADIUS) data_path (
         .clock              (clock),
-        .reset              (),
+        .reset              (reset),
         .C_cre_limb         (cre_limb),
         .C_cim_limb         (cim_limb),
         .C_limb_ind         (limb_ind),
