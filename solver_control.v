@@ -42,12 +42,12 @@ module solver_control #(
 );
 
     //States
-    localparam STATE_LOAD   = 0; // Load c / Output iteration count from last solve
-    localparam STATE_FLUSH1 = 1; // Wait for pipeline to flush
-    localparam STATE_ABS    = 2; // z = abs(z)
-    localparam STATE_FLUSH2 = 3; // Wait for pipeline to flush
-    localparam STATE_ITER   = 4; // Compute a z series iteration
-    localparam STATE_CHECK  = 5; // Check if z diverged
+    localparam STATE_LOAD       = 0; // Load c / Output iteration count from last solve
+    localparam STATE_ABS        = 1; // z = abs(z)
+    localparam STATE_ABS_FLUSH  = 2; // Wait for pipeline to flush
+    localparam STATE_ITER       = 3; // Compute a z series iteration
+    localparam STATE_ITER_FLUSH = 4; // Wait for pipeline to flush
+    localparam STATE_CHECK      = 5; // Check if z diverged
     reg  [2:0] state;
     reg  [2:0] next_state;
 
@@ -109,14 +109,9 @@ module solver_control #(
             cim_wr_en = wr_en;
 
             if (start) begin
-                next_state = STATE_FLUSH1;
+                next_state = STATE_ABS;
                 next_out_ready = 0;
             end
-        end
-        else if (state == STATE_FLUSH1)
-        begin
-            next_flush_counter = flush_counter - 1;
-            if (flush_counter == 0) next_state = STATE_ABS;
         end
         else if (state == STATE_ABS)
         begin
@@ -132,9 +127,9 @@ module solver_control #(
             if (last_zim_sign) zim_acc_sel = limb_index == num_limbs - 1 ? ABS_START : ABS_CARRY;
             else               zim_acc_sel = ABS_NOP;
 
-            if (limb_index == 0) next_state = STATE_FLUSH2;
+            if (limb_index == 0) next_state = STATE_ABS_FLUSH;
         end
-        else if (state == STATE_FLUSH2)
+        else if (state == STATE_ABS_FLUSH)
         begin
             next_flush_counter = flush_counter - 1;
             if (flush_counter == 0) next_state = STATE_ITER;
@@ -147,7 +142,12 @@ module solver_control #(
 
             zim_partial_sel = last_zre_sign ^ last_zim_sign;
 
-            if (limb_index == 0) next_state = STATE_CHECK;
+            if (limb_index == 0) next_state = STATE_ITER_FLUSH;
+        end
+        else if (state == STATE_ITER_FLUSH)
+        begin
+            next_flush_counter = flush_counter - 1;
+            if (flush_counter == 0) next_state = STATE_CHECK;
         end
         else if (state == STATE_CHECK)
         begin
@@ -159,7 +159,7 @@ module solver_control #(
                 next_out_ready = 1;
                 next_iteration_count <= -1;
             end else begin
-                next_state <= STATE_FLUSH1;
+                next_state <= STATE_ABS;
                 next_iteration_count = iteration_count + 1;
             end
         end
@@ -187,6 +187,9 @@ module solver_control #(
             if (state == STATE_LOAD) begin
                 if (wr_num_limbs_en) num_limbs <= num_limbs_data;
                 if (wr_iter_lim_en)  iteration_limit <= iter_lim_data;
+            end else if (state == STATE_CHECK) begin
+                last_zre_sign <= zre_sign;
+                last_zim_sign <= zim_sign;
             end
         end
     end
