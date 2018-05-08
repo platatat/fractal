@@ -1,12 +1,13 @@
 #include "application.h"
 #include "constants.h"
+#include "tile_client.h"
+#include "tile_server.h"
 
 #include <SDL2/SDL.h>
 #include <iostream>
 
 
-int main( int argc, char* args[] )
-{
+int run() {
     Application app;
 
     // Initialize SDL
@@ -66,4 +67,36 @@ int main( int argc, char* args[] )
     SDL_Quit();
 
     return 0;
+}
+
+
+void clientTest() {
+    TileClient client = TileClient(8080);
+    client.run();
+}
+
+
+void serverTest() {
+    TileServer server = TileServer(8080);
+    server.init();
+
+    char* data = new char[1024];
+
+    server.receive(32, data);
+    std::cout << data << std::endl;
+}
+
+
+int socketTest(int argc, char* args[]) {
+    if (argc < 2) std::cout << "must specify client or server" << std::endl;
+    else if (strcmp(args[1], "client") == 0) clientTest();
+    else if (strcmp(args[1], "server") == 0) serverTest();
+    else std::cout << "unrecognized: " << args[1] << std::endl;
+}
+
+
+int main( int argc, char* args[] )
+{
+    // return run();
+    return socketTest(argc, args);
 }

@@ -16,6 +16,8 @@ add_executable(mandelbrot
     tile.cpp
     tile_manager.cpp
     tile_solver.cpp
+    tile_client.cpp
+    tile_server.cpp
 )
 
 find_package(PkgConfig REQUIRED)
