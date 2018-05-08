@@ -10,10 +10,12 @@ module solver #(
     input                       clock,
     input                       reset,
 
-    input                       wr_en,
-    input                       wr_sel,     // 0 = write c_re, 1 = write c_im
+    input                       wr_real_en,
+    input                       wr_imag_en,
     input [LIMB_INDEX_BITS]     wr_limb,    // Which limb to write
     input [LIMB_SIZE_BITS]      wr_data,    // Data to write to the limb
+
+    input                       start,
 
     output                      out_ready,
     output [LIMB_SIZE_BITS-1:0] iterations
