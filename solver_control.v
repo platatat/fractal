@@ -114,8 +114,8 @@ module solver_control #(
         op_sel          = OP_ITER;
         zre_partial_sel = 0;
         zim_partial_sel = 0;
-        zre_acc_sel     = ITER_NOP; //TODO
-        zim_acc_sel     = ITER_NOP; //TODO
+        zre_acc_sel     = ITER_NOP;
+        zim_acc_sel     = ITER_NOP;
         zre_wr_en       = 0;
         zim_wr_en       = 0;
 
