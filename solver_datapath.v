@@ -343,7 +343,7 @@ always @* begin
             0: X_zim_acc_next = X_zim_partial + X_zim_acc;                                                  //Add partial into the accumulator
             1: X_zim_acc_next = X_zim_partial + $signed(X_zim_acc >>> LIMB_SIZE_BITS) + X_cim_limb;         //Shift accumulator to only store the carry and add partial and c
             2: X_zim_acc_next = X_zim_partial + 0;                                                          //Set accumulator to partial
-        3: X_zim_acc_next = X_zim_acc_next;                                                                 //Do nothing
+            3: X_zim_acc_next = X_zim_acc_next;                                                             //Do nothing
             default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for multiply op", X_zim_acc_sel);
         endcase
     end else if (X_op_sel == 1'b1) begin
