@@ -84,7 +84,7 @@ module solver_control #(
     localparam ZIM_PART_NEG = 1;
 
     localparam ITER_ADD_PARTIAL = 0;
-    localparam ITER_ADD_CARRY   = 1;
+    localparam ITER_CARRY       = 1;
     localparam ITER_SET         = 2;
     localparam ITER_NOP         = 3;
     localparam ABS_NOP          = 0;
@@ -199,10 +199,13 @@ module solver_control #(
                                                    (flip_partial ? ZRE_PART_DOUBLE_NEG : ZRE_PART_DOUBLE_POS);
             zim_partial_sel = (last_zre_sign ^ last_zim_sign) ? ZIM_PART_NEG : ZIM_PART_POS;
             if (partial_index == 0) begin
-
+                zre_acc_sel = flip_partial ? (limb_index == num_limbs - 1 ? ITER_SET : ITER_CARRY) : ITER_NOP;
+                zim_acc_sel = flip_partial ? ITER_ADD_PARTIAL                                      : (limb_index == num_limbs - 1 ? ITER_SET : ITER_CARRY);
             end else begin
-
+                zre_acc_sel = ITER_ADD_PARTIAL;
+                zim_acc_sel = ITER_ADD_PARTIAL;
             end
+            if (zre_ind == zim_ind && flip_partial) zim_acc_sel = ITER_NOP;
         end
         else if (state == STATE_ITER_FLUSH)
         begin
