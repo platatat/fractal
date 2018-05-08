@@ -491,7 +491,6 @@ hps_fifo_decoder hps_fifo_decoder (
 	.decoded_data 	(fifo_decoded_data)
 );
 
-/*
 solver_manager #(
 	NUM_SOLVERS,
 	LIMB_INDEX_BITS,
@@ -504,7 +503,6 @@ solver_manager #(
 	.fifo_data_type (fifo_data_type),
 	.fifo_data 		(fifo_decoded_data)
 );
-*/
 
 reg state;
 reg [15:0] write_data;

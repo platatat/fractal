@@ -59,10 +59,13 @@ module solver_manager #(
             );
 
             always @(posedge clock) begin
+                // TODO: Do we need reset?
+                /*
                 if (reset) begin
                     solvers_output_addr[i] <= 0;
                     solvers_zoom_level[i] <= 0;
                 end
+                */
             end
         end
     endgenerate
