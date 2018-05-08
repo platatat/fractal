@@ -68,6 +68,8 @@ module solver_control #(
     reg                        flip_partial;
     reg                        next_flip_partial;
 
+    reg [1:0] pattern_index;
+
     reg  last_zre_sign;
     reg  last_zim_sign;
 
@@ -169,6 +171,26 @@ module solver_control #(
             zre_ind         = flip_partial ?              partial_index : limb_index - partial_index;
             zim_ind         = flip_partial ? limb_index - partial_index :              partial_index;
 
+            zre_reg_sel     = pattern_index == 0 ? 0 :
+                              pattern_index == 1 ? 2 :
+                              pattern_index == 2 ? 0 :
+                                                   1;
+
+            zim_reg_sel     = pattern_index == 0 ? 1 :
+                              pattern_index == 1 ? 3 :
+                              pattern_index == 2 ? 2 :
+                                                   3;
+
+            m1_a_sel        = pattern_index == 0 ? 2 :
+                              pattern_index == 1 ? 0 :
+                              pattern_index == 2 ? 1 :
+                                                   0;
+
+            m1_b_sel        = pattern_index == 0 ? 3 :
+                              pattern_index == 1 ? 2 :
+                              pattern_index == 2 ? 3 :
+                                                   1;
+
             m2_a_sel        = zre_reg_sel;
             m2_b_sel        = zim_reg_sel;
             zre_partial_sel = zre_ind == zim_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
@@ -218,6 +240,8 @@ module solver_control #(
 
             partial_index   <= 0;
             flip_partial    <= 0;
+
+            pattern_index   <= 0;
         end else begin
             state           <= next_state;
             flush_counter   <= next_flush_counter;
@@ -226,6 +250,8 @@ module solver_control #(
             limb_index      <= next_limb_index;
             partial_index   <= next_partial_index;
             flip_partial    <= next_flip_partial;
+
+            pattern_index   <= pattern_index + 1;
 
             if (state == STATE_LOAD) begin
                 if (wr_num_limbs_en) num_limbs <= num_limbs_data;
