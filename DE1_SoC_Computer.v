@@ -403,9 +403,9 @@ HexDigit Digit5(HEX5, hex5_hex0[23:20]);
 //     .valid_stream(stream_valid)
 // );
 
-// reg stream_start_delay [2:1];
-// reg stream_end_delay [2:1];
-// reg stream_valid_delay [2:1];
+reg stream_start_delay [2:1];
+reg stream_end_delay [2:1];
+reg stream_valid_delay [2:1];
 
 // always @(posedge CLOCK_50) begin
 //     stream_start_delay[1] <= stream_start;
@@ -485,6 +485,7 @@ wire [2:0] 	fifo_data_type;
 wire [31:0] fifo_raw_data;
 wire [31:0] fifo_decoded_data;
 
+/*
 hps_fifo_decoder hps_fifo_decoder (
 	.raw_data 		(fifo_raw_data),
 	.data_type 		(fifo_data_type),
@@ -502,7 +503,8 @@ solver_manager #(
 	.fifo_valid 	(fifo_valid),
 	.fifo_data_type (fifo_data_type),
 	.fifo_data 		(fifo_decoded_data)
-)
+);
+*/
 
 //=======================================================
 //  Structural coding
