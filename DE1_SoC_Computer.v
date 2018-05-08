@@ -485,13 +485,13 @@ wire [2:0] 	fifo_data_type;
 wire [31:0] fifo_raw_data;
 wire [31:0] fifo_decoded_data;
 
-/*
 hps_fifo_decoder hps_fifo_decoder (
 	.raw_data 		(fifo_raw_data),
 	.data_type 		(fifo_data_type),
 	.decoded_data 	(fifo_decoded_data)
 );
 
+/*
 solver_manager #(
 	NUM_SOLVERS,
 	LIMB_INDEX_BITS,

@@ -13,10 +13,12 @@ module hps_fifo_decoder (
     input [31:0]    raw_data,
 
     output [2:0]    data_type,
-    output [31:0]   decoded_data,
+    output [31:0]   decoded_data
 );
 
-    assign data_type = fifo_data[31:29];
-    assign in_data = {3'd0, fifo_data[28:0]};
+    assign data_type = raw_data[31:29];
+    assign in_data = {3'd0, raw_data[28:0]};
+
+endmodule
 
 `endif
