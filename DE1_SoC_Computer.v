@@ -532,6 +532,18 @@ Computer_System The_System (
 	.vga_G										(VGA_G),
 	.vga_B										(VGA_B),
 	
+	// SDRAM
+	.sdram_clk_clk								(DRAM_CLK),
+	.sdram_addr									(DRAM_ADDR),
+	.sdram_ba									(DRAM_BA),
+	.sdram_cas_n								(DRAM_CAS_N),
+	.sdram_cke									(DRAM_CKE),
+	.sdram_cs_n									(DRAM_CS_N),
+	.sdram_dq									(DRAM_DQ),
+	.sdram_dqm									({DRAM_UDQM,DRAM_LDQM}),
+	.sdram_ras_n								(DRAM_RAS_N),
+	.sdram_we_n									(DRAM_WE_N),
+
 	////////////////////////////////////
 	// HPS Side
 	////////////////////////////////////
