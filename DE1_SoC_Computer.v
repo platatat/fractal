@@ -375,8 +375,8 @@ HexDigit Digit5(HEX5, hex5_hex0[23:20]);
 //=======================================================
 // OLD Solvers and VGA logic
 //=======================================================
-// wire reset_key;
-// assign reset_key = ~KEY[0];
+wire reset_key;
+assign reset_key = ~KEY[0];
 
 // wire stream_ready;
 // wire stream_start;
@@ -505,6 +505,26 @@ solver_manager #(
 	.fifo_data 		(fifo_decoded_data)
 );
 */
+
+reg state;
+reg [15:0] write_data;
+wire write_en;
+wire ack;
+
+always @(posedge CLOCK_50) begin
+    if (reset_key) begin
+        state <= 0;
+        write_data <= 0;
+    end else if (state == 0) begin
+        state <= 1;
+        write_data <= write_data + 1;
+    end else if (state == 1) begin
+        state <= ~ack;
+        write_data <= write_data;
+    end
+end
+
+assign write_en = (state == 1);
 
 //=======================================================
 //  Structural coding
@@ -664,6 +684,14 @@ Computer_System The_System (
     .solver_cycles_external_connection_export(solve_time),
     .solver_iterations_external_connection_export (solver_iterations),
 
-    .solver_clock_clk (solver_clock)
+    .solver_clock_clk (solver_clock),
+
+    .sdram_writer_address     (write_data * 2),
+    .sdram_writer_byte_enable (2'b11),
+    .sdram_writer_write       (write_en),
+    .sdram_writer_write_data  (write_data),
+    .sdram_writer_acknowledge (ack),
+    //.sdram_writer_read        (),
+    //.sdram_writer_read_data   (),
 );
 endmodule // end top level

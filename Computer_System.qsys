@@ -97,6 +97,14 @@
          type = "int";
       }
    }
+   element sdram_writer
+   {
+      datum _sortIndex
+      {
+         value = "14";
+         type = "int";
+      }
+   }
    element solver_cycles
    {
       datum _sortIndex
@@ -232,6 +240,11 @@
    internal="System_PLL.sdram_clk"
    type="clock"
    dir="start" />
+ <interface
+   name="sdram_writer"
+   internal="sdram_writer.external_interface"
+   type="conduit"
+   dir="end" />
  <interface name="solver_clock" internal="pll_0.outclk0" type="clock" dir="start" />
  <interface
    name="solver_cycles_external_connection"
@@ -1104,6 +1117,17 @@
   <parameter name="rowWidth" value="13" />
  </module>
  <module
+   name="sdram_writer"
+   kind="altera_up_external_bus_to_avalon_bridge"
+   version="15.0"
+   enabled="1">
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
+  <parameter name="addr_size" value="64" />
+  <parameter name="addr_size_multiplier" value="Mbytes" />
+  <parameter name="data_size" value="16" />
+ </module>
+ <module
    name="solver_cycles"
    kind="altera_avalon_pio"
    version="15.0"
@@ -1227,6 +1251,24 @@
  <connection
    kind="avalon"
    version="15.0"
+   start="sdram_writer.avalon_master"
+   end="sdram.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_axi_master"
+   end="sdram.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="15.0"
    start="ARM_A9_HPS.h2f_lw_axi_master"
    end="y_min.s1">
   <parameter name="arbitrationPriority" value="1" />
@@ -1347,6 +1389,11 @@
    kind="clock"
    version="15.0"
    start="System_PLL.sys_clk"
+   end="sdram_writer.clk" />
+ <connection
+   kind="clock"
+   version="15.0"
+   start="System_PLL.sys_clk"
    end="ARM_A9_HPS.f2h_axi_clock" />
  <connection
    kind="clock"
@@ -1427,6 +1474,11 @@
    kind="reset"
    version="15.0"
    start="ARM_A9_HPS.h2f_reset"
+   end="sdram_writer.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="ARM_A9_HPS.h2f_reset"
    end="VGA_Subsystem.sys_reset" />
  <connection
    kind="reset"
@@ -1483,6 +1535,11 @@
    version="15.0"
    start="System_PLL.reset_source"
    end="sdram.reset" />
+ <connection
+   kind="reset"
+   version="15.0"
+   start="System_PLL.reset_source"
+   end="sdram_writer.reset" />
  <connection
    kind="reset"
    version="15.0"
