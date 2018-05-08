@@ -63,11 +63,23 @@ module solver_control #(
     reg  [LIMB_INDEX_BITS-1:0] limb_index;
     reg  [LIMB_INDEX_BITS-1:0] next_limb_index;
 
+    reg  [LIMB_INDEX_BITS-1:0] partial_index;
+    reg  [LIMB_INDEX_BITS-1:0] next_partial_index;
+    reg                        flip_partial;
+    reg                        next_flip_partial;
+
     reg  last_zre_sign;
     reg  last_zim_sign;
 
     localparam OP_ITER = 0;
     localparam OP_ABS  = 1;
+
+    localparam ZRE_PART_DOUBLE_POS = 0;
+    localparam ZRE_PART_DOUBLE_NEG = 1;
+    localparam ZRE_PART_SINGLE_POS = 2;
+    localparam ZRE_PART_SINGLE_NEG = 3;
+    localparam ZIM_PART_POS = 0;
+    localparam ZIM_PART_NEG = 1;
 
     localparam ITER_ADD_PARTIAL = 0;
     localparam ITER_ADD_CARRY   = 1;
@@ -83,6 +95,8 @@ module solver_control #(
         next_iteration_count = iteration_count;
         next_flush_counter   = FLUSH_WAIT;
         next_limb_index      = num_limbs - 1;
+        next_partial_index   = 0;
+        next_flip_partial    = 0;
 
         limb_ind        = limb_index;
         zre_ind         = 0;
@@ -138,9 +152,28 @@ module solver_control #(
         begin
             op_sel = OP_ITER;
 
-            next_limb_index = limb_index - 1;
+            next_limb_index    = limb_index;
+            next_partial_index = partial_index;
+            next_flip_partial  = !flip_partial;
+            if (flip_partial == 1) begin
+                next_partial_index = partial_index + 1;
+                if (partial_index == limb_index >> 1) begin
+                    next_partial_index = 0;
+                    next_limb_index = limb_index - 1;
+                    if (limb_index == 0) next_state = STATE_ITER_FLUSH;
+                end
+            end
 
-            zim_partial_sel = last_zre_sign ^ last_zim_sign;
+            m2_a_sel        = zre_reg_sel;
+            m2_b_sel        = zim_reg_sel;
+            zre_partial_sel = zre_ind == zim_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
+                                                   (flip_partial ? ZRE_PART_DOUBLE_NEG : ZRE_PART_DOUBLE_POS);
+            zim_partial_sel = (last_zre_sign ^ last_zim_sign) ? ZIM_PART_NEG : ZIM_PART_POS;
+            if (partial_index == 0) begin
+
+            end else begin
+
+            end
 
             if (limb_index == 0) next_state = STATE_ITER_FLUSH;
         end
@@ -177,12 +210,17 @@ module solver_control #(
 
             num_limbs       <= 0;
             limb_index      <= 0;
+
+            partial_index   <= 0;
+            flip_partial    <= 0;
         end else begin
             state           <= next_state;
             flush_counter   <= next_flush_counter;
             out_ready       <= next_out_ready;
             iteration_count <= next_iteration_count;
             limb_index      <= next_limb_index;
+            partial_index   <= next_partial_index;
+            flip_partial    <= next_flip_partial;
 
             if (state == STATE_LOAD) begin
                 if (wr_num_limbs_en) num_limbs <= num_limbs_data;
