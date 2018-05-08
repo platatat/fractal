@@ -2,12 +2,12 @@
 #include "constants.h"
 #include "tile_client.h"
 #include "tile_server.h"
-
+#include "tile_solver.h"
 #include <SDL2/SDL.h>
 #include <iostream>
 
 
-int run() {
+int runApp() {
     Application app;
 
     // Initialize SDL
@@ -38,7 +38,7 @@ int run() {
         surf = SDL_CreateRGBSurfaceFrom((void*) buffer,
                                         Constants::SCREEN_WIDTH,
                                         Constants::SCREEN_HEIGHT,
-                                        32, 
+                                        24, 
                                         app.getDisplayStride(),
                                         0, 0, 0, 0);
 
@@ -95,8 +95,8 @@ int socketTest(int argc, char* args[]) {
 }
 
 
-int main( int argc, char* args[] )
+int main(int argc, char* args[])
 {
-    // return run();
+    // return runApp();
     return socketTest(argc, args);
 }
