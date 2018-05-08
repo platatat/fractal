@@ -134,6 +134,8 @@ module solver_control #(
             zim_wr_en = 1;
 
             next_limb_index = limb_index - 1;
+            zre_ind         = limb_index;
+            zim_ind         = limb_index;
 
             if (last_zre_sign) zre_acc_sel = limb_index == num_limbs - 1 ? ABS_START : ABS_CARRY;
             else               zre_acc_sel = ABS_NOP;
@@ -163,6 +165,9 @@ module solver_control #(
                     if (limb_index == 0) next_state = STATE_ITER_FLUSH;
                 end
             end
+
+            zre_ind         = flip_partial ?              partial_index : limb_index - partial_index;
+            zim_ind         = flip_partial ? limb_index - partial_index :              partial_index;
 
             m2_a_sel        = zre_reg_sel;
             m2_b_sel        = zim_reg_sel;
