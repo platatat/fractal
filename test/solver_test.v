@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-`include "solver_datapath.v"
+`include "solver.v"
 
 module top();
     localparam LIMB_INDEX_BITS = 6;
@@ -9,19 +9,19 @@ module top();
 
     reg clock;
     reg reset;
-    reg [16:0] cycle_num;
 
     reg [LIMB_SIZE_BITS-1:0] c_re_data [3:0];
     reg [LIMB_SIZE_BITS-1:0] c_im_data [3:0];
 
     initial begin
-        $dumpfile("build/solver_datapath_test.vcd");
+        $dumpfile("build/solver_test.vcd");
         $dumpvars(0, top);
 
+        clock   <= 0;
         reset   <= 1;
-        c_re_data[0] <= 8'h01;
-        c_re_data[1] <= 8'h00;
-        c_im_data[0] <= 8'h01;
+        c_re_data[0] <= 8'h00;
+        c_re_data[1] <= 8'h80;
+        c_im_data[0] <= 8'h00;
         c_im_data[1] <= 8'h00;
         #20
 
@@ -39,16 +39,17 @@ module top();
 
         wr_en <= 0;
         start <= 1;
-        #20
+
+        #50000
+        $finish;
     end
 
     always begin
         #10
         clock <= !clock;
-        $display("cycle %d", cycle_num);
-        cycle_num <= cycle_num + 1;
 
         if (solver_done) begin
+            $display("iterations: %d", iterations);
             $finish;
         end
     end
@@ -57,21 +58,28 @@ module top();
     reg [LIMB_INDEX_BITS-1:0]   wr_limb;
     reg [LIMB_SIZE_BITS-1:0]    wr_data_re;
     reg [LIMB_SIZE_BITS-1:0]    wr_data_im;
+    reg [LIMB_INDEX_BITS-1:0]   num_limbs = 2;
+    reg [15:0]                  iter_lim = 10;
     reg                         start;
 
     wire                        solver_done;
-    wire                        solver_output;
+    wire [15:0]                 iterations;
 
     solver #(LIMB_INDEX_BITS, LIMB_SIZE_BITS, DIVERGENCE_RADIUS) solver (
-        .clock      (clock),
-        .reset      (reset),
-        .wr_en      (wr_en),
-        .wr_limb    (wr_limb),
-        .wr_data_re (wr_data_re),
-        .wr_data_im (wr_data_im),
-        .start      (start),
-        .done       (solver_done),
-        .output     (solver_output)
+        .clock              (clock),
+        .reset              (reset),
+        .wr_real_en         (wr_en),
+        .wr_imag_en         (wr_en),
+        .wr_index           (wr_limb),
+        .real_data          (wr_data_re),
+        .imag_data          (wr_data_im),
+        .wr_num_limbs_en    (wr_en),
+        .num_limbs_data     (num_limbs),
+        .wr_iter_lim_en     (wr_en),
+        .iter_lim_data      (iter_lim),
+        .start              (start),
+        .out_ready          (solver_done),
+        .iterations         (iterations)
     );
 
 endmodule

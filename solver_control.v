@@ -6,12 +6,13 @@ module solver_control #(
 ) (
     input clock, reset,
 
-    input wr_en,
-    input wr_ind,
-    input wr_num_limbs_en,
+    input                       wr_real_en,
+    input                       wr_imag_en,
+    input [LIMB_INDEX_BITS-1:0] wr_ind,
+    input                       wr_num_limbs_en,
     input [LIMB_INDEX_BITS-1:0] num_limbs_data,
-    input wr_iter_lim_en,
-    input [15:0] iter_lim_data,
+    input                       wr_iter_lim_en,
+    input [15:0]                iter_lim_data,
     input start,
 
     output reg [LIMB_INDEX_BITS-1:0] limb_ind,
@@ -121,8 +122,8 @@ module solver_control #(
 
         if (state == STATE_LOAD)
         begin
-            cre_wr_en = wr_en;
-            cim_wr_en = wr_en;
+            cre_wr_en = wr_real_en;
+            cim_wr_en = wr_imag_en;
 
             if (start) begin
                 next_state = STATE_ABS;
