@@ -4,87 +4,133 @@
 #include <math.h>
 #include <cairo.h>
 
-class Renderer::Pimpl {
-public:
-    cairo_surface_t *surface;
-    cairo_t *cr;
-};
-
 
 Renderer::Renderer() {
-    pimpl.reset(new Pimpl());
+    _data_buffer = new unsigned char [Constants::SCREEN_PIXELS];
+    _screen_buffer = new unsigned char [Constants::SCREEN_PIXELS * 3];
 
-    pimpl->surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
-                                                Constants::SCREEN_WIDTH,
-                                                Constants::SCREEN_HEIGHT);
-    pimpl->cr = cairo_create(pimpl->surface);
+    _iterations_pdf = new unsigned int [Constants::ITERATIONS];
+    _iterations_cdf = new double [Constants::ITERATIONS];
 }
 
 
-void Renderer::render(const TileManager::ViewportInfo& viewportInfo,
-                      const std::vector<Tile*>& tiles,
+Renderer::~Renderer() {
+    delete[] _data_buffer;
+    delete[] _screen_buffer;
+
+    delete[] _iterations_pdf;
+    delete[] _iterations_cdf;
+}
+
+
+void Renderer::render(const TileManager::ViewportInfo& viewport_info,
+                      const std::vector<std::shared_ptr<Tile>>& tiles,
                       double fractional_scale) {
-    cairo_t *cr = pimpl->cr;
+    // Clear PDF for coloring.
+    for (int i = 0; i < Constants::ITERATIONS; i++) {
+        _iterations_pdf[i] = 0;
+    }
 
-    //printf("w: %i\th: %i\ts: %i\n", viewportInfo.tiles_width, viewportInfo.tiles_height, tiles.size());
+    double translate_x = -viewport_info.fractional_x * (Constants::TILE_WIDTH);
+    double translate_y = -viewport_info.fractional_y * (Constants::TILE_HEIGHT);
 
-    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
-    cairo_rectangle (cr, 0, 0, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
-    cairo_fill (cr);
+    for (int tile_x = 0; tile_x < viewport_info.tiles_width; tile_x++) {
+        for (int tile_y = 0; tile_y < viewport_info.tiles_height; tile_y++) {
+            int tile_index = tile_y * viewport_info.tiles_width + tile_x;
+            std::shared_ptr<Tile> tile = tiles[tile_index];
 
-    cairo_save(cr);
+            int tile_screen_x = tile_x * Constants::TILE_WIDTH;
+            int tile_screen_y = tile_y * Constants::TILE_HEIGHT;
 
-    cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
+            for (int y = 0; y < Constants::TILE_HEIGHT; y++) {
+                for (int x = 0; x < Constants::TILE_WIDTH; x++) {
+                    int screen_x = tile_screen_x + x;
+                    int screen_y = tile_screen_y + y;
 
-    cairo_scale(cr, fractional_scale, fractional_scale);
+                    // Apply viewport transformations.
+                    screen_x = std::floor((translate_x + screen_x) * fractional_scale);
+                    screen_y = std::floor((translate_y + screen_y) * fractional_scale);
 
-    cairo_translate(cr,
-                    -viewportInfo.fractional_x * Constants::TILE_WIDTH,
-                    -viewportInfo.fractional_y * Constants::TILE_HEIGHT);
-
-    int tx = 0;
-    int ty = 0;
-    for (Tile* tile : tiles) {
-        if (tile != nullptr) {
-            unsigned char* buffer = (unsigned char*) tile->getData();
-
-            cairo_surface_t* imageSurface = cairo_image_surface_create_for_data(
-                    buffer, CAIRO_FORMAT_A8, Constants::TILE_WIDTH,
-                    Constants::TILE_HEIGHT, Constants::TILE_WIDTH);
-
-            cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-            cairo_mask_surface(cr, imageSurface,
-                               tx * Constants::TILE_WIDTH,
-                               ty * Constants::TILE_HEIGHT);
-
-            /*
-            cairo_set_source_surface (cr, imageSurface,
-                                      tx * Constants::TILE_WIDTH,
-                                      ty * Constants::TILE_HEIGHT);
-            cairo_paint(cr);
-            */
-
-            cairo_surface_destroy(imageSurface);
-        }
-
-        tx += 1;
-        if (tx >= viewportInfo.tiles_width) {
-            tx = 0;
-            ty += 1;
+                    // Draw pixels.
+                    if (screen_x >= 0 && screen_x < Constants::SCREEN_WIDTH) {
+                        if (screen_y >= 0 && screen_y < Constants::SCREEN_HEIGHT) {
+                            unsigned char tile_value = tile->getPoint(x, y);
+                            _data_buffer[screen_x + screen_y * Constants::SCREEN_WIDTH] = tile_value;
+                            if (!tile->isPlaceholder() && tile_value) {
+                                _iterations_pdf[tile_value] += 1;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
-    cairo_restore(cr);
+    // Recompute CDF by normalizing and integrating new PDF.
+    double pdf_sum = 0;
+    for (int i = 1; i < Constants::ITERATIONS - 1; i++) {
+        pdf_sum += _iterations_pdf[i];
+    }
 
-    cairo_surface_flush(pimpl->surface); 
+    _iterations_cdf[0] = _iterations_pdf[0] / pdf_sum;
+    for (int i = 1; i < Constants::ITERATIONS; i++) {
+        _iterations_cdf[i] = _iterations_cdf[i - 1] + (_iterations_pdf[i] / pdf_sum);
+    }
+
+    // histogramColor();
+    cyclicColor();
 }
+
+
+void Renderer::histogramColor() {
+    for (int i = 0; i < Constants::SCREEN_PIXELS; i++) {
+        unsigned char value = _data_buffer[i];
+        double color = _iterations_cdf[value];
+
+        if (value == Constants::ITERATIONS - 1) {
+            color = 1.0;
+        }
+
+        unsigned char red   = color * 255;
+        unsigned char green = color * 255;
+        unsigned char blue  = color * 255;
+
+        _screen_buffer[3 * i + 2] = red;
+        _screen_buffer[3 * i + 1] = green;
+        _screen_buffer[3 * i + 0] = blue;
+    }
+}
+
+
+void Renderer::cyclicColor() {
+    double cycle_period = 5;
+
+    for (int i = 0; i < Constants::SCREEN_PIXELS; i++) {
+        unsigned char value = _data_buffer[i];
+        double phase = value / cycle_period;
+
+        unsigned char red   = 0;
+        unsigned char green = (sin(phase) * 127) + 128;
+        unsigned char blue  = (sin(phase) * 127) + 128;
+
+        if (value == Constants::ITERATIONS - 1) {
+            red     = 255;
+            blue    = 255;
+            green   = 255;
+        }
+
+        _screen_buffer[3 * i + 2] = red;
+        _screen_buffer[3 * i + 1] = green;
+        _screen_buffer[3 * i + 0] = blue;
+    }
+}
+
 
 const unsigned char* Renderer::getScreenBuffer() {
-    return cairo_image_surface_get_data(pimpl->surface);
+    return _screen_buffer;
 }
+
 
 int Renderer::getScreenBufferStride() {
-    return cairo_image_surface_get_stride(pimpl->surface);
+    return Constants::SCREEN_WIDTH * 3;
 }
-
-Renderer::~Renderer(){}

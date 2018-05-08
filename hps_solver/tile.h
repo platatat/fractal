@@ -10,24 +10,27 @@
 class Tile {
 private:
     TileHeader _header;
-    char* _data;
+    unsigned char* const _data;
+    bool _is_placeholder;
 
 public:
-    Tile(TileHeader header);
+    Tile(TileHeader header, unsigned char* data, bool is_placeholder = false);
 
     ~Tile();
 
-    complex getOrigin() const { return {_header.x * getSize(), _header.y * getSize()}; }
+    complex getOrigin() const;
 
     double getSize() const { return pow(2, -_header.z); }
 
     TileHeader getHeader() const { return _header; }
 
-    char* getData() const { return _data; }
+    unsigned char* const getData() const { return _data; }
 
     int getPoint(int x, int y) const { return _data[x + y * Constants::TILE_WIDTH]; }
 
     void setPoint(int x, int y, int value) { _data[x + y * Constants::TILE_WIDTH] = value; }
+
+    bool const isPlaceholder() const { return _is_placeholder; }
 };
 
 
