@@ -111,11 +111,11 @@ module solver_control #(
         m1_b_sel        = 0;
         m2_a_sel        = 0;
         m2_b_sel        = 0;
-        op_sel          = 0;
+        op_sel          = OP_ITER;
         zre_partial_sel = 0;
         zim_partial_sel = 0;
-        zre_acc_sel     = 0;
-        zim_acc_sel     = 0;
+        zre_acc_sel     = ITER_NOP; //TODO
+        zim_acc_sel     = ITER_NOP; //TODO
         zre_wr_en       = 0;
         zim_wr_en       = 0;
 
@@ -164,6 +164,8 @@ module solver_control #(
                 if (partial_index == limb_index >> 1) begin
                     next_partial_index = 0;
                     next_limb_index = limb_index - 1;
+                    zre_wr_en = 1;
+                    zim_wr_en = 1;
                     if (limb_index == 0) next_state = STATE_ITER_FLUSH;
                 end
             end
@@ -201,8 +203,6 @@ module solver_control #(
             end else begin
 
             end
-
-            if (limb_index == 0) next_state = STATE_ITER_FLUSH;
         end
         else if (state == STATE_ITER_FLUSH)
         begin
