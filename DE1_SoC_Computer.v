@@ -373,81 +373,81 @@ HexDigit Digit4(HEX4, hex5_hex0[19:16]);
 HexDigit Digit5(HEX5, hex5_hex0[23:20]);
 
 //=======================================================
-// Solvers and VGA logic
+// OLD Solvers and VGA logic
 //=======================================================
-wire reset_key;
-assign reset_key = ~KEY[0];
+// wire reset_key;
+// assign reset_key = ~KEY[0];
 
-wire stream_ready;
-wire stream_start;
-wire stream_end;
-wire stream_valid;
+// wire stream_ready;
+// wire stream_start;
+// wire stream_end;
+// wire stream_valid;
 
-wire [15:0] stream_data;
+// wire [15:0] stream_data;
 
-wire [5:0] solver_id;
-wire [18:0] solver_addr;
+// wire [5:0] solver_id;
+// wire [18:0] solver_addr;
 
-localparam NUM_SOLVERS = 29;
+// localparam NUM_SOLVERS = 29;
 
-pixel_iterator #(NUM_SOLVERS, 640, 480) pixel_it (
-    .clock(CLOCK_50),
-    .reset(reset_key),
-    .en(stream_ready),
+// pixel_iterator #(NUM_SOLVERS, 640, 480) pixel_it (
+//     .clock(CLOCK_50),
+//     .reset(reset_key),
+//     .en(stream_ready),
 
-    .solver_id(solver_id),
-    .solver_addr(solver_addr),
+//     .solver_id(solver_id),
+//     .solver_addr(solver_addr),
 
-    .start_stream(stream_start),
-    .end_stream(stream_end),
-    .valid_stream(stream_valid)
-);
+//     .start_stream(stream_start),
+//     .end_stream(stream_end),
+//     .valid_stream(stream_valid)
+// );
 
-reg stream_start_delay [2:1];
-reg stream_end_delay [2:1];
-reg stream_valid_delay [2:1];
+// reg stream_start_delay [2:1];
+// reg stream_end_delay [2:1];
+// reg stream_valid_delay [2:1];
 
-always @(posedge CLOCK_50) begin
-    stream_start_delay[1] <= stream_start;
-    stream_end_delay[1] <= stream_end;
-    stream_valid_delay[1] <= stream_valid;
+// always @(posedge CLOCK_50) begin
+//     stream_start_delay[1] <= stream_start;
+//     stream_end_delay[1] <= stream_end;
+//     stream_valid_delay[1] <= stream_valid;
 
-    stream_start_delay[2] <= stream_start_delay[1];
-    stream_end_delay[2] <= stream_end_delay[1];
-    stream_valid_delay[2] <= stream_valid_delay[1];
-end
+//     stream_start_delay[2] <= stream_start_delay[1];
+//     stream_end_delay[2] <= stream_end_delay[1];
+//     stream_valid_delay[2] <= stream_valid_delay[1];
+// end
 
-wire [31:0] solve_time;
-reg signed [3:0] solver_data_out;
+// wire [31:0] solve_time;
+// reg signed [3:0] solver_data_out;
 
-wire signed [26:0] x_min, y_min;
-wire signed [26:0] dx, dy;
+// wire signed [26:0] x_min, y_min;
+// wire signed [26:0] dx, dy;
 
-wire [9:0] solver_iterations;
-wire solver_hps_reset;
-wire solver_done;
-wire solver_clock;
+// wire [9:0] solver_iterations;
+// wire solver_hps_reset;
+// wire solver_done;
+// wire solver_clock;
 
-multi_solver #(NUM_SOLVERS) solver (
-    .clock(solver_clock),
-    .reset(reset_key | solver_hps_reset),
+// multi_solver #(NUM_SOLVERS) solver (
+//     .clock(solver_clock),
+//     .reset(reset_key | solver_hps_reset),
 
-    .min_x(x_min),
-    .min_y(y_min),
-    .dx(dx),
-    .dy(dy),
-    .iterations(solver_iterations),
+//     .min_x(x_min),
+//     .min_y(y_min),
+//     .dx(dx),
+//     .dy(dy),
+//     .iterations(solver_iterations),
 
-    .rd_clock(CLOCK_50),
-    .rd_solver_id(solver_id),
-    .rd_addr(solver_addr),
-    .rd_data_out(solver_data_out),
+//     .rd_clock(CLOCK_50),
+//     .rd_solver_id(solver_id),
+//     .rd_addr(solver_addr),
+//     .rd_data_out(solver_data_out),
 
-    .solve_time(solve_time),
-    .done(solver_done)
-);
+//     .solve_time(solve_time),
+//     .done(solver_done)
+// );
 
-assign stream_data = {5'b0, solver_data_out, 7'b0};
+// assign stream_data = {5'b0, solver_data_out, 7'b0};
 
 // assign stream_data = 
 // 		solver_data_out == 4'b0000 ? 16'b00000_000000_00000 :
@@ -468,8 +468,41 @@ assign stream_data = {5'b0, solver_data_out, 7'b0};
 // 		solver_data_out == 4'b1111 ? 16'b00000_000000_11000 :
 // 									 16'b11111_000000_00000;
 
-assign hex5_hex0 = solve_time[23:0];
-assign LEDR[7:0] = solve_time[31:24];
+// assign hex5_hex0 = solve_time[23:0];
+// assign LEDR[7:0] = solve_time[31:24];
+
+//=======================================================
+// NEW Solvers and VGA logic
+//=======================================================
+
+localparam NUM_SOLVERS 			= 1;
+localparam LIMB_INDEX_BITS 		= 6;
+localparam LIMB_SIZE_BITS 		= 27;
+localparam DIVERGENCE_RADIUS 	= 4;
+
+wire 		fifo_valid;
+wire [2:0] 	fifo_data_type;
+wire [31:0] fifo_raw_data;
+wire [31:0] fifo_decoded_data;
+
+hps_fifo_decoder hps_fifo_decoder (
+	.raw_data 		(fifo_raw_data),
+	.data_type 		(fifo_data_type),
+	.decoded_data 	(fifo_decoded_data)
+);
+
+solver_manager #(
+	NUM_SOLVERS,
+	LIMB_INDEX_BITS,
+	LIMB_SIZE_BITS,
+	DIVERGENCE_RADIUS
+) solver_manager (
+	.clock 			(CLOCK_50),
+	.reset 			(~KEY[0]),
+	.fifo_valid 	(fifo_valid),
+	.fifo_data_type (fifo_data_type),
+	.fifo_data 		(fifo_decoded_data)
+)
 
 //=======================================================
 //  Structural coding

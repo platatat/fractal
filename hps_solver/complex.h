@@ -1,12 +1,12 @@
 #ifndef __COMPLEX_H__
 #define __COMPLEX_H__
 
-#include "bignum.h"
+#include <gmpxx.h>
 
 
 struct complex {
-    BigNum real;
-    BigNum imag;
+    mpf_class real;
+    mpf_class imag;
 };
 
 

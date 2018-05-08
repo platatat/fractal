@@ -8,15 +8,21 @@
 
 class Renderer {
 private:
-    class Pimpl;
-    std::unique_ptr<Pimpl> pimpl;
+    unsigned char* _data_buffer;
+    unsigned char* _screen_buffer;
+
+    unsigned int* _iterations_pdf;
+    double* _iterations_cdf;
+
+    void histogramColor();
+    void cyclicColor();
 
 public:
     Renderer();
     ~Renderer();
 
     void render(const TileManager::ViewportInfo& viewportInfo,
-                const std::vector<Tile*>& tiles,
+                const std::vector<std::shared_ptr<Tile>>& tiles,
                 double fractional_scale);
 
     const unsigned char* getScreenBuffer();
