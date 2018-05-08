@@ -480,9 +480,11 @@ localparam LIMB_INDEX_BITS 		= 6;
 localparam LIMB_SIZE_BITS 		= 27;
 localparam DIVERGENCE_RADIUS 	= 4;
 
-wire 		fifo_valid;
-wire [2:0] 	fifo_data_type;
 wire [31:0] fifo_raw_data;
+wire        fifo_valid;
+wire        fifo_ready;
+
+wire [2:0] 	fifo_data_type;
 wire [31:0] fifo_decoded_data;
 
 hps_fifo_decoder hps_fifo_decoder (
@@ -501,7 +503,8 @@ solver_manager #(
 	.reset 			(~KEY[0]),
 	.fifo_valid 	(fifo_valid),
 	.fifo_data_type (fifo_data_type),
-	.fifo_data 		(fifo_decoded_data)
+	.fifo_data 		(fifo_decoded_data),
+	.fifo_ready     (fifo_ready)
 );
 
 reg state;
@@ -691,5 +694,9 @@ Computer_System The_System (
     .sdram_writer_acknowledge (ack),
     //.sdram_writer_read        (),
     //.sdram_writer_read_data   (),
+
+    .in_fifo_data  (fifo_raw_data),
+    .in_fifo_valid (fifo_valid),
+    .in_fifo_ready (fifo_ready),
 );
 endmodule // end top level

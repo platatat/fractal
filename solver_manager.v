@@ -17,6 +17,7 @@ module solver_manager #(
     input [2:0]     fifo_data_type,
     input [31:0]    fifo_data,
     
+    // TODO: Is backpressure correct?
     output reg      fifo_ready
 );
 
