@@ -249,7 +249,7 @@ always @(*) begin
         out_valid = 1;
 
         if (out_ready) begin
-            state = `ST_READ_INPUT;
+            next_state = `ST_READ_INPUT;
         end
     end
 end
