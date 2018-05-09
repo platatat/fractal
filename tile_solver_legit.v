@@ -41,6 +41,37 @@ reg [15:0]                solver_iter_lim_data;
 reg                       solver_start;
 
 
+reg                       next_solver_wr_real_en;
+reg                       next_solver_wr_imag_en;
+reg [LIMB_INDEX_BITS-1:0] next_solver_wr_index;
+reg [LIMB_SIZE_BITS-1:0]  next_solver_real_data;
+reg [LIMB_SIZE_BITS-1:0]  next_solver_imag_data;
+
+reg                       next_solver_wr_num_limbs_en;
+reg [LIMB_INDEX_BITS-1:0] next_solver_num_limbs_data;
+
+reg                       next_solver_wr_iter_lim_en;
+reg [15:0]                next_solver_iter_lim_data;
+
+reg                       next_solver_start;
+
+always @(posedge clock) begin
+    solver_wr_real_en <= next_solver_wr_real_en;
+    solver_wr_imag_en <= next_solver_wr_imag_en;
+    solver_wr_index <= next_solver_wr_index;
+    solver_real_data <= next_solver_real_data;
+    solver_imag_data <= next_solver_imag_data;
+
+    solver_wr_num_limbs_en <= next_solver_wr_num_limbs_en;
+    solver_num_limbs_data <= next_solver_num_limbs_data;
+
+    solver_wr_iter_lim_en <= next_solver_wr_iter_lim_en;
+    solver_iter_lim_data <= next_solver_iter_lim_data;
+
+    solver_start <= next_solver_start;
+end
+
+
 wire        solver_out_ready;
 wire [15:0] solver_iterations;
 
@@ -137,19 +168,19 @@ always @(*) begin
     out_valid = 0;
 
     // Solver
-    solver_wr_real_en = 0;
-    solver_wr_imag_en = 0;
-    solver_wr_index   = 0;
-    solver_real_data  = in_data_decoded;
-    solver_imag_data  = in_data_decoded;
+    next_solver_wr_real_en = 0;
+    next_solver_wr_imag_en = 0;
+    next_solver_wr_index   = 0;
+    next_solver_real_data  = in_data_decoded;
+    next_solver_imag_data  = in_data_decoded;
 
-    solver_wr_num_limbs_en = 0;
-    solver_num_limbs_data = in_data_decoded;
+    next_solver_wr_num_limbs_en = 0;
+    next_solver_num_limbs_data = in_data_decoded;
 
-    solver_wr_iter_lim_en = 0;
-    solver_iter_lim_data = in_data_decoded;
+    next_solver_wr_iter_lim_en = 0;
+    next_solver_iter_lim_data = in_data_decoded;
 
-    solver_start = 0;
+    next_solver_start = 0;
 
     // ST_READ_INPUT
     next_re_write_index = 0;
@@ -175,28 +206,28 @@ always @(*) begin
             // Set zoom level
             else if (in_data_type == 3'd1) begin
                 // TODO
-                solver_wr_iter_lim_en = 1;
-                solver_iter_lim_data = 5;
+                next_solver_wr_iter_lim_en = 1;
+                next_solver_iter_lim_data = 5;
 
-                solver_wr_num_limbs_en = 1;
-                solver_num_limbs_data = 2;
+                next_solver_wr_num_limbs_en = 1;
+                next_solver_num_limbs_data = 2;
             end
             // Write a limb of c_real.
             else if (in_data_type == 3'd2) begin
                 next_re_write_index = re_write_index + 1;
-                solver_wr_index = re_write_index;
-                solver_wr_real_en = 1;
+                next_solver_wr_index = re_write_index;
+                next_solver_wr_real_en = 1;
             end
             // Write a limb of c_imag.
             else if (in_data_type == 3'd3) begin
                 next_im_write_index = im_write_index + 1;
-                solver_wr_index = im_write_index;
-                solver_wr_imag_en = 1;
+                next_solver_wr_index = im_write_index;
+                next_solver_wr_imag_en = 1;
             end
             // Start the solver
             else if (in_data_type == 3'd4) begin
                 next_state = `ST_SOLVING_PIXEL;
-                solver_start = 1;
+                next_solver_start = 1;
             end
         end
     end
