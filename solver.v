@@ -27,24 +27,26 @@ module solver #(
     output [15:0]               iterations
 );
 
-wire [LIMB_INDEX_BITS-1:0] limb_ind;
-wire [LIMB_INDEX_BITS-1:0] zre_ind;
-wire [LIMB_INDEX_BITS-1:0] zim_ind;
-wire       cre_wr_en;
-wire       cim_wr_en;
-wire [1:0] zre_reg_sel;
-wire [1:0] zim_reg_sel;
-wire [1:0] m1_a_sel;
-wire [1:0] m1_b_sel;
-wire [1:0] m2_a_sel;
-wire [1:0] m2_b_sel;
-wire       op_sel;
-wire [1:0] zre_partial_sel;
-wire       zim_partial_sel;
-wire [1:0] zre_acc_sel;
-wire [1:0] zim_acc_sel;
-wire       zre_wr_en;
-wire       zim_wr_en;
+wire                        cre_wr_en;
+wire                        cim_wr_en;
+wire [LIMB_INDEX_BITS-1:0]  c_limb_ind;
+wire [LIMB_INDEX_BITS-1:0]  zre_rd_ind;
+wire [LIMB_INDEX_BITS-1:0]  zim_rd_ind;
+wire [1:0]                  zre_reg_sel;
+wire [1:0]                  zim_reg_sel;
+wire [1:0]                  m1_a_sel;
+wire [1:0]                  m1_b_sel;
+wire [1:0]                  m2_a_sel;
+wire [1:0]                  m2_b_sel;
+wire                        op_sel;
+wire [2:0]                  zre_partial_sel;
+wire [1:0]                  zim_partial_sel;
+wire [1:0]                  zre_acc_sel;
+wire [1:0]                  zim_acc_sel;
+wire                        zre_wr_en;
+wire                        zim_wr_en;
+wire [LIMB_INDEX_BITS-1:0]  zre_wr_ind;
+wire [LIMB_INDEX_BITS-1:0]  zim_wr_ind;
 
 wire zre_sign;
 wire zim_sign;
@@ -62,11 +64,11 @@ solver_control #(LIMB_INDEX_BITS) control(
     .iter_lim_data(iter_lim_data),
     .start(start),
 
-    .limb_ind(limb_ind),
-    .zre_ind(zre_ind),
-    .zim_ind(zim_ind),
     .cre_wr_en(cre_wr_en),
     .cim_wr_en(cim_wr_en),
+    .c_limb_ind(c_limb_ind),
+    .zre_rd_ind(zre_rd_ind),
+    .zim_rd_ind(zim_rd_ind),
     .zre_reg_sel(zre_reg_sel),
     .zim_reg_sel(zim_reg_sel),
     .m1_a_sel(m1_a_sel),
@@ -80,6 +82,8 @@ solver_control #(LIMB_INDEX_BITS) control(
     .zim_acc_sel(zim_acc_sel),
     .zre_wr_en(zre_wr_en),
     .zim_wr_en(zim_wr_en),
+    .zre_wr_ind(zre_wr_ind),
+    .zim_wr_ind(zim_wr_ind),
 
     .zre_sign(zre_sign),
     .zim_sign(zim_sign),
@@ -94,11 +98,11 @@ solver_datapath #(LIMB_INDEX_BITS, LIMB_SIZE_BITS, DIVERGENCE_RADIUS) data_path 
     .reset              (reset),
     .C_cre_limb         (real_data),
     .C_cim_limb         (imag_data),
-    .C_limb_ind         (limb_ind),
-    .C_zre_ind          (zre_ind),
-    .C_zim_ind          (zim_ind),
     .C_cre_wr_en        (cre_wr_en),
     .C_cim_wr_en        (cim_wr_en),
+    .C_c_limb_ind       (c_limb_ind),
+    .C_zre_rd_ind       (zre_rd_ind),
+    .C_zim_rd_ind       (zim_rd_ind),
     .C_zre_reg_sel      (zre_reg_sel),
     .C_zim_reg_sel      (zim_reg_sel),
     .C_m1_a_sel         (m1_a_sel),
@@ -112,6 +116,8 @@ solver_datapath #(LIMB_INDEX_BITS, LIMB_SIZE_BITS, DIVERGENCE_RADIUS) data_path 
     .C_zim_acc_sel      (zim_acc_sel),
     .C_zre_wr_en        (zre_wr_en),
     .C_zim_wr_en        (zim_wr_en),
+    .C_zre_wr_ind       (zre_wr_ind),
+    .C_zim_wr_ind       (zim_wr_ind),
     .W_zre_sign         (zre_sign),
     .W_zim_sign         (zim_sign),
     .W_diverged         (diverged)
