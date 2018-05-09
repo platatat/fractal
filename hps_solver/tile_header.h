@@ -56,8 +56,8 @@ public:
         std::string x_str = x.get_str();
         std::string y_str = y.get_str();
 
-        uint32_t x_size = x_str.length();
-        uint32_t y_size = y_str.length();
+        uint32_t x_size = x_str.length() + 1;
+        uint32_t y_size = y_str.length() + 1;
         int serialized_size = x_size + y_size + 12;
 
         uint8_t buffer [serialized_size];
@@ -90,26 +90,17 @@ public:
         // Read x_size and y_size from buffer.
         uint32_t x_size = ntohl(((uint32_t*) buffer)[0]);
         uint32_t y_size = ntohl(((uint32_t*) buffer)[1]);
-        int serialized_size = x_size + y_size + 12;
+        int offset = 8;
 
         // Make sure buffer is correct size.
-        if (data.size() != serialized_size) {
+        if (data.size() != x_size + y_size + 12) {
             throw std::runtime_error("tille header deserialization size mismatch");
         }
 
-        int offset = 8;
-
-        // Read x and y from buffer. TODO: see if we can do this in place.
-        uint8_t x_subbuffer [x_size + 1];
-        std::memcpy(x_subbuffer, buffer + offset, x_size);
-        x_subbuffer[x_size] = '\0';
-        mpz_class x = mpz_class((char*) x_subbuffer);
+        // Read x and y from buffer.
+        mpz_class x = mpz_class((char*) (buffer + offset));
         offset += x_size;
-
-        uint8_t y_subbuffer [y_size + 1];
-        std::memcpy(y_subbuffer, buffer + offset, y_size);
-        y_subbuffer[y_size] = '\0';
-        mpz_class y = mpz_class((char*) y_subbuffer);
+        mpz_class y = mpz_class((char*) (buffer + offset));
         offset += y_size;
 
         // Read z from buffer;
