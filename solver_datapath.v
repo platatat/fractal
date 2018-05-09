@@ -334,6 +334,9 @@ always @* begin
         1: X_zim_partial = -X_m2_out << 1;
     endcase
 
+    X_zre_acc_next = X_zre_acc;
+    X_zim_acc_next = X_zim_acc;
+
     if (X_op_sel == 1'b0) begin
         //Multiply operation
         case (X_zre_acc_sel)
