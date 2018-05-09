@@ -1,9 +1,11 @@
 #include "tile_client.h"
+#include "constants.h"
+#include "socket_util.h"
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <arpa/inet.h>
 #include <iostream>
 
 
@@ -12,39 +14,44 @@ TileClient::TileClient(int port) : _port(port) {
 }
 
 
-void TileClient::run() {
+void TileClient::init() {
     std::cout << "starting tile client on port " << _port << std::endl;
 
-    struct sockaddr_in address;
-    int sock = 0, valread;
-    struct sockaddr_in serv_addr;
-    char *hello = (char*) "Hello from client";
-    char buffer[1024] = {0};
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        printf("\n Socket creation error \n");
-        return;
+    if ((_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        std::cout << "socket error" << std::endl;
     }
   
-    memset(&serv_addr, '0', sizeof(serv_addr));
+    memset(&_server_address, '0', sizeof(_server_address));
   
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(_port);
+    _server_address.sin_family = AF_INET;
+    _server_address.sin_port = htons(_port);
       
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) 
-    {
-        printf("\nInvalid address/ Address not supported \n");
-        return;
+    if (inet_pton(AF_INET, "127.0.0.1", &_server_address.sin_addr) <= 0) {
+        std::cout << "invalid address" << std::endl;
     }
-  
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
-        printf("\nConnection Failed \n");
-        return;
+
+    if (connect(_socket_fd, (sockaddr*) &_server_address, sizeof(_server_address)) < 0) {
+        std::cout << "connect failed" << std::endl;
     }
-    send(sock , hello , strlen(hello) , 0 );
-    printf("Hello message sent\n");
-    valread = read( sock , buffer, 1024);
-    printf("%s\n",buffer );
 }
+
+
+void TileClient::requestTile(std::shared_ptr<TileHeader> header) {
+    SocketUtil::sendHeaderPacket(_socket_fd, header);
+}
+
+
+std::unique_ptr<TileHeader> TileClient::receiveTile(char* buffer) {
+    std::unique_ptr<TileHeader> header = SocketUtil::receiveHeaderPacket(_socket_fd);
+    SocketUtil::receiveData(_socket_fd, buffer, Constants::TILE_PIXELS);
+    return header;
+}
+
+
+// void TileClient::run() {
+//     TileHeader header = {123, 459, 2743};
+//     SocketUtil::sendHeaderPacket(_socket_fd, header);
+//     TileHeader response_header = SocketUtil::receiveHeaderPacket(_socket_fd);
+//     char tile_data [Constants::TILE_PIXELS];
+//     SocketUtil::receiveData(_socket_fd, tile_data, Constants::TILE_PIXELS);
+// }

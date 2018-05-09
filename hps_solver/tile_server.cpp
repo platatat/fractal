@@ -1,8 +1,13 @@
 #include "tile_server.h"
+#include "constants.h"
+#include "socket_util.h"
+#include "tile.h"
+#include "tile_solver.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+#include <memory>
 
 /**
  * COMMUNICATION PROTOCOL:
@@ -18,7 +23,7 @@
 
 
 TileServer::TileServer(int port) : _port(port) {
-
+    _tile_generation_thread = std::thread(tileGenerationTask, this);
 }
 
 
@@ -47,7 +52,7 @@ void TileServer::init() {
 }
 
 
-void TileServer::receive(int size, char* buffer) {
+int TileServer::awaitConnection() {
     int socket;
 
     if (listen(_socket_fd, 3) < 0) {
@@ -58,12 +63,53 @@ void TileServer::receive(int size, char* buffer) {
         std::cout << "accept failed" << std::endl;
     }
 
-    int bytes_read = 0;
+    return socket;
+}
 
-    while (bytes_read < size) {
-        int bytes_to_read = std::min(1024, size - bytes_read);
-        int result = read(socket, buffer + bytes_read, bytes_to_read);
-        if (result < 1) std::cout << "read failed" << std::endl;
-        bytes_read += result;
+
+void TileServer::tileGenerationTask(TileServer* tile_server) {
+    std::unique_lock<std::mutex> lock(tile_server->_mutex);
+
+    while(true) {
+        tile_server->_requests_nonempty.wait(lock);
+
+        while (tile_server->_requests.size() > 0) {
+            std::shared_ptr<TileHeader> header = tile_server->_requests.front();
+            tile_server->_requests.pop_front();
+
+            lock.unlock();
+            // TODO: don't need shared ptr shit here.
+            // TODO: iterations (and maybe tile size) should be sent from client.
+            unsigned char* tile_data = new unsigned char [Constants::TILE_PIXELS];
+            std::shared_ptr<Tile> tile = std::make_shared<Tile>(header, tile_data);
+            TileSolver::solveTile(tile, Constants::ITERATIONS);
+
+            SocketUtil::sendHeaderPacket(tile_server->_connection, header);
+            SocketUtil::sendData(tile_server->_connection, (char*) tile_data, Constants::TILE_PIXELS);
+
+            lock.lock();
+        }
+    }
+}
+
+
+void TileServer::serveForever() {
+    std::unique_lock<std::mutex> lock(_mutex);
+    lock.unlock();
+
+    _connection = awaitConnection();
+
+    while (true) {
+        try {
+            std::shared_ptr<TileHeader> header = SocketUtil::receiveHeaderPacket(_connection);
+
+            lock.lock();
+            _requests.push_back(header);
+            _requests_nonempty.notify_one();
+            lock.unlock();
+        } catch (std::runtime_error& e) {
+            std::cout << e.what() << std::endl;
+            return;
+        }
     }
 }

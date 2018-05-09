@@ -70,26 +70,23 @@ int runApp() {
 }
 
 
-void clientTest() {
-    TileClient client = TileClient(8080);
-    client.run();
-}
+// void clientTest() {
+//     TileClient client = TileClient(8080);
+//     client.init();
+//     client.run();
+// }
 
 
 void serverTest() {
-    TileServer server = TileServer(8080);
+    TileServer server(8080);
     server.init();
-
-    char* data = new char[1024];
-
-    server.receive(32, data);
-    std::cout << data << std::endl;
+    server.serveForever();
 }
 
 
 int socketTest(int argc, char* args[]) {
     if (argc < 2) std::cout << "must specify client or server" << std::endl;
-    else if (strcmp(args[1], "client") == 0) clientTest();
+    else if (strcmp(args[1], "client") == 0) runApp();
     else if (strcmp(args[1], "server") == 0) serverTest();
     else std::cout << "unrecognized: " << args[1] << std::endl;
 }
@@ -97,6 +94,13 @@ int socketTest(int argc, char* args[]) {
 
 int main(int argc, char* args[])
 {
-    // return runApp();
-    return socketTest(argc, args);
+    try {
+        // return runApp();
+        return socketTest(argc, args);
+        // return serializeTest();
+    } catch (std::runtime_error& e) {
+        std::cout << "EXITING WITH EXCEPTION" << std::endl;
+        std::cout << e.what() << std::endl;
+        return -1;
+    }
 }

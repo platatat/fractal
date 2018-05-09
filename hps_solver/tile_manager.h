@@ -4,6 +4,7 @@
 #include "complex.h"
 #include "tile.h"
 #include "tile_request_heap.h"
+#include "tile_client.h"
 #include <algorithm>
 #include <chrono>
 #include <mutex>
@@ -17,9 +18,11 @@ class TileManager {
 private:
     unsigned int _cache_size;
 
+    TileClient _tile_client;
+
     TileRequestHeap _request_heap;
 
-    TileHeader _current_request;
+    std::shared_ptr<TileHeader> _current_request;
 
     std::mutex _mutex;
 
@@ -33,11 +36,11 @@ private:
 
     static void loadPlaceholder(unsigned char* data_buffer);
 
-    bool requestQueueContains(TileHeader header);
+    bool requestQueueContains(std::shared_ptr<TileHeader> header);
 
     void cacheInsert(std::shared_ptr<Tile> tile);
 
-    bool cacheContains(TileHeader header);
+    bool cacheContains(std::shared_ptr<TileHeader> header);
 
     void cacheEvictOldest();
 
@@ -47,26 +50,32 @@ private:
     };
 
     struct TileHeaderHasher {
-        std::size_t operator()(const TileHeader& header) const {
+        std::size_t operator()(const std::shared_ptr<TileHeader>& header) const {
             size_t h = 0;
             // TODO: smarter way of hashing big ints would be good.
-            h = header.x.get_si() + (h << 6) + (h << 16) - h;
-            h = header.y.get_si() + (h << 6) + (h << 16) - h;
-            h = header.z + (h << 6) + (h << 16) - h;
+            h = header->x.get_si() + (h << 6) + (h << 16) - h;
+            h = header->y.get_si() + (h << 6) + (h << 16) - h;
+            h = header->z + (h << 6) + (h << 16) - h;
             return h;
         }
     };
 
-    std::unordered_map<TileHeader, CachedTile, TileHeaderHasher> _cache;
+    struct TileHeaderComparator {
+        bool operator()(const std::shared_ptr<TileHeader>& a, const std::shared_ptr<TileHeader>& b) const {
+            return (a->x == b->x) && (a->y == b->y) && (a->z == b->z);
+        }
+    };
 
-    static std::shared_ptr<Tile> generateTile(TileHeader header);
+    std::unordered_map<std::shared_ptr<TileHeader>, CachedTile, TileHeaderHasher, TileHeaderComparator> _cache;
+
+    static std::shared_ptr<Tile> generateTile(std::shared_ptr<TileHeader> header);
 
 public:
     TileManager(unsigned int cache_size = 16);
 
     ~TileManager();
 
-    std::shared_ptr<Tile> requestTile(TileHeader header);
+    std::shared_ptr<Tile> requestTile(std::shared_ptr<TileHeader> header);
 
     struct ViewportInfo {
         int tiles_width, tiles_height;

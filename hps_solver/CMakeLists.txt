@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/")
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_definitions(-Wfatal-errors)
@@ -21,6 +21,7 @@ add_executable(mandelbrot
     tile_client.cpp
     tile_server.cpp
     tile_request_heap.cpp
+    socket_util.cpp
 )
 
 find_package(PkgConfig REQUIRED)

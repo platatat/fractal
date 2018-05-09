@@ -1,6 +1,11 @@
 #ifndef __TILE_SERVER_H__
 #define __TILE_SERVER_H__
 
+#include "tile_header.h"
+#include <deque>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
@@ -14,13 +19,23 @@ private:
     int _socket_fd;
     sockaddr_in _address;
     socklen_t _address_len;
+    int _connection;
+
+    std::deque<std::shared_ptr<TileHeader>> _requests;
+    std::mutex _mutex;
+    std::condition_variable _requests_nonempty;
+    std::thread _tile_generation_thread;
+
+    static void tileGenerationTask(TileServer* tile_server);
 
 public:
     TileServer(int port);
 
     void init();
 
-    void receive(int size, char* buffer);
+    int awaitConnection();
+
+    void serveForever();
 };
 
 

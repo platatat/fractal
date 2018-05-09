@@ -15,6 +15,8 @@ public:
 
     static const int SCREEN_PIXELS      = SCREEN_WIDTH * SCREEN_HEIGHT;
     static const int TILE_PIXELS        = TILE_WIDTH * TILE_HEIGHT;
+
+    static const int PORT               = 8080;
 };
 
 

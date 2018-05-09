@@ -2,7 +2,12 @@
 #define __TILE_REQUEST_PACKET_H__
 
 
-struct tile_request_packet {
+class TileHeaderPacket {
+public:
+    int x_len;
+    char* x;
+    
+    int y_len;
 };
 
 

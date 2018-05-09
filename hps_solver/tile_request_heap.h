@@ -10,22 +10,22 @@ class TileRequestHeap {
 private:
     int _max_size;
 
-    std::function<double(TileHeader&)> _priority;
+    std::function<double(std::shared_ptr<TileHeader>)> _priority;
 
-    std::function<bool(TileHeader&, TileHeader&)> _compare;
+    std::function<bool(std::shared_ptr<TileHeader>, std::shared_ptr<TileHeader>)> _compare;
 
-    std::vector<TileHeader> _heap;
+    std::vector<std::shared_ptr<TileHeader>> _heap;
 
 public:
     TileRequestHeap(int max_size);
 
-    void push(TileHeader header);
+    void push(std::shared_ptr<TileHeader> header);
 
-    TileHeader pop();
+    std::shared_ptr<TileHeader> pop();
 
-    void rebuild(std::function<double(TileHeader&)> priority);
+    void rebuild(std::function<double(std::shared_ptr<TileHeader>)> priority);
 
-    bool contains(TileHeader header);
+    bool contains(std::shared_ptr<TileHeader> header);
 
     void clear() { _heap.clear(); }
 

@@ -9,20 +9,20 @@
 
 class Tile {
 private:
-    TileHeader _header;
+    std::shared_ptr<TileHeader> _header;
     unsigned char* const _data;
     bool _is_placeholder;
 
 public:
-    Tile(TileHeader header, unsigned char* data, bool is_placeholder = false);
+    Tile(std::shared_ptr<TileHeader> header, unsigned char* data, bool is_placeholder = false);
 
     ~Tile();
 
     complex getOrigin() const;
 
-    double getSize() const { return pow(2, -_header.z); }
+    double getSize() const { return pow(2, -_header->z); }
 
-    TileHeader getHeader() const { return _header; }
+    std::shared_ptr<TileHeader> getHeader() const { return _header; }
 
     unsigned char* const getData() const { return _data; }
 
