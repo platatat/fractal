@@ -128,6 +128,10 @@ always @(posedge clock) begin
         R_limb_ind <= 0;
         R_zre_ind  <= 0;
         R_zim_ind  <= 0;
+        R_regA     <= 0;
+        R_regB     <= 0;
+        R_regC     <= 0;
+        R_regD     <= 0;
     end else begin
         //Control
         L_cre_wr_en       <= C_cre_wr_en;
