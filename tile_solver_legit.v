@@ -101,8 +101,9 @@ solver #(
 
 // Read/write logic
 `define ST_READ_INPUT       2'd0
-`define ST_SOLVING_PIXEL    2'd1
-`define ST_WRITE_OUTPUT     2'd2
+`define ST_WAIT_CYCLE       2'd1
+`define ST_SOLVING_PIXEL    2'd2
+`define ST_WRITE_OUTPUT     2'd3
 
 reg [1:0] state;
 reg [1:0] next_state;
@@ -226,10 +227,18 @@ always @(*) begin
             end
             // Start the solver
             else if (in_data_type == 3'd4) begin
-                next_state = `ST_SOLVING_PIXEL;
+                next_state = `ST_WAIT_CYCLE;
                 next_solver_start = 1;
             end
         end
+    end
+
+    // ST_WAIT_CYCLE
+    if (state == `ST_WAIT_CYCLE) begin
+        // We wait a cycle for the solver to get the restart signal,
+        // because otherwise the solver might still have out_ready
+        // asserted from last time
+        next_state = `ST_SOLVING_PIXEL;
     end
 
     // ST_SOLVING_PIXEL
