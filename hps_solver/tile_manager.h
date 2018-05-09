@@ -11,32 +11,35 @@
 #include <condition_variable>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 
 class TileManager {
 private:
-    unsigned int _cache_size;
+    int _cache_size;
+    int _request_depth;
 
     TileClient _tile_client;
 
     TileRequestHeap _request_heap;
-
-    std::shared_ptr<TileHeader> _current_request;
+    std::unordered_set<std::shared_ptr<TileHeader>, TileHeader::Hasher, TileHeader::Comparator> _outstanding_requests;
 
     std::mutex _mutex;
-
     std::condition_variable _requests_nonempty;
-
-    std::thread _worker_thread;
+    std::condition_variable _requests_available;
+    std::thread _tile_requesting_thread;
+    std::thread _tile_receiving_thread;
 
     unsigned char* _placeholder_data;
 
-    static void tileLoadingTask(TileManager* tile_manager);
+    static void tileRequestingTask(TileManager* tile_manager);
+
+    static void tileReceivingTask(TileManager* tile_manager);
 
     static void loadPlaceholder(unsigned char* data_buffer);
 
-    bool requestQueueContains(std::shared_ptr<TileHeader> header);
+    bool isTileRequested(std::shared_ptr<TileHeader> header);
 
     void cacheInsert(std::shared_ptr<Tile> tile);
 
@@ -54,7 +57,7 @@ private:
     static std::shared_ptr<Tile> generateTile(std::shared_ptr<TileHeader> header);
 
 public:
-    TileManager(unsigned int cache_size = 16);
+    TileManager(int cache_size, int request_depth = 4);
 
     ~TileManager();
 

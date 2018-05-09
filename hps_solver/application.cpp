@@ -7,7 +7,7 @@
 Application::Application() :
     _origin({0.0, 0.0}),
     _zoom(2), // 10 good
-    _tile_manager(20000),
+    _tile_manager(Constants::CACHE_SIZE),
     _renderer()
 {
     mpf_class real("0.3750001200618655");

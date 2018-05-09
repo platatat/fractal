@@ -8,7 +8,11 @@ Tile::Tile(std::shared_ptr<TileHeader> header, unsigned char* data, bool is_plac
 }
 
 
-Tile::~Tile() {}
+Tile::~Tile() {
+    if (_data != nullptr) {
+        delete[] _data;
+    }
+}
 
 
 complex Tile::getOrigin() const {

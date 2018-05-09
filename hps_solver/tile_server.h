@@ -21,15 +21,17 @@ private:
     socklen_t _address_len;
     int _connection;
 
+    int _queue_depth;
     std::deque<std::shared_ptr<TileHeader>> _requests;
     std::mutex _mutex;
     std::condition_variable _requests_nonempty;
+    std::condition_variable _requests_space_available;
     std::thread _tile_generation_thread;
 
     static void tileGenerationTask(TileServer* tile_server);
 
 public:
-    TileServer(int port);
+    TileServer(int port, int queue_depth);
 
     void init();
 

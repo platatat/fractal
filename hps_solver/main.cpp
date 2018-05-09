@@ -5,6 +5,7 @@
 #include "tile_solver.h"
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <chrono>
 
 
 int runApp() {
@@ -31,6 +32,8 @@ int runApp() {
 
     bool exit = false;
     while (!exit) {
+        auto frame_start = std::chrono::high_resolution_clock::now();
+
         // Draw
         const unsigned char* buffer = app.display();
 
@@ -56,8 +59,15 @@ int runApp() {
             }
         }
 
+        auto frame_end = std::chrono::high_resolution_clock::now();
+        int frame_duration = std::chrono::duration_cast<std::chrono::microseconds>(frame_end - frame_start).count();
+        int delay_milliseconds = std::max(0, 16667 - frame_duration) / 1000;
+
         // Sleep
-        SDL_Delay(16);
+        SDL_Delay(delay_milliseconds);
+
+        double frames_per_second = 1000000.0 / frame_duration;
+        // std::cout << "FPS: " << frames_per_second << std::endl;
     }
 
     // Clean up
@@ -70,15 +80,8 @@ int runApp() {
 }
 
 
-// void clientTest() {
-//     TileClient client = TileClient(8080);
-//     client.init();
-//     client.run();
-// }
-
-
 void serverTest() {
-    TileServer server(8080);
+    TileServer server(8080, 4);
     server.init();
     server.serveForever();
 }

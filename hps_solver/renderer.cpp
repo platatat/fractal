@@ -54,7 +54,11 @@ void Renderer::render(const TileManager::ViewportInfo& viewport_info,
                     // Draw pixels.
                     if (screen_x >= 0 && screen_x < Constants::SCREEN_WIDTH) {
                         if (screen_y >= 0 && screen_y < Constants::SCREEN_HEIGHT) {
-                            unsigned char tile_value = tile->getPoint(x, y);
+                            unsigned char tile_value;
+
+                            if (tile->getData() == nullptr) tile_value = 0;
+                            else                            tile_value = tile->getPoint(x, y);
+
                             _data_buffer[screen_x + screen_y * Constants::SCREEN_WIDTH] = tile_value;
                             if (!tile->isPlaceholder() && tile_value) {
                                 _iterations_pdf[tile_value] += 1;

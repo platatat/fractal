@@ -21,7 +21,9 @@ public:
 
     void push(std::shared_ptr<TileHeader> header);
 
-    std::shared_ptr<TileHeader> pop();
+    void pop();
+
+    std::shared_ptr<TileHeader> front();
 
     void rebuild(std::function<double(std::shared_ptr<TileHeader>)> priority);
 

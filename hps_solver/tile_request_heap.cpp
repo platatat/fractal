@@ -21,11 +21,14 @@ void TileRequestHeap::push(std::shared_ptr<TileHeader> header) {
 }
 
 
-std::shared_ptr<TileHeader> TileRequestHeap::pop() {
-    std::shared_ptr<TileHeader> header = _heap.front();
+std::shared_ptr<TileHeader> TileRequestHeap::front() {
+    return _heap.front();
+}
+
+
+void TileRequestHeap::pop() {
     std::pop_heap(_heap.begin(), _heap.end(), _compare);
     _heap.pop_back();
-    return header;
 }
 
 

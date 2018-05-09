@@ -10,16 +10,18 @@ using std::chrono::system_clock;
 using std::chrono::time_point;
 
 
-TileManager::TileManager(unsigned int cache_size) : 
+TileManager::TileManager(int cache_size, int request_depth) : 
         _request_heap(64), 
         _cache_size(cache_size), 
-        _tile_client(Constants::PORT) {
+        _tile_client(Constants::PORT),
+        _request_depth(request_depth) {
     _tile_client.init();
 
     _placeholder_data = new unsigned char [Constants::TILE_WIDTH * Constants::TILE_HEIGHT];
     loadPlaceholder(_placeholder_data);
 
-    _worker_thread = std::thread(tileLoadingTask, this);
+    _tile_requesting_thread = std::thread(tileRequestingTask, this);
+    _tile_receiving_thread = std::thread(tileReceivingTask, this);
 }
 
 
@@ -28,36 +30,51 @@ TileManager::~TileManager() {
 }
 
 
-void TileManager::tileLoadingTask(TileManager* tile_manager) {
+void TileManager::tileRequestingTask(TileManager* tile_manager) {
+    while(true) {
+        std::shared_ptr<TileHeader> header;
+
+        {
+            std::unique_lock<std::mutex> lock(tile_manager->_mutex);
+
+            // Wait for a request from the viewport.
+            while (tile_manager->_request_heap.size() == 0) {
+                tile_manager->_requests_nonempty.wait(lock);
+            }
+
+            // Wait for space on the server request queue.
+            while (tile_manager->_outstanding_requests.size() >= tile_manager->_request_depth) {
+                tile_manager->_requests_available.wait(lock);
+            }
+            
+            // Get the highest priority tile request.
+            header = tile_manager->_request_heap.front();
+            tile_manager->_request_heap.pop();
+            tile_manager->_outstanding_requests.insert(header);
+        }
+        
+        // Send the tile request to the server.
+        tile_manager->_tile_client.requestTile(header);
+    }
+}
+
+
+void TileManager::tileReceivingTask(TileManager* tile_manager) {
     std::unique_lock<std::mutex> lock(tile_manager->_mutex);
     lock.unlock();
 
     while (true) {
         unsigned char* tile_data = new unsigned char [Constants::TILE_PIXELS];
-        std::unique_ptr<TileHeader> header = tile_manager->_tile_client.receiveTile(tile_data);
-        std::shared_ptr<TileHeader> shared_header = std::move(header);
-        std::shared_ptr<Tile> tile = std::make_shared<Tile>(shared_header, tile_data);
+        std::unique_ptr<TileHeader> unique_header = tile_manager->_tile_client.receiveTile(tile_data);
+        std::shared_ptr<TileHeader> header = std::move(unique_header);
+        std::shared_ptr<Tile> tile = std::make_shared<Tile>(header, tile_data);
 
         lock.lock();
-        std::cout << "adding tile " << shared_header->get_str() << std::endl;
+        std::cout << "adding tile " << header->get_str() << std::endl;
         tile_manager->cacheInsert(tile);
+        tile_manager->_outstanding_requests.erase(header);
+        tile_manager->_requests_available.notify_one();
         lock.unlock();
-
-        // // Wait for a tile request.
-        // tile_manager->_requests_nonempty.wait(lock);
-
-        // while (tile_manager->_request_heap.size() > 0) {
-        //     tile_manager->_current_request = tile_manager->_request_heap.pop();
-
-        //     // Release lock during tile computation.
-        //     lock.unlock();
-        //     std::shared_ptr<Tile> tile = generateTile(tile_manager->_current_request);
-        //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        //     // Acquire lock to access the cache.
-        //     lock.lock();
-        //     tile_manager->cacheInsert(tile);
-        // }
     }
 }
 
@@ -85,8 +102,10 @@ void TileManager::loadPlaceholder(unsigned char* data_buffer) {
 }
 
 
-bool TileManager::requestQueueContains(std::shared_ptr<TileHeader> header) {
-    return _request_heap.contains(header) || header == _current_request;
+bool TileManager::isTileRequested(std::shared_ptr<TileHeader> header) {
+    bool is_requested = _request_heap.contains(header);
+    bool is_outstanding = _outstanding_requests.find(header) != _outstanding_requests.end();
+    return is_requested || is_outstanding;
 }
 
 
@@ -105,8 +124,6 @@ bool TileManager::cacheContains(std::shared_ptr<TileHeader> header) {
 
 
 void TileManager::cacheEvictOldest() {
-    std::cout << "Evicting\n";
-
     time_point<system_clock> oldest_time = system_clock::now();
     std::shared_ptr<TileHeader> oldest_header;
     std::shared_ptr<Tile> oldest_tile;
@@ -119,7 +136,7 @@ void TileManager::cacheEvictOldest() {
         }
     }
 
-    delete[] oldest_tile->getData();
+    std::cout << "evicting " << oldest_header->get_str() << std::endl;
     _cache.erase(oldest_header);
 }
 
@@ -131,14 +148,12 @@ std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> heade
         return cache_result->second.tile;
     }
     else {
-        // if (!requestQueueContains(header)) {
-        //     _request_heap.push(header);
-        //     _requests_nonempty.notify_one();
-        // }
+        if (!isTileRequested(header)) {
+            _request_heap.push(header);
+            _requests_nonempty.notify_one();
+        }
 
-        _tile_client.requestTile(header);
-
-        std::shared_ptr<Tile> placeholder_tile = std::make_shared<Tile>(header, _placeholder_data, true);
+        std::shared_ptr<Tile> placeholder_tile = std::make_shared<Tile>(header, nullptr, true);
 
         return placeholder_tile;
     }
@@ -220,7 +235,7 @@ TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size
         double loss_y = std::abs(y_dist.get_si());
         double loss_z = 4 * z_dist;
 
-        return loss_x + loss_y + loss_z;
+        return std::max(loss_x, loss_y) + loss_z;
     });
 
     ViewportInfo out_info = {0, };
