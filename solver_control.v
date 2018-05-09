@@ -27,8 +27,8 @@ module solver_control #(
     output reg [1:0]                 m2_a_sel,
     output reg [1:0]                 m2_b_sel,
     output reg                       op_sel,
-    output reg [1:0]                 zre_partial_sel,
-    output reg                       zim_partial_sel,
+    output reg [2:0]                 zre_partial_sel,
+    output reg [1:0]                 zim_partial_sel,
     output reg [1:0]                 zre_acc_sel,
     output reg [1:0]                 zim_acc_sel,
     output reg                       zre_wr_en,
@@ -75,7 +75,7 @@ module solver_control #(
 
     reg  [1:0] next_m1_a_sel;
     reg  [1:0] next_m1_b_sel;
-    reg  [1:0] next_zre_partial_sel;
+    reg  [2:0] next_zre_partial_sel;
     reg  [1:0] next_zre_acc_sel;
     reg        next_zre_wr_en;
 
@@ -85,12 +85,14 @@ module solver_control #(
     localparam OP_ITER = 0;
     localparam OP_ABS  = 1;
 
-    localparam ZRE_PART_DOUBLE_POS = 0;
-    localparam ZRE_PART_DOUBLE_NEG = 1;
-    localparam ZRE_PART_SINGLE_POS = 2;
-    localparam ZRE_PART_SINGLE_NEG = 3;
-    localparam ZIM_PART_POS = 0;
-    localparam ZIM_PART_NEG = 1;
+    localparam ZRE_PART_ZERO       = 0;
+    localparam ZRE_PART_DOUBLE_POS = 1;
+    localparam ZRE_PART_DOUBLE_NEG = 2;
+    localparam ZRE_PART_SINGLE_POS = 3;
+    localparam ZRE_PART_SINGLE_NEG = 4;
+    localparam ZIM_PART_ZERO = 0;
+    localparam ZIM_PART_POS  = 1;
+    localparam ZIM_PART_NEG  = 2;
 
     localparam ITER_ADD_PARTIAL = 0;
     localparam ITER_CARRY       = 1;
@@ -122,8 +124,8 @@ module solver_control #(
         m2_a_sel             = 0;
         m2_b_sel             = 0;
         op_sel               = OP_ITER;
-        next_zre_partial_sel = 0;
-        zim_partial_sel      = 0;
+        next_zre_partial_sel = ZRE_PART_ZERO;
+        zim_partial_sel      = ZIM_PART_ZERO;
         next_zre_acc_sel     = ITER_NOP;
         zim_acc_sel          = ITER_NOP;
         next_zre_wr_en       = 0;
@@ -140,6 +142,7 @@ module solver_control #(
             if (start) begin
                 next_state = STATE_ABS;
                 next_out_ready = 0;
+                next_iteration_count <= 0;
             end
         end
         else if (state == STATE_ABS)
@@ -217,9 +220,12 @@ module solver_control #(
 
             m2_a_sel             = zre_reg_sel;
             m2_b_sel             = zim_reg_sel;
-            next_zre_partial_sel = zre_rd_ind == zim_rd_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
-                                                              (flip_partial ? ZRE_PART_DOUBLE_NEG : ZRE_PART_DOUBLE_POS);
-            zim_partial_sel = (last_zre_sign ^ last_zim_sign) ? ZIM_PART_NEG : ZIM_PART_POS;
+
+            if (iteration_count > 0) begin
+                next_zre_partial_sel = zre_rd_ind == zim_rd_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
+                                                                  (flip_partial ? ZRE_PART_DOUBLE_NEG : ZRE_PART_DOUBLE_POS);
+                zim_partial_sel = (last_zre_sign ^ last_zim_sign) ? ZIM_PART_NEG : ZIM_PART_POS;
+            end
 
             if (limb_index == num_limbs) begin
                 next_zre_acc_sel = (partial_index == 1 && !flip_partial) ? ITER_SET : ITER_ADD_PARTIAL;
@@ -297,6 +303,8 @@ module solver_control #(
             if (state == STATE_LOAD) begin
                 if (wr_num_limbs_en) num_limbs <= num_limbs_data;
                 if (wr_iter_lim_en)  iteration_limit <= iter_lim_data;
+                last_zre_sign <= 0;
+                last_zim_sign <= 0;
             end else if (state == STATE_CHECK) begin
                 last_zre_sign <= zre_sign;
                 last_zim_sign <= zim_sign;

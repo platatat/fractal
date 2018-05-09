@@ -40,8 +40,8 @@ module solver_datapath #(
 
     //Execute (X) control signals
     input                       C_op_sel,
-    input [1:0]                 C_zre_partial_sel,
-    input                       C_zim_partial_sel,
+    input [2:0]                 C_zre_partial_sel,
+    input [1:0]                 C_zim_partial_sel,
     input [1:0]                 C_zre_acc_sel,
     input [1:0]                 C_zim_acc_sel,
 
@@ -73,8 +73,8 @@ reg  [1:0]                  R_m1_b_sel;
 reg  [1:0]                  R_m2_a_sel;
 reg  [1:0]                  R_m2_b_sel;
 reg                         R_op_sel;
-reg  [1:0]                  R_zre_partial_sel;
-reg                         R_zim_partial_sel;
+reg  [2:0]                  R_zre_partial_sel;
+reg  [1:0]                  R_zim_partial_sel;
 reg  [1:0]                  R_zre_acc_sel;
 reg  [1:0]                  R_zim_acc_sel;
 reg                         R_zre_wr_en;
@@ -166,8 +166,6 @@ always @(posedge clock) begin
 
         if (L_cre_wr_en) cre_ram[R_c_limb_ind] <= L_cre_limb;
         if (L_cim_wr_en) cim_ram[R_c_limb_ind] <= L_cim_limb;
-        if (L_cre_wr_en) zre_ram[R_c_limb_ind] <= L_cre_limb; //TODO this is gonna go soon
-        if (L_cim_wr_en) zim_ram[R_c_limb_ind] <= L_cim_limb; //TODO this is gonna go soon
 
         if      (R_zre_reg_sel == 0) R_regA <= R_zre_limb;
         else if (R_zim_reg_sel == 0) R_regA <= R_zim_limb;
@@ -189,8 +187,8 @@ reg  [1:0]                  M_m1_b_sel;
 reg  [1:0]                  M_m2_a_sel;
 reg  [1:0]                  M_m2_b_sel;
 reg                         M_op_sel;
-reg  [1:0]                  M_zre_partial_sel;
-reg                         M_zim_partial_sel;
+reg  [2:0]                  M_zre_partial_sel;
+reg  [1:0]                  M_zim_partial_sel;
 reg  [1:0]                  M_zre_acc_sel;
 reg  [1:0]                  M_zim_acc_sel;
 reg                         M_zre_wr_en;
@@ -293,8 +291,8 @@ end
 
 //Control signals
 reg                         X_op_sel;
-reg  [1:0]                  X_zre_partial_sel;
-reg                         X_zim_partial_sel;
+reg  [2:0]                  X_zre_partial_sel;
+reg  [1:0]                  X_zim_partial_sel;
 reg  [1:0]                  X_zre_acc_sel;
 reg  [1:0]                  X_zim_acc_sel;
 reg                         X_zre_wr_en;
@@ -332,15 +330,19 @@ assign X_zre_limb_out = X_zre_acc_next[LIMB_SIZE_BITS-1:0];
 assign X_zim_limb_out = X_zim_acc_next[LIMB_SIZE_BITS-1:0];
 
 always @* begin
+
+    X_zre_partial = 0;
+    X_zim_partial = 0;
+
     case (X_zre_partial_sel)
-        0: X_zre_partial =  X_m1_out << 1;
-        1: X_zre_partial = -X_m1_out << 1;
-        2: X_zre_partial =  X_m1_out;
-        3: X_zre_partial = -X_m1_out;
+        1: X_zre_partial =  X_m1_out << 1;
+        2: X_zre_partial = -X_m1_out << 1;
+        3: X_zre_partial =  X_m1_out;
+        4: X_zre_partial = -X_m1_out;
     endcase
     case (X_zim_partial_sel)
-        0: X_zim_partial =  X_m2_out << 1;
-        1: X_zim_partial = -X_m2_out << 1;
+        1: X_zim_partial =  X_m2_out << 1;
+        2: X_zim_partial = -X_m2_out << 1;
     endcase
 
     X_zre_acc_next = X_zre_acc;
