@@ -15,24 +15,26 @@ module solver_control #(
     input [15:0]                iter_lim_data,
     input start,
 
-    output reg [LIMB_INDEX_BITS-1:0] limb_ind,
-    output reg [LIMB_INDEX_BITS-1:0] zre_ind,
-    output reg [LIMB_INDEX_BITS-1:0] zim_ind,
-    output reg       cre_wr_en,
-    output reg       cim_wr_en,
-    output reg [1:0] zre_reg_sel,
-    output reg [1:0] zim_reg_sel,
-    output reg [1:0] m1_a_sel,
-    output reg [1:0] m1_b_sel,
-    output reg [1:0] m2_a_sel,
-    output reg [1:0] m2_b_sel,
-    output reg       op_sel,
-    output reg [1:0] zre_partial_sel,
-    output reg       zim_partial_sel,
-    output reg [1:0] zre_acc_sel,
-    output reg [1:0] zim_acc_sel,
-    output reg       zre_wr_en,
-    output reg       zim_wr_en,
+    output reg                       cre_wr_en,
+    output reg                       cim_wr_en,
+    output reg [LIMB_INDEX_BITS-1:0] c_limb_ind,
+    output reg [LIMB_INDEX_BITS-1:0] zre_rd_ind,
+    output reg [LIMB_INDEX_BITS-1:0] zim_rd_ind,
+    output reg [1:0]                 zre_reg_sel,
+    output reg [1:0]                 zim_reg_sel,
+    output reg [1:0]                 m1_a_sel,
+    output reg [1:0]                 m1_b_sel,
+    output reg [1:0]                 m2_a_sel,
+    output reg [1:0]                 m2_b_sel,
+    output reg                       op_sel,
+    output reg [1:0]                 zre_partial_sel,
+    output reg                       zim_partial_sel,
+    output reg [1:0]                 zre_acc_sel,
+    output reg [1:0]                 zim_acc_sel,
+    output reg                       zre_wr_en,
+    output reg                       zim_wr_en,
+    output reg [LIMB_INDEX_BITS-1:0] zre_wr_ind,
+    output reg [LIMB_INDEX_BITS-1:0] zim_wr_ind,
 
     input zre_sign,
     input zim_sign,
@@ -68,9 +70,14 @@ module solver_control #(
     reg  [LIMB_INDEX_BITS-1:0] next_partial_index;
     reg                        flip_partial;
     reg                        next_flip_partial;
+    reg  [1:0]                 pattern_index;
+    reg  [1:0]                 next_pattern_index;
 
-    reg  [1:0] pattern_index;
-    reg  [1:0] next_pattern_index;
+    reg  [1:0] next_m1_a_sel;
+    reg  [1:0] next_m1_b_sel;
+    reg  [1:0] next_zre_partial_sel;
+    reg  [1:0] next_zre_acc_sel;
+    reg        next_zre_wr_en;
 
     reg  last_zre_sign;
     reg  last_zim_sign;
@@ -98,39 +105,40 @@ module solver_control #(
         next_out_ready       = out_ready;
         next_iteration_count = iteration_count;
         next_flush_counter   = FLUSH_WAIT;
-        next_limb_index      = 0;
+        next_limb_index      = num_limbs - 1;
         next_partial_index   = 0;
         next_flip_partial    = 0;
         next_pattern_index   = 0;
 
-        limb_ind        = limb_index;
-        zre_ind         = 0;
-        zim_ind         = 0;
-        cre_wr_en       = 0;
-        cim_wr_en       = 0;
-        zre_reg_sel     = 0;
-        zim_reg_sel     = 0;
-        m1_a_sel        = 0;
-        m1_b_sel        = 0;
-        m2_a_sel        = 0;
-        m2_b_sel        = 0;
-        op_sel          = OP_ITER;
-        zre_partial_sel = 0;
-        zim_partial_sel = 0;
-        zre_acc_sel     = ITER_NOP;
-        zim_acc_sel     = ITER_NOP;
-        zre_wr_en       = 0;
-        zim_wr_en       = 0;
+        c_limb_ind           = limb_index;
+        zre_rd_ind           = 0;
+        zim_rd_ind           = 0;
+        cre_wr_en            = 0;
+        cim_wr_en            = 0;
+        zre_reg_sel          = 0;
+        zim_reg_sel          = 0;
+        next_m1_a_sel        = 0;
+        next_m1_b_sel        = 0;
+        m2_a_sel             = 0;
+        m2_b_sel             = 0;
+        op_sel               = OP_ITER;
+        next_zre_partial_sel = 0;
+        zim_partial_sel      = 0;
+        next_zre_acc_sel     = ITER_NOP;
+        zim_acc_sel          = ITER_NOP;
+        next_zre_wr_en       = 0;
+        zim_wr_en            = 0;
+        zre_wr_ind           = 0;
+        zim_wr_ind           = 0;
 
         if (state == STATE_LOAD)
         begin
-            limb_ind  = wr_ind;
-            cre_wr_en = wr_real_en;
-            cim_wr_en = wr_imag_en;
+            c_limb_ind = wr_ind;
+            cre_wr_en  = wr_real_en;
+            cim_wr_en  = wr_imag_en;
 
             if (start) begin
                 next_state = STATE_ABS;
-                next_limb_index = num_limbs - 1;
                 next_out_ready = 0;
             end
         end
@@ -141,8 +149,10 @@ module solver_control #(
             zim_wr_en = 1;
 
             next_limb_index = limb_index - 1;
-            zre_ind         = limb_index;
-            zim_ind         = limb_index;
+            zre_rd_ind      = limb_index;
+            zim_rd_ind      = limb_index;
+            zre_wr_ind      = limb_index;
+            zim_wr_ind      = limb_index;
 
             if (last_zre_sign) zre_acc_sel = limb_index == num_limbs - 1 ? ABS_START : ABS_CARRY;
             else               zre_acc_sel = ABS_NOP;
@@ -174,17 +184,16 @@ module solver_control #(
                 if (partial_index == limb_index >> 1) begin
                     next_partial_index = 0;
                     next_limb_index    = limb_index - 1;
-                    next_pattern_index = 0;
                     if (limb_index < num_limbs) begin
-                        zre_wr_en = 1;
-                        zim_wr_en = 1;
+                        next_zre_wr_en = 1;
+                        zim_wr_en      = 1;
                     end
                     if (limb_index == 0) next_state = STATE_ITER_FLUSH;
                 end
             end
 
-            zre_ind         = flip_partial ?              partial_index : limb_index - partial_index;
-            zim_ind         = flip_partial ? limb_index - partial_index :              partial_index;
+            zre_rd_ind      = flip_partial ?              partial_index : limb_index - partial_index;
+            zim_rd_ind      = flip_partial ? limb_index - partial_index :              partial_index;
 
             zre_reg_sel     = pattern_index == 0 ? 0 :
                               pattern_index == 1 ? 2 :
@@ -196,29 +205,33 @@ module solver_control #(
                               pattern_index == 2 ? 2 :
                                                    3;
 
-            m1_a_sel        = pattern_index == 0 ? 2 :
-                              pattern_index == 1 ? 0 :
+            next_m1_a_sel   = pattern_index == 0 ? 0 :
+                              pattern_index == 1 ? 1 :
+                              pattern_index == 2 ? 0 :
+                                                   2;
+
+            next_m1_b_sel   = pattern_index == 0 ? 2 :
+                              pattern_index == 1 ? 3 :
                               pattern_index == 2 ? 1 :
-                                                   0;
+                                                   3;
 
-            m1_b_sel        = pattern_index == 0 ? 3 :
-                              pattern_index == 1 ? 2 :
-                              pattern_index == 2 ? 3 :
-                                                   1;
-
-            m2_a_sel        = zre_reg_sel;
-            m2_b_sel        = zim_reg_sel;
-            zre_partial_sel = zre_ind == zim_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
-                                                   (flip_partial ? ZRE_PART_DOUBLE_NEG : ZRE_PART_DOUBLE_POS);
+            m2_a_sel             = zre_reg_sel;
+            m2_b_sel             = zim_reg_sel;
+            next_zre_partial_sel = zre_rd_ind == zim_rd_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
+                                                              (flip_partial ? ZRE_PART_DOUBLE_NEG : ZRE_PART_DOUBLE_POS);
             zim_partial_sel = (last_zre_sign ^ last_zim_sign) ? ZIM_PART_NEG : ZIM_PART_POS;
-            if (partial_index == 0) begin
-                zre_acc_sel = flip_partial ? (limb_index == num_limbs ? ITER_SET : ITER_CARRY) : ITER_NOP;
-                zim_acc_sel = flip_partial ? ITER_ADD_PARTIAL                                  : (limb_index == num_limbs ? ITER_SET : ITER_CARRY);
+
+            if (limb_index == num_limbs) begin
+                next_zre_acc_sel = (partial_index == 1 && !flip_partial) ? ITER_SET : ITER_ADD_PARTIAL;
+                zim_acc_sel      = (partial_index == 1 && !flip_partial) ? ITER_SET : ITER_ADD_PARTIAL;
             end else begin
-                zre_acc_sel = ITER_ADD_PARTIAL;
-                zim_acc_sel = ITER_ADD_PARTIAL;
+                next_zre_acc_sel = (partial_index == 0 && !flip_partial) ? ITER_CARRY : ITER_ADD_PARTIAL;
+                zim_acc_sel      = (partial_index == 0 && !flip_partial) ? ITER_CARRY : ITER_ADD_PARTIAL;
             end
-            if (zre_ind == zim_ind && flip_partial) zim_acc_sel = ITER_NOP;
+            if (zre_rd_ind == zim_rd_ind && flip_partial) zim_acc_sel = ITER_NOP;
+
+            zre_wr_ind = limb_index + 1;
+            zim_wr_ind = limb_index;
         end
         else if (state == STATE_ITER_FLUSH)
         begin
@@ -248,16 +261,23 @@ module solver_control #(
     always @(posedge clock) begin
         if (reset) begin
             state           <= STATE_LOAD;
+            flush_counter   <= 0;
             out_ready       <= 0;
             iteration_count <= 0;
-
             num_limbs       <= 0;
             limb_index      <= 0;
-
             partial_index   <= 0;
             flip_partial    <= 0;
-
             pattern_index   <= 0;
+
+            m1_a_sel        <= 0;
+            m1_b_sel        <= 0;
+            zre_partial_sel <= 0;
+            zre_acc_sel     <= 0;
+            zre_wr_en       <= 0;
+
+            last_zre_sign   <= 0;
+            last_zim_sign   <= 0;
         end else begin
             state           <= next_state;
             flush_counter   <= next_flush_counter;
@@ -267,6 +287,12 @@ module solver_control #(
             partial_index   <= next_partial_index;
             flip_partial    <= next_flip_partial;
             pattern_index   <= next_pattern_index;
+
+            m1_a_sel        <= next_m1_a_sel;
+            m1_b_sel        <= next_m1_b_sel;
+            zre_partial_sel <= next_zre_partial_sel;
+            zre_acc_sel     <= next_zre_acc_sel;
+            zre_wr_en       <= next_zre_wr_en;
 
             if (state == STATE_LOAD) begin
                 if (wr_num_limbs_en) num_limbs <= num_limbs_data;

@@ -36,8 +36,8 @@ module top();
         #20
 
         wr_limb <= 1;
-        wr_data_re <= 8'h80;
-        wr_data_im <= 8'h00;
+        wr_data_re <= 8'h40;
+        wr_data_im <= 8'hc0;
         #20
 
         wr_limb <= 2;
