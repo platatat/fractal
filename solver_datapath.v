@@ -461,7 +461,6 @@ always @(posedge clock) begin
 end
 
 always @(posedge clock) begin
-    //*
     if (X_op_sel == 1'b1) begin
         //$display("NNNNNNNNNEEEEEEEEEEEEEEEEGGGGGGGGGGGGGGAAAAAAAAAAAAATTTTTTTTTTTTIIIIIIIIIIIINNNNNNNNNNNNNNGGGGGGGGGGGGGG");
         /*
@@ -471,7 +470,7 @@ always @(posedge clock) begin
             2: $display("X_zre_acc_next(%h) = (X_zre_limb(%h) ^ {(LIMB_SIZE_BITS){1'b1}})(%h) + (X_zre_acc(%h) >>> LIMB_SIZE_BITS)(%h); //Invert z limb and add carry", X_zre_acc_next, X_zre_limb, X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}}, X_zre_acc, X_zre_acc >>> LIMB_SIZE_BITS);
             default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for negate op", X_zre_acc_sel);
         endcase
-        //*/
+        */
         /*
         case (X_zim_acc_sel)
             0: $display("X_zim_acc_next(%h) =  X_zim_limb(%h); //Do not modify z limb", X_zim_acc_next, X_zim_limb);
@@ -479,9 +478,8 @@ always @(posedge clock) begin
             2: $display("X_zim_acc_next(%h) = (X_zim_limb(%h) ^ {(LIMB_SIZE_BITS){1'b1}})(%h) + (X_zim_acc(%h) >>> LIMB_SIZE_BITS)(%h); //Invert z limb and add carry", X_zim_acc_next, X_zim_limb, X_zim_limb ^ {(LIMB_SIZE_BITS){1'b1}}, X_zim_acc, X_zim_acc >>> LIMB_SIZE_BITS);
             default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for negate op", X_zim_acc_sel);
         endcase
-        //*/
+        */
     end
-    //*/
 
     //$display("C_op_sel %b -> R_op_sel %b -> M_op_sel %b -> X_op_sel %b", C_op_sel, R_op_sel, M_op_sel, X_op_sel);
     //$display("R | cre[%d] -> %h | cim[%d] -> %h | zre[%d] -> %h | zim[%d] -> %h", R_limb_ind, R_cre_limb, R_limb_ind, R_cim_limb, R_zre_ind, R_zre_limb, R_zim_ind, R_zim_limb);
@@ -500,7 +498,7 @@ always @(posedge clock) begin
         3: $display("X | zre_acc(%h) := zre_acc(%h) //Do nothing", X_zre_acc_next, X_zre_acc_next);
         default: $display("[ERROR] X_zre_acc_sel has illegal value: %b", X_zre_acc_sel);
     endcase
-    //*/
+    */
     /*
     case (X_zim_partial_sel)
         0: $display("X | zim_partial(%h) = [ m2_out(%h) << 1](%h)", X_zim_partial, X_m2_out, X_m2_out << 1);
@@ -513,7 +511,7 @@ always @(posedge clock) begin
         3: $display("X | zim_acc(%h) := zim_acc(%h) //Do nothing", X_zim_acc_next, X_zim_acc_next);
         default: $display("[ERROR] X_zim_acc_sel has illegal value: %b", X_zim_acc_sel);
     endcase
-    //*/
+    */
 end
 
 endmodule
