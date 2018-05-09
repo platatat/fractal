@@ -33,10 +33,11 @@ void TileManager::tileLoadingTask(TileManager* tile_manager) {
     lock.unlock();
 
     while (true) {
-        char* tile_data = new char [Constants::TILE_PIXELS];
+        unsigned char* tile_data = new unsigned char [Constants::TILE_PIXELS];
         std::unique_ptr<TileHeader> header = tile_manager->_tile_client.receiveTile(tile_data);
         std::shared_ptr<TileHeader> shared_header = std::move(header);
-        std::shared_ptr<Tile> tile = std::make_shared<Tile>(shared_header, (unsigned char*) tile_data);
+        std::shared_ptr<Tile> tile = std::make_shared<Tile>(shared_header, tile_data);
+
         lock.lock();
         std::cout << "adding tile " << shared_header->get_str() << std::endl;
         tile_manager->cacheInsert(tile);
@@ -127,7 +128,6 @@ std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> heade
     if (cacheContains(header)) {
         auto cache_result = _cache.find(header);
         cache_result->second.last_hit = system_clock::now();
-        std::cout << "cache hit " << header->get_str() << std::endl;
         return cache_result->second.tile;
     }
     else {

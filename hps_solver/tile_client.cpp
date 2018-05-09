@@ -41,17 +41,8 @@ void TileClient::requestTile(std::shared_ptr<TileHeader> header) {
 }
 
 
-std::unique_ptr<TileHeader> TileClient::receiveTile(char* buffer) {
+std::unique_ptr<TileHeader> TileClient::receiveTile(unsigned char* buffer) {
     std::unique_ptr<TileHeader> header = SocketUtil::receiveHeaderPacket(_socket_fd);
     SocketUtil::receiveData(_socket_fd, buffer, Constants::TILE_PIXELS);
     return header;
 }
-
-
-// void TileClient::run() {
-//     TileHeader header = {123, 459, 2743};
-//     SocketUtil::sendHeaderPacket(_socket_fd, header);
-//     TileHeader response_header = SocketUtil::receiveHeaderPacket(_socket_fd);
-//     char tile_data [Constants::TILE_PIXELS];
-//     SocketUtil::receiveData(_socket_fd, tile_data, Constants::TILE_PIXELS);
-// }

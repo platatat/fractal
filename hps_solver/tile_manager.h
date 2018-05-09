@@ -49,24 +49,7 @@ private:
         std::chrono::time_point<std::chrono::system_clock> last_hit;
     };
 
-    struct TileHeaderHasher {
-        std::size_t operator()(const std::shared_ptr<TileHeader>& header) const {
-            size_t h = 0;
-            // TODO: smarter way of hashing big ints would be good.
-            h = header->x.get_si() + (h << 6) + (h << 16) - h;
-            h = header->y.get_si() + (h << 6) + (h << 16) - h;
-            h = header->z + (h << 6) + (h << 16) - h;
-            return h;
-        }
-    };
-
-    struct TileHeaderComparator {
-        bool operator()(const std::shared_ptr<TileHeader>& a, const std::shared_ptr<TileHeader>& b) const {
-            return (a->x == b->x) && (a->y == b->y) && (a->z == b->z);
-        }
-    };
-
-    std::unordered_map<std::shared_ptr<TileHeader>, CachedTile, TileHeaderHasher, TileHeaderComparator> _cache;
+    std::unordered_map<std::shared_ptr<TileHeader>, CachedTile, TileHeader::Hasher, TileHeader::Comparator> _cache;
 
     static std::shared_ptr<Tile> generateTile(std::shared_ptr<TileHeader> header);
 

@@ -7,8 +7,8 @@ public:
     static const int SCREEN_WIDTH       = 512;
     static const int SCREEN_HEIGHT      = 512;
 
-    static const int TILE_WIDTH         = 128;
-    static const int TILE_HEIGHT        = 128;
+    static const int TILE_WIDTH         = 64;
+    static const int TILE_HEIGHT        = 64;
 
     static const int ITERATIONS         = 64;
     static const int MPF_PRECISION      = 64;

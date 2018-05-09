@@ -29,7 +29,7 @@ public:
 
     void requestTile(std::shared_ptr<TileHeader> header);
 
-    std::unique_ptr<TileHeader> receiveTile(char* buffer);
+    std::unique_ptr<TileHeader> receiveTile(unsigned char* buffer);
 };
 
 

@@ -6,12 +6,12 @@
 #include <unistd.h>
 
 
-void SocketUtil::sendData(int sock, char* data, int size) {
+void SocketUtil::sendData(int sock, unsigned char* data, int size) {
     send(sock, data, size, 0);
 }
 
 
-int SocketUtil::receiveData(int sock, char* buffer, int size) {
+int SocketUtil::receiveData(int sock, unsigned char* buffer, int size) {
     int bytes_read = 0;
 
     while (bytes_read < size) {
@@ -33,7 +33,7 @@ int SocketUtil::receiveData(int sock, char* buffer, int size) {
 void SocketUtil::sendHeaderPacket(int sock, std::shared_ptr<TileHeader> header) {
     // std::cout << "sending: " << header.get_str() << std::endl;
     int header_size;
-    char* header_data = header->serialize(header_size);
+    unsigned char* header_data = header->serialize(header_size);
     sendData(sock, header_data, header_size);
     delete[] header_data;
 }
@@ -41,7 +41,7 @@ void SocketUtil::sendHeaderPacket(int sock, std::shared_ptr<TileHeader> header) 
 
 std::unique_ptr<TileHeader> SocketUtil::receiveHeaderPacket(int sock) {
     // Receive packet size data.
-    char size_buffer [8]; 
+    unsigned char size_buffer [8]; 
     
     if (receiveData(sock, size_buffer, 8) != 0) {
         throw std::runtime_error("failed to receive tile header size");
@@ -53,7 +53,7 @@ std::unique_ptr<TileHeader> SocketUtil::receiveHeaderPacket(int sock) {
     int packet_size = x_size + y_size + 16;
 
     // Recieve the rest of the packet.
-    char packet_buffer [packet_size];
+    unsigned char packet_buffer [packet_size];
     std::memcpy(packet_buffer, size_buffer, 8);
 
     if (receiveData(sock, packet_buffer + 8, packet_size - 8) != 0) {

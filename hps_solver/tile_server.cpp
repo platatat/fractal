@@ -85,7 +85,7 @@ void TileServer::tileGenerationTask(TileServer* tile_server) {
             TileSolver::solveTile(tile, Constants::ITERATIONS);
 
             SocketUtil::sendHeaderPacket(tile_server->_connection, header);
-            SocketUtil::sendData(tile_server->_connection, (char*) tile_data, Constants::TILE_PIXELS);
+            SocketUtil::sendData(tile_server->_connection, tile_data, Constants::TILE_PIXELS);
 
             lock.lock();
         }

@@ -6,9 +6,9 @@
 
 class SocketUtil {
 public:
-    static void sendData(int sock, char* data, int size);
+    static void sendData(int sock, unsigned char* data, int size);
 
-    static int receiveData(int sock, char* buffer, int size);
+    static int receiveData(int sock, unsigned char* buffer, int size);
 
     static void sendHeaderPacket(int sock, std::shared_ptr<TileHeader> header);
 
