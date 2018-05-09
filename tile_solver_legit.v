@@ -210,7 +210,7 @@ always @(*) begin
                 next_solver_iter_lim_data = 5;
 
                 next_solver_wr_num_limbs_en = 1;
-                next_solver_num_limbs_data = 2;
+                next_solver_num_limbs_data = 3;
             end
             // Write a limb of c_real.
             else if (in_data_type == 3'd2) begin
@@ -242,6 +242,8 @@ always @(*) begin
 
     // ST_WRITE_OUTPUT
     if (state == `ST_WRITE_OUTPUT) begin
+        $display("iterations: %d", saved_iterations);
+
         out_addr = addr;
         out_data = saved_iterations;
         out_valid = 1;

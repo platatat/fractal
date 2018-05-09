@@ -89,7 +89,7 @@ module top();
         fifo_end_of_stream <= 0;
         #20
 
-        #500
+        #10000
 
         $finish;
     end
