@@ -143,6 +143,7 @@ module solver_control #(
                 next_state = STATE_ABS;
                 next_out_ready = 0;
                 next_iteration_count <= 0;
+                next_zre_acc_sel = last_zre_sign ? ABS_START : ABS_NOP;
             end
         end
         else if (state == STATE_ABS)
@@ -157,8 +158,7 @@ module solver_control #(
             zre_wr_ind      = limb_index;
             zim_wr_ind      = limb_index;
 
-            if (last_zre_sign) zre_acc_sel = limb_index == num_limbs - 1 ? ABS_START : ABS_CARRY;
-            else               zre_acc_sel = ABS_NOP;
+            next_zre_acc_sel = last_zre_sign ? ABS_CARRY : ABS_NOP;
 
             if (last_zim_sign) zim_acc_sel = limb_index == num_limbs - 1 ? ABS_START : ABS_CARRY;
             else               zim_acc_sel = ABS_NOP;
@@ -256,6 +256,7 @@ module solver_control #(
             end else begin
                 next_state <= STATE_ABS;
                 next_iteration_count = iteration_count + 1;
+                next_zre_acc_sel = zre_sign ? ABS_START : ABS_NOP;
             end
         end
         else
