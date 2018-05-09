@@ -54,8 +54,6 @@ private:
 
     std::unordered_map<std::shared_ptr<TileHeader>, CachedTile, TileHeader::Hasher, TileHeader::Comparator> _cache;
 
-    static std::shared_ptr<Tile> generateTile(std::shared_ptr<TileHeader> header);
-
 public:
     TileManager(int cache_size, int request_depth = 4);
 

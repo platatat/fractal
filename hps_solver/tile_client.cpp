@@ -37,12 +37,16 @@ void TileClient::init() {
 
 
 void TileClient::requestTile(std::shared_ptr<TileHeader> header) {
-    SocketUtil::sendHeaderPacket(_socket_fd, header);
+    std::vector<uint8_t> data = header->serialize();
+    SocketUtil::sendPacket(_socket_fd, data);
 }
 
 
-std::unique_ptr<TileHeader> TileClient::receiveTile(unsigned char* buffer) {
-    std::unique_ptr<TileHeader> header = SocketUtil::receiveHeaderPacket(_socket_fd);
-    SocketUtil::receiveData(_socket_fd, buffer, Constants::TILE_PIXELS);
-    return header;
+std::unique_ptr<Tile> TileClient::receiveTile() {
+    std::vector<uint8_t> header_data = SocketUtil::receivePacket(_socket_fd);
+    std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
+    std::shared_ptr<TileHeader> header = std::move(unique_header);
+    std::vector<uint8_t> tile_data = SocketUtil::receivePacket(_socket_fd);
+    
+    return std::unique_ptr<Tile>(new Tile(header, tile_data));
 }

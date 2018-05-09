@@ -60,21 +60,18 @@ void TileManager::tileRequestingTask(TileManager* tile_manager) {
 
 
 void TileManager::tileReceivingTask(TileManager* tile_manager) {
-    std::unique_lock<std::mutex> lock(tile_manager->_mutex);
-    lock.unlock();
-
     while (true) {
-        unsigned char* tile_data = new unsigned char [Constants::TILE_PIXELS];
-        std::unique_ptr<TileHeader> unique_header = tile_manager->_tile_client.receiveTile(tile_data);
-        std::shared_ptr<TileHeader> header = std::move(unique_header);
-        std::shared_ptr<Tile> tile = std::make_shared<Tile>(header, tile_data);
+        std::unique_ptr<Tile> unique_tile = tile_manager->_tile_client.receiveTile();
+        std::shared_ptr<Tile> tile = std::move(unique_tile);
+        std::shared_ptr<TileHeader> header = tile->getHeader();
 
-        lock.lock();
-        std::cout << "adding tile " << header->get_str() << std::endl;
-        tile_manager->cacheInsert(tile);
-        tile_manager->_outstanding_requests.erase(header);
-        tile_manager->_requests_available.notify_one();
-        lock.unlock();
+        {
+            std::unique_lock<std::mutex> lock(tile_manager->_mutex);
+            std::cout << "adding tile " << header->get_str() << std::endl;
+            tile_manager->cacheInsert(tile);
+            tile_manager->_outstanding_requests.erase(header);
+            tile_manager->_requests_available.notify_one();
+        }
     }
 }
 
@@ -153,21 +150,10 @@ std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> heade
             _requests_nonempty.notify_one();
         }
 
-        std::shared_ptr<Tile> placeholder_tile = std::make_shared<Tile>(header, nullptr, true);
+        std::shared_ptr<Tile> placeholder_tile = std::make_shared<Tile>(header);
 
         return placeholder_tile;
     }
-}
-
-
-std::shared_ptr<Tile> TileManager::generateTile(std::shared_ptr<TileHeader> header) {
-    std::cout << "Generating " << header->get_str() << std::endl;
-
-    unsigned char* tile_data = new unsigned char [Constants::TILE_PIXELS];
-    std::shared_ptr<Tile> tile = std::make_shared<Tile>(header, tile_data);
-    TileSolver::solveTile(tile, Constants::ITERATIONS);
-
-    return tile;
 }
 
 

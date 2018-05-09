@@ -5,14 +5,15 @@
 
 
 class SocketUtil {
-public:
+private:
     static void sendData(int sock, unsigned char* data, int size);
 
     static int receiveData(int sock, unsigned char* buffer, int size);
 
-    static void sendHeaderPacket(int sock, std::shared_ptr<TileHeader> header);
+public:
+    static void sendPacket(int sock, std::vector<uint8_t> data);
 
-    static std::unique_ptr<TileHeader> receiveHeaderPacket(int sock);
+    static std::vector<uint8_t> receivePacket(int sock);
 };
 
 

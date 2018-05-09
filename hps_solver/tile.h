@@ -10,27 +10,27 @@
 class Tile {
 private:
     std::shared_ptr<TileHeader> _header;
-    unsigned char* const _data;
-    bool _is_placeholder;
+    std::vector<uint8_t> _data;
+    bool _has_data;
 
 public:
-    Tile(std::shared_ptr<TileHeader> header, unsigned char* data, bool is_placeholder = false);
+    Tile(std::shared_ptr<TileHeader> header);
 
-    ~Tile();
+    Tile(std::shared_ptr<TileHeader> header, std::vector<uint8_t> data);
 
-    complex getOrigin() const;
+    complex getOrigin() const { return _header->getOrigin(); }
 
-    double getSize() const { return pow(2, -_header->z); }
+    double getSize() const { return _header->getSize(); }
+
+    bool hasData() const { return _has_data; }
 
     std::shared_ptr<TileHeader> getHeader() const { return _header; }
 
-    unsigned char* const getData() const { return _data; }
+    std::vector<uint8_t> getData() const;
 
-    int getPoint(int x, int y) const { return _data[x + y * Constants::TILE_WIDTH]; }
+    uint8_t getPoint(int x, int y) const;
 
-    void setPoint(int x, int y, int value) { _data[x + y * Constants::TILE_WIDTH] = value; }
-
-    bool const isPlaceholder() const { return _is_placeholder; }
+    void setPoint(int x, int y, uint8_t value);
 };
 
 

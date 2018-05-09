@@ -1,22 +1,35 @@
 #ifndef __TILE_HEADER_H__
 #define __TILE_HEADER_H__
 
+#include "complex.h"
 #include <gmpxx.h>
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include <netinet/in.h>
 
 
 class TileHeader {
 public:
     mpz_class x;
     mpz_class y;
-    long z;
+    int32_t z;
 
     // Delete copy constructor.
     TileHeader(const TileHeader&) = delete;
 
-    TileHeader(mpz_class x_in, mpz_class y_in, long z_in) : x(x_in), y(y_in), z(z_in) {};
+    TileHeader(mpz_class x_in, mpz_class y_in, uint32_t z_in) : x(x_in), y(y_in), z(z_in) {};
+
+    complex getOrigin() const {
+        mpf_class f_header_x(x);
+        mpf_class f_header_y(y);
+        double size = getSize();
+        return {f_header_x * size, f_header_y * size};
+    }
+
+    double getSize() const {
+        return pow(2.0, (double) -z);
+    }
 
     bool operator==(const TileHeader& other) const {
         return (x == other.x) && (y == other.y) && (z == other.z);
@@ -39,22 +52,22 @@ public:
         }
     };
 
-    unsigned char* serialize(int& serialized_size) {
+    std::vector<uint8_t> serialize() {
         std::string x_str = x.get_str();
         std::string y_str = y.get_str();
 
-        int x_size = x_str.length();
-        int y_size = y_str.length();
-        serialized_size = x_size + y_size + 16;
+        uint32_t x_size = x_str.length();
+        uint32_t y_size = y_str.length();
+        int serialized_size = x_size + y_size + 12;
 
-        unsigned char* buffer = new unsigned char [serialized_size];
+        uint8_t buffer [serialized_size];
 
-        const unsigned char* x_cstr = (unsigned char*) x_str.c_str();
-        const unsigned char* y_cstr = (unsigned char*) y_str.c_str();
+        const uint8_t* x_cstr = (uint8_t*) x_str.c_str();
+        const uint8_t* y_cstr = (uint8_t*) y_str.c_str();
 
         // Put x_size and y_size into buffer.
-        ((int*) buffer)[0] = x_size;
-        ((int*) buffer)[1] = y_size;
+        ((uint32_t*) buffer)[0] = htonl(x_size);
+        ((uint32_t*) buffer)[1] = htonl(y_size);
         int offset = 8;
 
         // Put x and y into buffer.
@@ -65,41 +78,44 @@ public:
         offset += y_size;
 
         // Put z into buffer.
-        *((long*) (buffer + offset)) = z;
+        *((uint32_t*) (buffer + offset)) = htonl(z);
 
-        return buffer;
+        std::vector<uint8_t> result(buffer, buffer + serialized_size);
+        return result;
     }
 
-    static std::unique_ptr<TileHeader> deserialize(const int buffer_size, unsigned char* const buffer) {
+    static std::unique_ptr<TileHeader> deserialize(const std::vector<uint8_t>& data) {
+        const uint8_t* buffer = &data[0];
+
         // Read x_size and y_size from buffer.
-        int x_size = ((int*) buffer)[0];
-        int y_size = ((int*) buffer)[1];
-        int serialized_size = x_size + y_size + 16;
+        uint32_t x_size = ntohl(((uint32_t*) buffer)[0]);
+        uint32_t y_size = ntohl(((uint32_t*) buffer)[1]);
+        int serialized_size = x_size + y_size + 12;
 
         // Make sure buffer is correct size.
-        if (buffer_size != serialized_size) {
-            throw std::runtime_error("buffer size mismatch");
+        if (data.size() != serialized_size) {
+            throw std::runtime_error("tille header deserialization size mismatch");
         }
 
         int offset = 8;
 
         // Read x and y from buffer. TODO: see if we can do this in place.
-        char x_subbuffer [x_size + 1];
+        uint8_t x_subbuffer [x_size + 1];
         std::memcpy(x_subbuffer, buffer + offset, x_size);
         x_subbuffer[x_size] = '\0';
-        mpz_class x = mpz_class(x_subbuffer);
+        mpz_class x = mpz_class((char*) x_subbuffer);
         offset += x_size;
 
-        char y_subbuffer [y_size + 1];
+        uint8_t y_subbuffer [y_size + 1];
         std::memcpy(y_subbuffer, buffer + offset, y_size);
         y_subbuffer[y_size] = '\0';
-        mpz_class y = mpz_class(y_subbuffer);
+        mpz_class y = mpz_class((char*) y_subbuffer);
         offset += y_size;
 
         // Read z from buffer;
-        long z = *((long*) (buffer + offset));
+        uint32_t z = ntohl(*((uint32_t*) (buffer + offset)));
 
-        return std::make_unique<TileHeader>(x, y, z);
+        return std::unique_ptr<TileHeader>(new TileHeader(x, y, z));
     }
 
     std::string get_str() {

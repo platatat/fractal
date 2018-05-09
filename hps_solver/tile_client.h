@@ -1,6 +1,7 @@
 #ifndef __TILE_CLIENT_H__
 #define __TILE_CLIENT_H__
 
+#include "tile.h"
 #include "tile_header.h"
 #include <unistd.h>
 #include <stdio.h>
@@ -25,11 +26,9 @@ public:
 
     void init();
 
-    // void run();
-
     void requestTile(std::shared_ptr<TileHeader> header);
 
-    std::unique_ptr<TileHeader> receiveTile(unsigned char* buffer);
+    std::unique_ptr<Tile> receiveTile();
 };
 
 

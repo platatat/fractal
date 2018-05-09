@@ -1,22 +1,32 @@
 #include "tile.h"
 
 
-Tile::Tile(std::shared_ptr<TileHeader> header, unsigned char* data, bool is_placeholder) :
-        _data(data), 
-        _is_placeholder(is_placeholder),
+Tile::Tile(std::shared_ptr<TileHeader> header) :
         _header(header) {
+    _has_data = false;
 }
 
 
-Tile::~Tile() {
-    if (_data != nullptr) {
-        delete[] _data;
-    }
+Tile::Tile(std::shared_ptr<TileHeader> header, std::vector<uint8_t> data) :
+        _header(header),
+        _data(data) {
+    _has_data = true;
 }
 
 
-complex Tile::getOrigin() const {
-    mpf_class f_header_x(_header->x);
-    mpf_class f_header_y(_header->y);
-    return {f_header_x * getSize(), f_header_y * getSize()};
+std::vector<uint8_t> Tile::getData() const {
+    if (!_has_data) throw std::runtime_error("tried to get invalid tile data");
+    return _data;
+}
+
+
+uint8_t Tile::getPoint(int x, int y) const {
+    if (!_has_data) throw std::runtime_error("tried to get point from invalid tile data");
+    return _data[x + y * Constants::TILE_WIDTH];
+}
+
+
+void Tile::setPoint(int x, int y, uint8_t value) {
+    if (!_has_data) throw std::runtime_error("tried to set point from invalid tile data");
+    _data[x + y * Constants::TILE_WIDTH] = value;
 }

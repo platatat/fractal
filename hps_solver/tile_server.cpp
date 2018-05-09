@@ -71,14 +71,12 @@ void TileServer::tileGenerationTask(TileServer* tile_server) {
             tile_server->_requests_space_available.notify_one();
         }
         
-        // TODO: don't need shared ptr shit here.
         // TODO: iterations (and maybe tile size) should be sent from client.
-        unsigned char* tile_data = new unsigned char [Constants::TILE_PIXELS];
-        std::shared_ptr<Tile> tile = std::make_shared<Tile>(header, tile_data);
-        TileSolver::solveTile(tile, Constants::ITERATIONS);
+        std::vector<uint8_t> tile_data = TileSolver::solveTile(header, Constants::ITERATIONS);
+        std::vector<uint8_t> header_data = header->serialize();
 
-        SocketUtil::sendHeaderPacket(tile_server->_connection, header);
-        SocketUtil::sendData(tile_server->_connection, tile_data, Constants::TILE_PIXELS);
+        SocketUtil::sendPacket(tile_server->_connection, header_data);
+        SocketUtil::sendPacket(tile_server->_connection, tile_data);
     }
 }
 
@@ -88,7 +86,9 @@ void TileServer::serveForever() {
 
     while (true) {
         try {
-            std::shared_ptr<TileHeader> header = SocketUtil::receiveHeaderPacket(_connection);
+            std::vector<uint8_t> header_data = SocketUtil::receivePacket(_connection);
+            std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
+            std::shared_ptr<TileHeader> header = std::move(unique_header);
 
             {
                 std::unique_lock<std::mutex> lock(_mutex);
