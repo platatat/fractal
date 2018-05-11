@@ -150,7 +150,7 @@ module solver_control #(
         else if (state == STATE_ABS)
         begin
             op_sel    = OP_ABS;
-            next_zre_wr_en = 1;
+            if (limb_index > 0) next_zre_wr_en = 1;
             zim_wr_en = 1;
 
             next_limb_index = limb_index - 1;
