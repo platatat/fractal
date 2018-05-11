@@ -375,8 +375,8 @@ HexDigit Digit5(HEX5, hex5_hex0[23:20]);
 //=======================================================
 // OLD Solvers and VGA logic
 //=======================================================
-// wire reset_key;
-// assign reset_key = ~KEY[0];
+wire reset_key;
+assign reset_key = ~KEY[0];
 
 // wire stream_ready;
 // wire stream_start;
@@ -403,9 +403,9 @@ HexDigit Digit5(HEX5, hex5_hex0[23:20]);
 //     .valid_stream(stream_valid)
 // );
 
-// reg stream_start_delay [2:1];
-// reg stream_end_delay [2:1];
-// reg stream_valid_delay [2:1];
+reg stream_start_delay [2:1];
+reg stream_end_delay [2:1];
+reg stream_valid_delay [2:1];
 
 // always @(posedge CLOCK_50) begin
 //     stream_start_delay[1] <= stream_start;
@@ -480,9 +480,14 @@ localparam LIMB_INDEX_BITS 		= 6;
 localparam LIMB_SIZE_BITS 		= 27;
 localparam DIVERGENCE_RADIUS 	= 4;
 
-wire 		fifo_valid;
-wire [2:0] 	fifo_data_type;
 wire [31:0] fifo_raw_data;
+wire        fifo_valid;
+wire        fifo_ready;
+wire        fifo_startofpacket;
+wire        fifo_endofpacket;
+
+/*
+wire [2:0] 	fifo_data_type;
 wire [31:0] fifo_decoded_data;
 
 hps_fifo_decoder hps_fifo_decoder (
@@ -501,8 +506,67 @@ solver_manager #(
 	.reset 			(~KEY[0]),
 	.fifo_valid 	(fifo_valid),
 	.fifo_data_type (fifo_data_type),
-	.fifo_data 		(fifo_decoded_data)
-)
+	.fifo_data 		(fifo_decoded_data),
+	.fifo_ready     (fifo_ready)
+);
+*/
+
+wire [15:0] write_out_data;
+wire [31:0] write_out_addr;
+wire write_out_ready;
+wire write_out_valid;
+
+tile_solver_legit #(
+	LIMB_INDEX_BITS,
+	LIMB_SIZE_BITS,
+	DIVERGENCE_RADIUS
+) tile_solver(
+    .clock(CLOCK_50),
+    .reset(reset_key),
+
+    .in_data(fifo_raw_data),
+    .in_valid(fifo_valid),
+    .in_ready(fifo_ready),
+    .in_end_of_stream(fifo_endofpacket),
+
+    .out_addr(write_out_addr),
+    .out_data(write_out_data),
+    .out_valid(write_out_valid),
+    .out_ready(write_out_ready)
+);
+
+reg [1:0] state;
+reg [31:0] write_addr;
+reg [15:0] write_data;
+wire write_en;
+wire ack;
+
+always @(posedge CLOCK_50) begin
+    if (reset_key) begin
+        state <= 0;
+        write_addr <= 0;
+        write_data <= 0;
+    end else if (state == 0) begin
+        // Wait for data
+        if (write_out_valid) begin
+            state <= 1;
+            write_data <= write_out_data;
+            write_addr <= write_out_addr;
+        end else begin
+            state <= 0;
+        end
+    end else if (state == 1) begin
+        // Wait for ack
+        if (ack) begin
+            state <= 0;
+        end else begin
+            state <= 1;
+        end
+    end
+end
+
+assign write_en = (state == 1);
+assign write_out_ready = (state == 0);
 
 //=======================================================
 //  Structural coding
@@ -530,6 +594,18 @@ Computer_System The_System (
 	.vga_G										(VGA_G),
 	.vga_B										(VGA_B),
 	
+	// SDRAM
+	.sdram_clk_clk								(DRAM_CLK),
+	.sdram_addr									(DRAM_ADDR),
+	.sdram_ba									(DRAM_BA),
+	.sdram_cas_n								(DRAM_CAS_N),
+	.sdram_cke									(DRAM_CKE),
+	.sdram_cs_n									(DRAM_CS_N),
+	.sdram_dq									(DRAM_DQ),
+	.sdram_dqm									({DRAM_UDQM,DRAM_LDQM}),
+	.sdram_ras_n								(DRAM_RAS_N),
+	.sdram_we_n									(DRAM_WE_N),
+
 	////////////////////////////////////
 	// HPS Side
 	////////////////////////////////////
@@ -650,6 +726,20 @@ Computer_System The_System (
     .solver_cycles_external_connection_export(solve_time),
     .solver_iterations_external_connection_export (solver_iterations),
 
-    .solver_clock_clk (solver_clock)
+    .solver_clock_clk (solver_clock),
+
+    .sdram_writer_address     (write_addr),
+    .sdram_writer_byte_enable (2'b11),
+    .sdram_writer_write       (write_en),
+    .sdram_writer_write_data  (write_data),
+    .sdram_writer_acknowledge (ack),
+    //.sdram_writer_read        (),
+    //.sdram_writer_read_data   (),
+
+    .in_fifo_data  (fifo_raw_data),
+    .in_fifo_valid (fifo_valid),
+    .in_fifo_ready (fifo_ready),
+    .in_fifo_startofpacket (fifo_startofpacket),
+    .in_fifo_endofpacket   (fifo_endofpacket),
 );
 endmodule // end top level

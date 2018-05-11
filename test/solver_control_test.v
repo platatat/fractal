@@ -45,7 +45,7 @@ module top();
 
         #1000
         //diverged <= 1;
-        #1000
+        #2000
 
         $finish;
     end

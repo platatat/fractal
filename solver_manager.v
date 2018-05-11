@@ -17,6 +17,7 @@ module solver_manager #(
     input [2:0]     fifo_data_type,
     input [31:0]    fifo_data,
     
+    // TODO: Is backpressure correct?
     output reg      fifo_ready
 );
 
@@ -59,10 +60,13 @@ module solver_manager #(
             );
 
             always @(posedge clock) begin
+                // TODO: Do we need reset?
+                /*
                 if (reset) begin
                     solvers_output_addr[i] <= 0;
                     solvers_zoom_level[i] <= 0;
                 end
+                */
             end
         end
     endgenerate
