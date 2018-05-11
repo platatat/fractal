@@ -4,6 +4,10 @@
 
 class Constants {
 public:
+    static constexpr const char* WINDOW_TITLE = "Mandelbrot Renderer";
+    static const int TARGET_FPS         = 60;
+    static const int PORT               = 8080;
+
     static const int SCREEN_WIDTH       = 512;
     static const int SCREEN_HEIGHT      = 512;
 
@@ -16,8 +20,6 @@ public:
 
     static const int SCREEN_PIXELS      = SCREEN_WIDTH * SCREEN_HEIGHT;
     static const int TILE_PIXELS        = TILE_WIDTH * TILE_HEIGHT;
-
-    static const int PORT               = 8080;
 };
 
 

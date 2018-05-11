@@ -44,3 +44,7 @@ target_link_libraries(mandelbrot ${SDL2_LIBRARIES})
 pkg_check_modules(SDL2IMAGE REQUIRED SDL2_image)
 target_include_directories(mandelbrot PRIVATE ${SDL2IMAGE_INCLUDE_DIRS})
 target_link_libraries(mandelbrot ${SDL2IMAGE_LIBRARIES})
+
+pkg_check_modules(SDL2TTF REQUIRED SDL2_ttf)
+target_include_directories(mandelbrot PRIVATE ${SDL2TTF_INCLUDE_DIRS})
+target_link_libraries(mandelbrot ${SDL2TTF_LIBRARIES})
