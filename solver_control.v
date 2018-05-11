@@ -140,11 +140,9 @@ module solver_control #(
             cim_wr_en  = wr_imag_en;
 
             if (start) begin
-                next_state = STATE_ABS;
+                next_state = STATE_ITER;
                 next_out_ready = 0;
                 next_iteration_count <= 0;
-                next_zre_acc_sel = last_zre_sign ? ABS_START : ABS_NOP;
-                next_zre_wr_en   = 1;
             end
         end
         else if (state == STATE_ABS)
