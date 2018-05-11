@@ -1,8 +1,11 @@
 #include "application.h"
 #include "constants.h"
+#include "tile_client.h"
+#include "tile_server.h"
 #include "tile_solver.h"
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <chrono>
 
 
 int runApp() {
@@ -29,6 +32,8 @@ int runApp() {
 
     bool exit = false;
     while (!exit) {
+        auto frame_start = std::chrono::high_resolution_clock::now();
+
         // Draw
         const unsigned char* buffer = app.display();
 
@@ -54,8 +59,15 @@ int runApp() {
             }
         }
 
+        auto frame_end = std::chrono::high_resolution_clock::now();
+        int frame_duration = std::chrono::duration_cast<std::chrono::microseconds>(frame_end - frame_start).count();
+        int delay_milliseconds = std::max(0, 16667 - frame_duration) / 1000;
+
         // Sleep
-        SDL_Delay(16);
+        SDL_Delay(delay_milliseconds);
+
+        double frames_per_second = 1000000.0 / frame_duration;
+        // std::cout << "FPS: " << frames_per_second << std::endl;
     }
 
     // Clean up
@@ -68,9 +80,30 @@ int runApp() {
 }
 
 
+void serverTest() {
+    TileServer server(8080, 4);
+    server.init();
+    server.serveForever();
+}
+
+
+int socketTest(int argc, char* args[]) {
+    if (argc < 2) std::cout << "must specify client or server" << std::endl;
+    else if (strcmp(args[1], "client") == 0) runApp();
+    else if (strcmp(args[1], "server") == 0) serverTest();
+    else std::cout << "unrecognized: " << args[1] << std::endl;
+}
+
+
 int main(int argc, char* args[])
 {
-    runApp();
-
-    // TileSolver::solvePixel({1.0, 0.5}, 5);
+    try {
+        // return runApp();
+        return socketTest(argc, args);
+        // return serializeTest();
+    } catch (std::runtime_error& e) {
+        std::cout << "EXITING WITH EXCEPTION" << std::endl;
+        std::cout << e.what() << std::endl;
+        return -1;
+    }
 }
