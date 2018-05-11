@@ -33,6 +33,7 @@ TileManager::~TileManager() {
 void TileManager::tileRequestingTask(TileManager* tile_manager) {
     while(true) {
         std::shared_ptr<TileHeader> header;
+        bool tile_requested;
 
         {
             std::unique_lock<std::mutex> lock(tile_manager->_mutex);
@@ -48,13 +49,19 @@ void TileManager::tileRequestingTask(TileManager* tile_manager) {
             }
             
             // Get the highest priority tile request.
-            header = tile_manager->_request_heap.front();
-            tile_manager->_request_heap.pop();
-            tile_manager->_outstanding_requests.insert(header);
+            tile_requested = tile_manager->_request_heap.size() > 0;
+            if (tile_requested) {
+                header = tile_manager->_request_heap.front();
+                tile_manager->_request_heap.pop();
+                tile_manager->_outstanding_requests.insert(header);
+            }
+            
         }
         
         // Send the tile request to the server.
-        tile_manager->_tile_client.requestTile(header);
+        if (tile_requested) {
+            tile_manager->_tile_client.requestTile(header);
+        }
     }
 }
 
