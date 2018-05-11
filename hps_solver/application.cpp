@@ -2,8 +2,7 @@
 #include "sdl_input_controller.h"
 #include <cmath>
 #include <iostream>
-// #include <SDL2/SDL_ttf.h>
-
+#include <sstream>
 
 using namespace std::chrono;
 
@@ -32,6 +31,10 @@ void Application::init() {
         std::cout << "SDL_Init error: " << SDL_GetError() << std::endl;
     }
 
+    if (TTF_Init() < 0) {
+        std::cout << "TTF_Init error: " << TTF_GetError() << std::endl;
+    }
+
     _window = SDL_CreateWindow(
         Constants::WINDOW_TITLE,
         SDL_WINDOWPOS_UNDEFINED,
@@ -56,6 +59,19 @@ void Application::init() {
     if (_sdl_renderer == nullptr) {
         std::cout << "SDL_CreateRenderer error: " << SDL_GetError() << std::endl;
     }
+
+    _font_regular   = TTF_OpenFont("../data/fonts/open_sans/regular.ttf", 16);
+    _font_bold      = TTF_OpenFont("../data/fonts/open_sans/bold.ttf", 16);
+
+    if (_font_regular == nullptr || _font_bold == nullptr) {
+        std::cout << "SDL_OpenFont error: " << SDL_GetError() << std::endl;
+    }
+
+    SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_ADD);
+    SDL_SetRenderDrawColor(_sdl_renderer, 39, 40, 34, 255);
+
+    _color_white    = {255, 255, 255, 255};
+    _color_grey     = {128, 128, 128, 255};
 }
 
 
@@ -65,45 +81,19 @@ void Application::run() {
     while (_running) {
         auto frame_start = high_resolution_clock::now();
 
+        SDL_RenderClear(_sdl_renderer);
+
         handleEvents();
         handleInput();
-        display();
+        drawFrame();
+        drawFPS();
+
+        SDL_RenderPresent(_sdl_renderer);
 
         auto frame_end = high_resolution_clock::now();
         double frame_time = duration_cast<microseconds>(frame_end - frame_start).count() / 1000000.0;
         double target_time = 1.0 / Constants::TARGET_FPS;
-
-        std::cout << (1.0 / frame_time) << std::endl;
-
-        // std::cout << "A\n";
-
-        // TTF_Font* Sans = TTF_OpenFont("Sans.ttf", 24); //this opens a font style and sets a size
-
-        // SDL_Color White = {255, 255, 255};  // this is the color in rgb format, maxing out all would give you the color white, and it will be your text's color
-
-        // SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, "put your text here", White); // as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first
-
-        // std::cout << "B\n";
-
-        // SDL_Texture* Message = SDL_CreateTextureFromSurface(_sdl_renderer, surfaceMessage); //now you can convert it into a texture
-
-        // std::cout << "C\n";
-
-        // SDL_Rect Message_rect; //create a rect
-        // Message_rect.x = 0;  //controls the rect's x coordinate 
-        // Message_rect.y = 0; // controls the rect's y coordinte
-        // Message_rect.w = 100; // controls the width of the rect
-        // Message_rect.h = 100; // controls the height of the rect
-
-        // //Mind you that (0,0) is on the top left of the window/screen, think a rect as the text's box, that way it would be very simple to understance
-
-        // //Now since it's a texture, you have to put RenderCopy in your game loop area, the area where the whole code executes
-
-        // SDL_RenderCopy(_sdl_renderer, Message, NULL, &Message_rect); //you put the renderer's name first, the Message, the crop size(you can ignore this if you don't want to dabble with cropping), and the rect which is the size and coordinate of your texture
-
-        // std::cout << "D\n";
-
-        // //Don't forget too free your surface and texture
+        _fps = (0.95 * _fps) + (0.05 * 1.0 / frame_time);
 
         SDL_Delay((int) (std::max(0.0, target_time - frame_time) * 1000));
     }
@@ -152,34 +142,29 @@ double Application::getScreenHeight() {
 }
 
 
-void Application::display() {
+void Application::drawFrame() {
     int mipmap_level = (int) std::ceil(_zoom);
-    double fractional_scale = std::pow(2., -(mipmap_level - _zoom));
+    double fractional_scale = std::pow(2.0, -(mipmap_level - _zoom));
 
-    // Generate the tiles
     std::vector<std::shared_ptr<Tile>> tiles;
     complex screen_size = {getScreenWidth(), getScreenHeight()};
+    auto viewport_info = _tile_manager.loadViewport(_origin, screen_size, mipmap_level, tiles);
 
-    auto viewportInfo = _tile_manager.loadViewport(_origin, screen_size, mipmap_level, tiles);
+    _renderer.render(viewport_info, tiles, fractional_scale, _sdl_renderer);
+}
 
-    // Render the tiles
-    _renderer.render(viewportInfo, tiles, fractional_scale);
 
-    // Draw to the screen.
-    const unsigned char* buffer = _renderer.getScreenBuffer();
+void Application::drawFPS() {
+    std::ostringstream ss;
+    ss << "avg fps: " << (int) _fps;
+    std::string fps_string = ss.str();
 
-    SDL_Surface* buffer_surface = SDL_CreateRGBSurfaceFrom(
-        (void*) buffer,
-        Constants::SCREEN_WIDTH,
-        Constants::SCREEN_HEIGHT,
-        24, 
-        _renderer.getScreenBufferStride(),
-        0, 0, 0, 0
-    );
+    SDL_Surface* message_surface = TTF_RenderText_Solid(_font_bold, fps_string.c_str(), _color_grey);
+    SDL_Texture* message_texture = SDL_CreateTextureFromSurface(_sdl_renderer, message_surface);
 
-    SDL_Texture* screen_texture = SDL_CreateTextureFromSurface(_sdl_renderer, buffer_surface);
-    SDL_RenderCopy(_sdl_renderer, screen_texture, NULL, NULL);
-    SDL_RenderPresent(_sdl_renderer);
+    SDL_Rect message_rect = {10, 0, message_surface->w, message_surface->h};
+    SDL_RenderCopy(_sdl_renderer, message_texture, NULL, &message_rect);
 
-    SDL_FreeSurface(buffer_surface);
+    SDL_FreeSurface(message_surface);
+    SDL_DestroyTexture(message_texture);
 }

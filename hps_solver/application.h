@@ -3,6 +3,7 @@
 
 #include "renderer.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 
 class Application {
@@ -10,6 +11,7 @@ private:
     bool _running;
     complex _origin;
     double _zoom;
+    double _fps;
 
     TileManager _tile_manager;
     Renderer _renderer;
@@ -18,9 +20,16 @@ private:
     SDL_Surface*    _window_surface;
     SDL_Renderer*   _sdl_renderer;
 
+    TTF_Font*   _font_regular;
+    TTF_Font*   _font_bold;
+
+    SDL_Color   _color_white;
+    SDL_Color   _color_grey;
+
     void handleEvents();
     void handleInput();
-    void display();
+    void drawFrame();
+    void drawFPS();
 
     double getScreenWidth();
     double getScreenHeight();
