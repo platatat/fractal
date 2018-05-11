@@ -108,7 +108,7 @@ int main(void)
     *fifo_control_ptr = fifo_start;
     *fifo_ptr = (0x00 << 29) | 0; // Output address
     *fifo_ptr = (0x00 << 29) | 0; // Output address
-    *fifo_ptr = (0x01 << 29) | 2; // Zoom level
+    *fifo_ptr = (0x01 << 29) | 3; // Number of limbs
 
     // c_real
     *fifo_ptr = (0x02 << 29) | 1;
@@ -118,9 +118,10 @@ int main(void)
     // c_im
     *fifo_ptr = (0x03 << 29) | 1;
     *fifo_ptr = (0x03 << 29) | 0;
+    *fifo_ptr = (0x03 << 29) | 0;
 
     *fifo_control_ptr = fifo_end;
-    *fifo_ptr = (0x03 << 29) | 0;
+    *fifo_ptr = (0x04 << 29) | 10; // Number of iterations
 
     // Wait for data
     while (*out_pixel_ptr == -2) {

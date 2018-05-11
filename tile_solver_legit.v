@@ -204,14 +204,10 @@ always @(*) begin
             if (in_data_type == 3'd0) begin
                 next_addr = in_data_decoded;
             end
-            // Set zoom level
+            // Set number of limbs
             else if (in_data_type == 3'd1) begin
-                // TODO
-                next_solver_wr_iter_lim_en = 1;
-                next_solver_iter_lim_data = 5;
-
                 next_solver_wr_num_limbs_en = 1;
-                next_solver_num_limbs_data = 3;
+                next_solver_num_limbs_data = in_data_decoded;
             end
             // Write a limb of c_real.
             else if (in_data_type == 3'd2) begin
@@ -224,6 +220,11 @@ always @(*) begin
                 next_im_write_index = im_write_index + 1;
                 next_solver_wr_index = im_write_index;
                 next_solver_wr_imag_en = 1;
+            end
+            // Write the maximum number of iterations
+            else if (in_data_type == 3'd4) begin
+                next_solver_wr_iter_lim_en = 1;
+                next_solver_iter_lim_data = in_data_decoded;
             end
 
 
