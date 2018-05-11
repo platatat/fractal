@@ -12,7 +12,7 @@ module top();
     reg clock;
     reg reset;
 
-    localparam NUM_LIMBS = 3;
+    localparam NUM_LIMBS = 2;
 
     reg [LIMB_SIZE_BITS-1:0] c_re_data [NUM_LIMBS-1:0];
     reg [LIMB_SIZE_BITS-1:0] c_im_data [NUM_LIMBS-1:0];
@@ -21,14 +21,17 @@ module top();
         $dumpfile("build/solver_repeatability_test.vcd");
         $dumpvars(0, top);
 
-        // Limb definitions
-        c_re_data[0] <= 0;
-        c_re_data[1] <= 128;
-        c_re_data[2] <= 0;
+        clock <= 0;
+        reset <= 1;
+        #20
+        reset <= 0;
 
-        c_im_data[0] <= 0;
-        c_im_data[1] <= 128;
-        c_im_data[2] <= 0;
+        // Limb definitions
+        c_re_data[0] <= 1;
+        c_re_data[1] <= 0;
+
+        c_im_data[0] <= 1;
+        c_im_data[1] <= 0;
 
         // Run the solver
         wr_real_en <= 0;
@@ -49,11 +52,6 @@ module top();
         #20
 
         for (i = 0; i < 4; i = i + 1) begin
-            reset <= 1;
-            #20
-            reset <= 0;
-            #20
-
             wr_num_limbs_en <= 1;
             wr_iter_lim_en <= 1;
 
