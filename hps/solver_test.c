@@ -97,12 +97,15 @@ int main(void)
     // Get the address that maps to the FPGA pixel buffer
     volatile signed short * out_pixel_ptr = (unsigned short *)(vga_pixel_virtual_base);
     volatile uint32_t * fifo_ptr = (unsigned char *)(vga_pixel_virtual_base) + SDRAM_SPAN;
+    volatile uint32_t * fifo_control_ptr = fifo_ptr + 1;
+    const uint32_t fifo_start = 0x01;
+    const uint32_t fifo_end = 0x02;
 
     *out_pixel_ptr = -2;
 
     // Write our data to the fifo
 
-    *fifo_ptr = (0x00 << 29) | 0; // Output address
+    *fifo_control_ptr = fifo_start;
     *fifo_ptr = (0x00 << 29) | 0; // Output address
     *fifo_ptr = (0x00 << 29) | 0; // Output address
     *fifo_ptr = (0x01 << 29) | 2; // Zoom level
@@ -115,10 +118,9 @@ int main(void)
     // c_im
     *fifo_ptr = (0x03 << 29) | 1;
     *fifo_ptr = (0x03 << 29) | 0;
-    *fifo_ptr = (0x03 << 29) | 0;
 
-    // Start computation
-    *fifo_ptr = (0x04 << 29);
+    *fifo_control_ptr = fifo_end;
+    *fifo_ptr = (0x03 << 29) | 0;
 
     // Wait for data
     while (*out_pixel_ptr == -2) {

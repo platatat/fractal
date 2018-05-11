@@ -78,10 +78,8 @@ module top();
         fifo_data_type <= 3'd3;
         fifo_data <= 32'd8;
         fifo_valid <= 1;
-        #20
 
         // signal end of stream
-        fifo_data_type <= 3'd4;
         fifo_end_of_stream <= 1;
         #20
 
@@ -89,7 +87,9 @@ module top();
         fifo_end_of_stream <= 0;
         #20
 
-        #10000
+        while (!solver.out_valid) begin
+            #20;
+        end
 
         $finish;
     end

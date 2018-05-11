@@ -929,7 +929,7 @@
   <parameter name="symbolsPerBeat" value="1" />
   <parameter name="useBackpressure" value="true" />
   <parameter name="useIRQ" value="false" />
-  <parameter name="usePacket" value="false" />
+  <parameter name="usePacket" value="true" />
   <parameter name="useReadControl" value="false" />
   <parameter name="useRegister" value="false" />
   <parameter name="useWriteControl" value="true" />

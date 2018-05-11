@@ -483,6 +483,8 @@ localparam DIVERGENCE_RADIUS 	= 4;
 wire [31:0] fifo_raw_data;
 wire        fifo_valid;
 wire        fifo_ready;
+wire        fifo_startofpacket;
+wire        fifo_endofpacket;
 
 /*
 wire [2:0] 	fifo_data_type;
@@ -525,9 +527,7 @@ tile_solver_legit #(
     .in_data(fifo_raw_data),
     .in_valid(fifo_valid),
     .in_ready(fifo_ready),
-
-    // TODO
-    .in_end_of_stream(0),
+    .in_end_of_stream(fifo_endofpacket),
 
     .out_addr(write_out_addr),
     .out_data(write_out_data),
@@ -739,5 +739,7 @@ Computer_System The_System (
     .in_fifo_data  (fifo_raw_data),
     .in_fifo_valid (fifo_valid),
     .in_fifo_ready (fifo_ready),
+    .in_fifo_startofpacket (fifo_startofpacket),
+    .in_fifo_endofpacket   (fifo_endofpacket),
 );
 endmodule // end top level

@@ -225,8 +225,10 @@ always @(*) begin
                 next_solver_wr_index = im_write_index;
                 next_solver_wr_imag_en = 1;
             end
+
+
             // Start the solver
-            else if (in_data_type == 3'd4) begin
+            if (in_end_of_stream) begin
                 next_state = `ST_WAIT_CYCLE;
                 next_solver_start = 1;
             end
