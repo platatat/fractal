@@ -23,6 +23,7 @@ private:
     TTF_Font*   _font_regular;
     TTF_Font*   _font_bold;
 
+    SDL_Color   _clear_color;
     SDL_Color   _color_white;
     SDL_Color   _color_grey;
 
@@ -30,6 +31,8 @@ private:
     void handleInput();
     void drawFrame();
     void drawFPS();
+
+    void setDrawColor(const SDL_Color& color);
 
     double getScreenWidth();
     double getScreenHeight();

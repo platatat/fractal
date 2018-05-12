@@ -67,11 +67,9 @@ void Application::init() {
         std::cout << "SDL_OpenFont error: " << SDL_GetError() << std::endl;
     }
 
-    SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_ADD);
-    SDL_SetRenderDrawColor(_sdl_renderer, 39, 40, 34, 255);
-
+    _clear_color    = { 39,  40,  34, 255};
     _color_white    = {255, 255, 255, 255};
-    _color_grey     = {128, 128, 128, 255};
+    _color_grey     = {100, 100, 100, 255};
 }
 
 
@@ -81,6 +79,7 @@ void Application::run() {
     while (_running) {
         auto frame_start = high_resolution_clock::now();
 
+        setDrawColor(_clear_color);
         SDL_RenderClear(_sdl_renderer);
 
         handleEvents();
@@ -132,6 +131,11 @@ void Application::handleInput() {
 }
 
 
+void Application::setDrawColor(const SDL_Color& color) {
+    SDL_SetRenderDrawColor(_sdl_renderer, color.r, color.g, color.b, color.a);
+}
+
+
 double Application::getScreenWidth() {
     return pow(2, -_zoom) * Constants::SCREEN_WIDTH / Constants::TILE_WIDTH;
 }
@@ -143,6 +147,8 @@ double Application::getScreenHeight() {
 
 
 void Application::drawFrame() {
+    SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_ADD);
+
     int mipmap_level = (int) std::ceil(_zoom);
     double fractional_scale = std::pow(2.0, -(mipmap_level - _zoom));
 
@@ -155,14 +161,18 @@ void Application::drawFrame() {
 
 
 void Application::drawFPS() {
+    SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_NONE);
+
     std::ostringstream ss;
-    ss << "avg fps: " << (int) _fps;
+    ss << (int) _fps;
     std::string fps_string = ss.str();
 
-    SDL_Surface* message_surface = TTF_RenderText_Solid(_font_bold, fps_string.c_str(), _color_grey);
+    SDL_Surface* message_surface = TTF_RenderText_Solid(_font_regular, fps_string.c_str(), _color_white);
     SDL_Texture* message_texture = SDL_CreateTextureFromSurface(_sdl_renderer, message_surface);
+    SDL_Rect message_rect = {5, 5, message_surface->w, message_surface->h};
 
-    SDL_Rect message_rect = {10, 0, message_surface->w, message_surface->h};
+    setDrawColor(_color_grey);
+    SDL_RenderFillRect(_sdl_renderer, &message_rect);
     SDL_RenderCopy(_sdl_renderer, message_texture, NULL, &message_rect);
 
     SDL_FreeSurface(message_surface);
