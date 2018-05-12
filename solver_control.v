@@ -248,10 +248,10 @@ module solver_control #(
             if (diverged && iteration_count > 0) begin
                 next_state <= STATE_LOAD;
                 next_out_ready = 1;
-            end else if (iteration_count == iteration_limit) begin
+            end else if (iteration_count == iteration_limit - 1) begin
                 next_state <= STATE_LOAD;
                 next_out_ready = 1;
-                next_iteration_count <= -1;
+                next_iteration_count <= iteration_limit - 1;
             end else begin
                 next_state <= STATE_ABS;
                 next_iteration_count = iteration_count + 1;
