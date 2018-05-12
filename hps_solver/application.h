@@ -30,7 +30,7 @@ private:
     void handleEvents();
     void handleInput();
     void drawFrame();
-    void drawFPS();
+    void drawHUD();
 
     void setDrawColor(const SDL_Color& color);
 
