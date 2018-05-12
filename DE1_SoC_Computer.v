@@ -476,6 +476,7 @@ reg stream_valid_delay [2:1];
 //=======================================================
 
 localparam NUM_SOLVERS 			= 1;
+localparam TILE_WIDTH_BITS      = 5;
 localparam LIMB_INDEX_BITS 		= 6;
 localparam LIMB_SIZE_BITS 		= 27;
 localparam DIVERGENCE_RADIUS 	= 4;
@@ -517,6 +518,7 @@ wire write_out_ready;
 wire write_out_valid;
 
 tile_solver_legit #(
+    TILE_WIDTH_BITS,
 	LIMB_INDEX_BITS,
 	LIMB_SIZE_BITS,
 	DIVERGENCE_RADIUS
