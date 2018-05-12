@@ -476,7 +476,7 @@ reg stream_valid_delay [2:1];
 //=======================================================
 
 localparam NUM_SOLVERS 			= 1;
-localparam TILE_WIDTH_BITS      = 5;
+localparam TILE_WIDTH_BITS      = 6;
 localparam LIMB_INDEX_BITS 		= 6;
 localparam LIMB_SIZE_BITS 		= 27;
 localparam DIVERGENCE_RADIUS 	= 4;
