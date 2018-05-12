@@ -7,6 +7,10 @@
 struct complex {
     mpf_class real;
     mpf_class imag;
+
+    bool operator==(const complex& other) const {
+        return real == other.real && imag == other.imag;
+    }
 };
 
 
