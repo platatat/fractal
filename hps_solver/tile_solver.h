@@ -9,9 +9,9 @@
 
 class TileSolver {
 public:
-    static std::vector<uint8_t> solveTile(std::shared_ptr<TileHeader> tile, uint8_t iterations);
+    static std::vector<uint16_t> solveTile(std::shared_ptr<TileHeader> tile, uint16_t iterations);
 
-    static uint8_t solvePixel(complex c, uint8_t iterations);
+    static uint16_t solvePixel(complex c, uint16_t iterations);
 };
 
 

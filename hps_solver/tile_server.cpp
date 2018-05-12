@@ -72,11 +72,19 @@ void TileServer::tileGenerationTask(TileServer* tile_server) {
         }
         
         // TODO: iterations (and maybe tile size) should be sent from client.
-        std::vector<uint8_t> tile_data = TileSolver::solveTile(header, Constants::ITERATIONS);
+        std::vector<uint16_t> tile_data = TileSolver::solveTile(header, Constants::ITERATIONS);
+        std::vector<uint8_t> tile_bytes;
+        for (uint16_t data : tile_data) {
+            uint8_t buffer[2];
+            ((uint16_t*) buffer)[0] = htons(data);
+            tile_bytes.push_back(buffer[0]);
+            tile_bytes.push_back(buffer[1]);
+        }
+
         std::vector<uint8_t> header_data = header->serialize();
 
         SocketUtil::sendPacket(tile_server->_connection, header_data);
-        SocketUtil::sendPacket(tile_server->_connection, tile_data);
+        SocketUtil::sendPacket(tile_server->_connection, tile_bytes);
     }
 }
 

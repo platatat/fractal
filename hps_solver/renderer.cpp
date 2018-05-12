@@ -43,7 +43,7 @@ void Renderer::render(const TileManager::ViewportInfo& viewport_info,
             double tile_screen_y = (translate_y + tile_y * Constants::TILE_HEIGHT) * fractional_scale;
 
             if (tile->hasData()) {
-                std::vector<uint8_t> tile_data = tile->getData();
+                std::vector<uint16_t> tile_data = tile->getData();
 
                 for (int i = 0; i < Constants::TILE_PIXELS; i++) {
                     SDL_Color color = cyclicColor(tile_data[i]);
@@ -112,7 +112,7 @@ void Renderer::render(const TileManager::ViewportInfo& viewport_info,
 // }
 
 
-SDL_Color Renderer::cyclicColor(uint8_t iterations) {
+SDL_Color Renderer::cyclicColor(uint16_t iterations) {
     double cycle_period = 5;
     double phase = iterations / cycle_period;
 
