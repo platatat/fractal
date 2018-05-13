@@ -584,18 +584,6 @@ Computer_System The_System (
 	.system_pll_ref_clk_clk					(CLOCK_50),
 	.system_pll_ref_reset_reset			(1'b0),
 	
-	// VGA Subsystem
-	.vga_pll_ref_clk_clk 					(CLOCK2_50),
-	.vga_pll_ref_reset_reset				(1'b0),
-	.vga_CLK										(VGA_CLK),
-	.vga_BLANK									(VGA_BLANK_N),
-	.vga_SYNC									(VGA_SYNC_N),
-	.vga_HS										(VGA_HS),
-	.vga_VS										(VGA_VS),
-	.vga_R										(VGA_R),
-	.vga_G										(VGA_G),
-	.vga_B										(VGA_B),
-	
 	// SDRAM
 	.sdram_clk_clk								(DRAM_CLK),
 	.sdram_addr									(DRAM_ADDR),
@@ -711,24 +699,6 @@ Computer_System The_System (
 	.hps_io_hps_io_usb1_inst_STP		(HPS_USB_STP),
 	.hps_io_hps_io_usb1_inst_DIR		(HPS_USB_DIR),
 	.hps_io_hps_io_usb1_inst_NXT		(HPS_USB_NXT),
-
-    // Video stream
-    .video_streaming_sink_ready         (stream_ready),
-    .video_streaming_sink_startofpacket (stream_start_delay[2]),
-    .video_streaming_sink_endofpacket   (stream_end_delay[2]),
-    .video_streaming_sink_valid         (stream_valid_delay[2]),
-    .video_streaming_sink_data          (stream_data),
-    
-    .dy_external_connection_export           (dy),
-    .dx_external_connection_export           (dx),
-    .y_min_external_connection_export        (y_min),
-    .x_min_external_connection_export        (x_min),
-    .solver_reset_external_connection_export (solver_hps_reset),
-    .solver_done_external_connection_export  (solver_done),
-    .solver_cycles_external_connection_export(solve_time),
-    .solver_iterations_external_connection_export (solver_iterations),
-
-    .solver_clock_clk (solver_clock),
 
     .sdram_writer_address     (write_addr),
     .sdram_writer_byte_enable (2'b11),
