@@ -10,7 +10,7 @@ private:
     int16_t solvePixel(complex c, int16_t iterations);
 
 protected:
-    void solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) override;
+    void solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations);
 
 public:
     CPUSolver();

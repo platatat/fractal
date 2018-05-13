@@ -13,7 +13,7 @@ private:
     volatile uint32_t* fifo_control_ptr;
 
 protected:
-    void solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) override;
+    void solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations);
 
 public:
     FPGASolver();
