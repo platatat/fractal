@@ -1,17 +1,27 @@
 #include "tile_server.h"
+
+#include "cpu_solver.h"
+#include "fpga_solver.h"
 #include "constants.h"
 #include "socket_util.h"
 #include "tile.h"
-#include "tile_solver.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+
+#include <chrono>
 #include <iostream>
 #include <memory>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 
-TileServer::TileServer(int port, int queue_depth) : _port(port), _queue_depth(queue_depth) {
-    _tile_generation_thread = std::thread(tileGenerationTask, this);
+TileServer::TileServer(int port) : _port(port), solver(
+#ifndef HPS
+        new CPUSolver()
+#else
+        new FPGASolver()
+#endif
+) {
+    _tile_poll_thread = std::thread(tilePollTask, this);
 }
 
 
@@ -25,10 +35,12 @@ void TileServer::init() {
     }
 
     int opt = 1;
-      
+
+    /*
     if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         std::cout << "setsockopt failed" << std::endl;
     }
+    */
 
     _address.sin_family = AF_INET;
     _address.sin_addr.s_addr = INADDR_ANY;
@@ -55,54 +67,67 @@ int TileServer::awaitConnection() {
 }
 
 
-void TileServer::tileGenerationTask(TileServer* tile_server) {
+void TileServer::tilePollTask(TileServer* tile_server) {
     while(true) {
         std::shared_ptr<TileHeader> header;
 
         {
             std::unique_lock<std::mutex> lock(tile_server->_mutex);
 
-            while (tile_server->_requests.size() == 0) {
-                tile_server->_requests_nonempty.wait(lock);
+            for (auto it = tile_server->requests.begin(); it != tile_server->requests.end(); ) {
+                std::shared_ptr<TileHeader> header = std::get<0>(*it);
+                int connection = std::get<1>(*it);
+                Solver::data tile_data = tile_server->solver->retrieve(header);
+                if (tile_data != nullptr) {
+                    it = tile_server->requests.erase(it);
+
+                    std::vector<uint8_t> tile_bytes;
+                    for (int i = 0; i < Constants::TILE_WIDTH * Constants::TILE_HEIGHT; i++) {
+                        uint8_t buffer[2];
+                        ((uint16_t*) buffer)[0] = htons(tile_data[i]);
+                        tile_bytes.push_back(buffer[0]);
+                        tile_bytes.push_back(buffer[1]);
+                    }
+
+                    std::vector<uint8_t> header_data = header->serialize();
+
+                    SocketUtil::sendPacket(connection, header_data);
+                    SocketUtil::sendPacket(connection, tile_bytes);
+                } else {
+                    ++it;
+                }
             }
-
-            header = tile_server->_requests.front();
-            tile_server->_requests.pop_front();
-            tile_server->_requests_space_available.notify_one();
         }
-        
-        // TODO: iterations (and maybe tile size) should be sent from client.
-        std::vector<uint8_t> tile_data = TileSolver::solveTile(header, Constants::ITERATIONS);
-        std::vector<uint8_t> header_data = header->serialize();
 
-        SocketUtil::sendPacket(tile_server->_connection, header_data);
-        SocketUtil::sendPacket(tile_server->_connection, tile_data);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
 
 void TileServer::serveForever() {
-    _connection = awaitConnection();
-
     while (true) {
-        try {
-            std::vector<uint8_t> header_data = SocketUtil::receivePacket(_connection);
-            std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
-            std::shared_ptr<TileHeader> header = std::move(unique_header);
+        int connection = awaitConnection();
+        client_listeners.emplace_back([connection] (TileServer* server) {
+            while (true) {
+                try {
+                    std::vector<uint8_t> header_data = SocketUtil::receivePacket(connection);
+                    if (header_data.size() == 0) return;
 
-            {
-                std::unique_lock<std::mutex> lock(_mutex);
+                    std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
+                    std::shared_ptr<TileHeader> header = std::move(unique_header);
 
-                while (_requests.size() >= _queue_depth) {
-                    _requests_space_available.wait(lock);
+                    {
+                        std::unique_lock<std::mutex> lock(server->_mutex);
+                        server->requests.emplace(header, connection);
+                    }
+                    server->solver->sumbit(header, Constants::ITERATIONS);
+                } catch (std::runtime_error& e) {
+                    std::cout << e.what() << std::endl;
+                    return;
                 }
-
-                _requests.push_back(header);
-                _requests_nonempty.notify_one();
             }
-        } catch (std::runtime_error& e) {
-            std::cout << e.what() << std::endl;
-            return;
-        }
+        }, this);
     }
+
+
 }

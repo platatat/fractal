@@ -30,12 +30,12 @@ private:
     void handleEvents();
     void handleInput();
     void drawFrame();
-    void drawFPS();
+    void drawHUD();
 
     void setDrawColor(const SDL_Color& color);
 
 public:
-    Application();
+    Application(std::vector<std::tuple<std::string, int>> ip_addrs);
 
     void init();
     void run();

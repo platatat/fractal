@@ -8,10 +8,10 @@
 using namespace std::chrono;
 
 
-Application::Application() :
+Application::Application(std::vector<std::tuple<std::string, int>> ip_addrs) :
     _origin({0.0, 0.0}),
     _zoom(2),
-    _tile_manager(Constants::CACHE_SIZE),
+    _tile_manager(ip_addrs, Constants::CACHE_SIZE),
     _renderer()
 {
     mpf_class real("0.3750001200618655");
@@ -86,7 +86,7 @@ void Application::run() {
         handleEvents();
         handleInput();
         drawFrame();
-        drawFPS();
+        drawHUD();
 
         SDL_RenderPresent(_sdl_renderer);
 
@@ -148,14 +148,15 @@ void Application::drawFrame() {
 }
 
 
-void Application::drawFPS() {
+void Application::drawHUD() {
     SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_NONE);
 
     std::ostringstream ss;
-    ss << (int) _fps;
-    std::string fps_string = ss.str();
+    ss << "fps: " << (int) _fps << " | ";
+    ss << "zoom: " << (int) _zoom;
+    std::string hud_string = ss.str();
 
-    SDL_Surface* message_surface = TTF_RenderText_Solid(_font_regular, fps_string.c_str(), _color_white);
+    SDL_Surface* message_surface = TTF_RenderText_Solid(_font_regular, hud_string.c_str(), _color_white);
     SDL_Texture* message_texture = SDL_CreateTextureFromSurface(_sdl_renderer, message_surface);
     SDL_Rect message_rect = {5, 5, message_surface->w, message_surface->h};
 

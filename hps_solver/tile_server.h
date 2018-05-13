@@ -1,13 +1,16 @@
 #ifndef __TILE_SERVER_H__
 #define __TILE_SERVER_H__
 
+#include "solver.h"
 #include "tile_header.h"
+
+#include <condition_variable>
 #include <deque>
 #include <mutex>
-#include <condition_variable>
-#include <thread>
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <set>
+#include <sys/socket.h>
+#include <thread>
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr sockaddr;
@@ -19,19 +22,19 @@ private:
     int _socket_fd;
     sockaddr_in _address;
     socklen_t _address_len;
-    int _connection;
 
-    int _queue_depth;
-    std::deque<std::shared_ptr<TileHeader>> _requests;
+    std::vector<std::thread> client_listeners;
+
+    std::set<std::tuple<std::shared_ptr<TileHeader>, int>> requests;
     std::mutex _mutex;
-    std::condition_variable _requests_nonempty;
-    std::condition_variable _requests_space_available;
-    std::thread _tile_generation_thread;
+    std::thread _tile_poll_thread;
 
-    static void tileGenerationTask(TileServer* tile_server);
+    std::unique_ptr<Solver> solver;
+
+    static void tilePollTask(TileServer* tile_server);
 
 public:
-    TileServer(int port, int queue_depth);
+    TileServer(int port);
 
     void init();
 

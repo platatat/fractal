@@ -2,11 +2,14 @@
 #define __TILE_HEADER_H__
 
 #include "complex.h"
+
+#include <cmath>
 #include <gmpxx.h>
 #include <iostream>
 #include <sstream>
 #include <memory>
 #include <netinet/in.h>
+#include <vector>
 
 
 class TileHeader {

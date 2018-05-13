@@ -1,11 +1,14 @@
 `timescale 1ns/1ns
 
-`include "tile_solver_legit.v"
+`include "tile_solver_legit.sv"
 
 module top();
+    localparam TILE_SIZE_BITS       = 6;
     localparam LIMB_INDEX_BITS      = 6;
     localparam LIMB_SIZE_BITS       = 8;
     localparam DIVERGENCE_RADIUS    = 4;
+
+    integer i;
 
     reg clock;
     reg reset;
@@ -41,31 +44,23 @@ module top();
         fifo_valid <= 1;
         #20
 
-        // send zoom level
+        // send number of limbs
         fifo_data_type <= 3'd1;
         fifo_data <= 32'd2;
         #20
 
         // start sending c_real
         fifo_data_type <= 3'd2;
-        fifo_data <= 32'd3;
+        fifo_data <= 32'd0;
         #20
 
         fifo_data_type <= 3'd2;
-        fifo_data <= 32'd4;
-        #20
-
-        fifo_data_type <= 3'd2;
-        fifo_data <= 32'd5;
+        fifo_data <= 32'd0;
         #20
 
         // start sending c_imag
         fifo_data_type <= 3'd3;
-        fifo_data <= 32'd6;
-        #20
-
-        fifo_data_type <= 3'd3;
-        fifo_data <= 32'd7;
+        fifo_data <= 32'd0;
         #20
 
         // delay for a bit
@@ -76,8 +71,18 @@ module top();
 
         // finish sending c_imag
         fifo_data_type <= 3'd3;
-        fifo_data <= 32'd8;
+        fifo_data <= 32'd0;
         fifo_valid <= 1;
+        #20
+
+        // Set max iterations
+        fifo_data_type <= 3'd4;
+        fifo_data <= 10;
+        #20
+
+        // Set bit shift
+        fifo_data_type <= 3'd5;
+        fifo_data <= 2;
 
         // signal end of stream
         fifo_end_of_stream <= 1;
@@ -87,7 +92,11 @@ module top();
         fifo_end_of_stream <= 0;
         #20
 
-        while (!solver.out_valid) begin
+        for (i = 0; i < 64 * 64; i++) begin
+            while (!solver.out_valid) begin
+                #20;
+            end
+            $display("!,%d,%d", solver.out_addr, solver.out_data);
             #20;
         end
 
@@ -97,14 +106,10 @@ module top();
     always begin
         #10
         clock <= !clock;
-
-        if (!clock) begin
-            cycle_counter <= cycle_counter + 1;
-            $display("CYCLE: %d", cycle_counter);
-        end
     end
 
     tile_solver_legit #(
+        TILE_SIZE_BITS,
         LIMB_INDEX_BITS,
         LIMB_SIZE_BITS,
         DIVERGENCE_RADIUS
@@ -115,7 +120,9 @@ module top();
         .in_valid(fifo_valid),
         .in_data(fifo_data | (fifo_data_type << 29)),
         .in_ready(fifo_ready),
-        .in_end_of_stream(fifo_end_of_stream)
+        .in_end_of_stream(fifo_end_of_stream),
+
+        .out_ready(1)
     );
 
 endmodule
