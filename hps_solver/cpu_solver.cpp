@@ -5,17 +5,49 @@
 #include <iostream>
 
 
-#define NUM_SLOTS 3
+#define NUM_SLOTS 4
 
 
 CPUSolver::CPUSolver() {
+    sram_base_ptr = new int16_t[NUM_SLOTS * Constants::TILE_WIDTH * Constants::TILE_HEIGHT];
+
     for (int i = 0; i < NUM_SLOTS; i++) {
-        freeListAppend(new int16_t[Constants::TILE_WIDTH * Constants::TILE_HEIGHT]);
+        freeListAppend(sram_base_ptr + (i * Constants::TILE_WIDTH * Constants::TILE_HEIGHT));
+    }
+
+    for (int i = 0; i < NUM_SLOTS; i++) {
+        solvers.emplace_back(solverTask, this);
     }
 }
 
 
-void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) {
+void CPUSolver::solverTask(CPUSolver* solver) {
+    while (true) {
+        std::shared_ptr<TileHeader> header;
+        int16_t iterations;
+        {
+            std::unique_lock<std::mutex> lock(solver->mutex);
+            while (solver->jobs.empty()) solver->has_jobs.wait(lock);
+
+            CPUSolver::job job = solver->jobs.front();
+            solver->jobs.pop_front();
+            header = std::get<0>(job);
+            iterations = std::get<1>(job);
+        }
+        solver->solveTile(header, iterations);
+    }
+}
+
+
+void CPUSolver::queueTile(std::shared_ptr<TileHeader> header, int16_t iterations) {
+    jobs.emplace_back(header, iterations);
+    has_jobs.notify_all();
+}
+
+
+void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, int16_t iterations) {
+    Solver::data& data = inflight[header];
+
     complex origin = header->getOrigin();
     complex size = {header->getSize(), header->getSize()};
     complex stride = {size.real / Constants::TILE_WIDTH, size.imag / Constants::TILE_HEIGHT};
@@ -24,6 +56,8 @@ void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& data
         for (int x_index = 0; x_index < Constants::TILE_WIDTH; x_index++) {
             complex c = {stride.real * x_index + origin.real, stride.imag * y_index + origin.imag};
             uint16_t solution = solvePixel(c, iterations);
+
+            std::unique_lock<std::mutex> lock(mutex);
             data[y_index * Constants::TILE_WIDTH + x_index] = solution;
         }
     }

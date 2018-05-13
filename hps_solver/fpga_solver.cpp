@@ -65,7 +65,9 @@ FPGASolver::FPGASolver() {
     }
 }
 
-void FPGASolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) {
+void FPGASolver::queueTile(std::shared_ptr<TileHeader> header, int16_t iterations) {
+    Solver::data& data = inflight[header];
+
     int num_limbs = (Constants::TILE_SIZE_BITS + header->z + 26) / 27 + 1;
     int loc_shift = (27 - 1) - ((Constants::TILE_SIZE_BITS - 1 + header->z) % 27);
 

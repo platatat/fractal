@@ -19,8 +19,9 @@ void Solver::sumbit(std::shared_ptr<TileHeader> tile, int16_t iterations) {
     Solver::data data = std::move(free_list.front());
     free_list.pop_front();
     data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] = -2;
-    solveTile(tile, data, iterations);
+
     inflight[tile] = std::move(data);
+    queueTile(tile, iterations);
 }
 
 

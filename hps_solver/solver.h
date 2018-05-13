@@ -22,15 +22,15 @@ public:
     Solver::data retrieve(std::shared_ptr<TileHeader> tile);
 
 protected:
+    std::mutex mutex;
+    std::map<std::shared_ptr<TileHeader>, Solver::data> inflight;
+
     void freeListAppend(volatile int16_t* data);
-    virtual void solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) = 0;
+    virtual void queueTile(std::shared_ptr<TileHeader> header, int16_t iterations) = 0;
 
 private:
-    std::mutex mutex;
     std::condition_variable has_space;
     std::deque<Solver::data> free_list;
-
-    std::map<std::shared_ptr<TileHeader>, Solver::data> inflight;
 
 };
 
