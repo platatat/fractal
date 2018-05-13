@@ -3,8 +3,8 @@
 #include <iostream>
 
 
-Viewport::Viewport(complex origin_in, double zoom_in) {
-    zoom = std::ceil(zoom_in);
+Viewport::Viewport(complex origin_in, double zoom_in, int mipmap_shift) {
+    zoom = std::ceil(zoom_in) + mipmap_shift;
     partial_zoom = pow(2, -(zoom - zoom_in));
 
     double tile_length = pow(2, -zoom);

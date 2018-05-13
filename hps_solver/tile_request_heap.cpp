@@ -3,6 +3,7 @@
 
 
 TileRequestHeap::TileRequestHeap(int max_size) {
+    // TODO: actually enforce max size.
     _max_size = max_size;
 
     _priority = [](std::shared_ptr<TileHeader> header) { 
@@ -39,6 +40,8 @@ void TileRequestHeap::rebuild(std::function<double(std::shared_ptr<TileHeader>)>
 
 
 bool TileRequestHeap::contains(std::shared_ptr<TileHeader> header) {
-    auto find_result = std::find(_heap.begin(), _heap.end(), header);
+    auto find_result = std::find_if(_heap.begin(), _heap.end(), [header](std::shared_ptr<TileHeader> other) {
+        return header->x == other->x && header->y == other->y && header->z == other->z;
+    });
     return find_result != _heap.end();
 }

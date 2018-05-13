@@ -33,13 +33,13 @@ void Renderer::render(const std::set<std::shared_ptr<Tile>>& tiles, Viewport vie
     for (std::shared_ptr<Tile> tile : tiles) {
         std::shared_ptr<TileHeader> header = tile->getHeader();
 
-        mpz_class mp_comp_tile_x = header->x - viewport.origin_x;
-        mpz_class mp_comp_tile_y = header->y - viewport.origin_y;
-        int comp_tile_x = mp_comp_tile_x.get_si();
-        int comp_tile_y = mp_comp_tile_y.get_si();
+        mpz_class mp_tile_x = header->x - viewport.origin_x;
+        mpz_class mp_tile_y = header->y - viewport.origin_y;
+        int tile_x = mp_tile_x.get_si();
+        int tile_y = mp_tile_y.get_si();
 
-        double tile_screen_x = (translate_x + comp_tile_x * Constants::TILE_WIDTH) * viewport.partial_zoom;
-        double tile_screen_y = (translate_y + comp_tile_y * Constants::TILE_HEIGHT) * viewport.partial_zoom;
+        double tile_screen_x = (translate_x + tile_x * Constants::TILE_WIDTH) * viewport.partial_zoom;
+        double tile_screen_y = (translate_y + tile_y * Constants::TILE_HEIGHT) * viewport.partial_zoom;
 
         if (tile->hasData()) {
             std::vector<uint8_t> tile_data = tile->getData();
@@ -68,21 +68,7 @@ void Renderer::render(const std::set<std::shared_ptr<Tile>>& tiles, Viewport vie
             dst_rect.w = std::ceil(Constants::TILE_WIDTH * viewport.partial_zoom);
             dst_rect.h = std::ceil(Constants::TILE_HEIGHT * viewport.partial_zoom);
 
-            // TODO: It's weird and inefficient to do this here, find a better separation for
-            // application, renderer, and tile manager.
-            int scale = 1 << (viewport.zoom - header->z);
-
-            int src_x = header->x.get_ui() % scale;
-            int src_y = header->y.get_ui() % scale;
-
-            SDL_Rect src_rect;
-            src_rect.x = (int) ((double) src_x / scale * Constants::TILE_WIDTH);
-            src_rect.y = (int) ((double) src_y / scale * Constants::TILE_HEIGHT);
-            src_rect.w = Constants::TILE_WIDTH / scale;
-            src_rect.h = Constants::TILE_HEIGHT / scale;
-
-            // std::cout << src_x << ", " << src_y << ", " << src_rect.x << ", " << src_rect.y << std::endl;
-            SDL_RenderCopy(sdl_renderer, tile_texture, &src_rect, &dst_rect);
+            SDL_RenderCopy(sdl_renderer, tile_texture, NULL, &dst_rect);
 
             SDL_DestroyTexture(tile_texture);
             SDL_FreeSurface(tile_surface);

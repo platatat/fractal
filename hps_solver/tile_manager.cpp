@@ -74,7 +74,7 @@ void TileManager::tileReceivingTask(TileManager* tile_manager) {
 
         {
             std::unique_lock<std::mutex> lock(tile_manager->_mutex);
-            std::cout << "adding tile " << header->get_str() << std::endl;
+            std::cout << "received tile " << header->get_str() << std::endl;
             tile_manager->cacheInsert(tile);
             tile_manager->_outstanding_requests.erase(header);
             tile_manager->_requests_available.notify_one();
@@ -145,7 +145,6 @@ void TileManager::cacheEvictOldest() {
 }
 
 
-// TODO: find a better way to do this, this is horrible.
 std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> header, int depth) {
     if (cacheContains(header)) {
         auto cache_result = _cache.find(header);
@@ -159,29 +158,12 @@ std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> heade
             _requests_nonempty.notify_one();
         }
 
+        // Get a lower resolution tile if possible, or return a placeholder tile with no data.
         if (depth > 0) {
-            // Get a lower resolution tile if possible.
             auto parent_header = std::make_shared<TileHeader>(header->x >> 1, header->y >> 1, header->z - 1);
-            // auto lowres_header = std::make_shared<TileHeader>(original_header->x, original_header->y, header->z - 1);
             return requestTile(parent_header, depth - 1);
-            
-            // if (parent_tile->hasData()) {
-            //     return parent_tile;
-            // }
-            // else {
-            //     return std::make_shared<Tile>(lowres_header);
-            // }
-            
-            // if (cacheContains(parent_header)) {
-            //     auto cache_result = _cache.find(parent_header);
-            //     cache_result->second.last_hit = system_clock::now();
-            //     std::vector<uint8_t> tile_data = cache_result->second.tile->getData();
-            //     return std::make_shared<Tile>(lowres_header, tile_data);
-            // }
         }
-        
         else {
-            // Otherwise return a placeholder tile with no data.
             return std::make_shared<Tile>(header);
         }
     }
@@ -193,9 +175,6 @@ std::set<std::shared_ptr<Tile>> TileManager::loadViewport(Viewport viewport) {
 
     std::set<std::shared_ptr<Tile>> tiles;
 
-    tiles.clear();
-    _request_heap.clear();
-
     // Request tiles for current viewport.
     for (int tile_y = 0; tile_y < viewport.height; tile_y++) {
         for (int tile_x = 0; tile_x < viewport.width; tile_x++) {
@@ -203,18 +182,7 @@ std::set<std::shared_ptr<Tile>> TileManager::loadViewport(Viewport viewport) {
             mpz_class y = viewport.origin_y + tile_y;
 
             std::shared_ptr<TileHeader> header = std::make_shared<TileHeader>(x, y, viewport.zoom);
-            std::shared_ptr<Tile> r_tile = requestTile(header, 0);
-            std::shared_ptr<TileHeader> r_header = r_tile->getHeader();
-            auto tile_header = std::make_shared<TileHeader>(header->x, header->y, r_header->z);
-
-            std::shared_ptr<Tile> tile;
-
-            if (r_tile->hasData()) {
-                tile = std::make_shared<Tile>(tile_header, r_tile->getData());
-            }
-            else {
-                tile = std::make_shared<Tile>(tile_header);
-            }
+            std::shared_ptr<Tile> tile = requestTile(header, 0);
 
             tiles.insert(tile);
         }

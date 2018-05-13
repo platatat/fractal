@@ -17,7 +17,7 @@ public:
     double partial_y;
     double partial_zoom;
 
-    Viewport(complex origin, double zoom);
+    Viewport(complex origin, double zoom, int mipmap_shift);
 
     static double screenWidth(double zoom);
     static double screenHeight(double zoom);
