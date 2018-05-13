@@ -53,7 +53,7 @@ end
 // State machine
 always @(posedge clock) begin
     if (reset) begin
-        state <= 0;
+        state <= ST_WAIT_DATA;
         in_ack <= 0;
 
         out_data <= 'x;
