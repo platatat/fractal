@@ -89,8 +89,9 @@ void FPGASolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& dat
 
     std::vector<uint32_t> fifo_data;
 
-    fifo_data.push_back(BITST_OUT_ADDR  | data.get() - sram_base_ptr);
-    fifo_data.push_back(BITST_OUT_ADDR  | data.get() - sram_base_ptr); //TODO fix this
+    uint32_t fpga_ptr = (uint32_t)((uint8_t*) data.get() - (uint8_t*) sram_base_ptr);
+    fifo_data.push_back(BITST_OUT_ADDR  | fpga_ptr);
+    fifo_data.push_back(BITST_OUT_ADDR  | fpga_ptr); //TODO fix this
     fifo_data.push_back(BITST_NUM_LIMBS | num_limbs);
 
     for (uint32_t limb : real_limbs) {
