@@ -1,9 +1,9 @@
-#include "tile_solver.h"
+#include "cpu_solver.h"
 #include "constants.h"
 #include <iostream>
 
 
-std::vector<uint16_t> TileSolver::solveTile(std::shared_ptr<TileHeader> header, uint16_t iterations) {
+std::vector<uint16_t> CPUSolver::solveTile(std::shared_ptr<TileHeader> header, uint16_t iterations) {
     std::vector<uint16_t> tile_data;
 
     complex origin = header->getOrigin();
@@ -22,7 +22,7 @@ std::vector<uint16_t> TileSolver::solveTile(std::shared_ptr<TileHeader> header, 
 }
 
 
-uint16_t TileSolver::solvePixel(complex c, uint16_t iterations) {
+uint16_t CPUSolver::solvePixel(complex c, uint16_t iterations) {
     complex z = c;
 
     complex cycle_z = c;

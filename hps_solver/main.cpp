@@ -1,7 +1,6 @@
 #include "constants.h"
 #include "tile_client.h"
 #include "tile_server.h"
-#include "tile_solver.h"
 #include <iostream>
 #include <chrono>
 

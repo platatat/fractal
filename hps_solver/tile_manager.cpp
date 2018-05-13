@@ -1,5 +1,4 @@
 #include "tile_manager.h"
-#include "tile_solver.h"
 #include <math.h>
 #include <iostream>
 #include <png.h>

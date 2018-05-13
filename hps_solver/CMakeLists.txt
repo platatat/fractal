@@ -19,7 +19,7 @@ set(MANDELBROT_SOURCES
     bignum.cpp
     fpga_solver.cpp
     tile.cpp
-    tile_solver.cpp
+    cpu_solver.cpp
     tile_client.cpp
     tile_server.cpp
     tile_request_heap.cpp
