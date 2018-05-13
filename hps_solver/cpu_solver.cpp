@@ -10,12 +10,12 @@
 
 CPUSolver::CPUSolver() {
     for (int i = 0; i < NUM_SLOTS; i++) {
-        freeListAppend(new uint16_t[Constants::TILE_WIDTH * Constants::TILE_HEIGHT]);
+        freeListAppend(new int16_t[Constants::TILE_WIDTH * Constants::TILE_HEIGHT]);
     }
 }
 
 
-void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, uint16_t iterations) {
+void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) {
     complex origin = header->getOrigin();
     complex size = {header->getSize(), header->getSize()};
     complex stride = {size.real / Constants::TILE_WIDTH, size.imag / Constants::TILE_HEIGHT};
@@ -30,12 +30,12 @@ void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& data
 }
 
 
-uint16_t CPUSolver::solvePixel(complex c, uint16_t iterations) {
+int16_t CPUSolver::solvePixel(complex c, int16_t iterations) {
     complex z = c;
 
     complex cycle_z = c;
 
-    for (uint16_t i = 1; i < iterations - 1; i++) {
+    for (int16_t i = 1; i < iterations - 1; i++) {
         mpf_class z_real_new = (z.real * z.real) - (z.imag * z.imag) + c.real;
         mpf_class z_imag_new = (z.imag * z.real * 2) + c.imag;
         z = {z_real_new, z_imag_new};

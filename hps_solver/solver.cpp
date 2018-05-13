@@ -5,14 +5,14 @@
 #include <iostream>
 
 
-void Solver::freeListAppend(volatile uint16_t* data) {
+void Solver::freeListAppend(volatile int16_t* data) {
     std::unique_lock<std::mutex> lock(mutex);
-    free_list.emplace_back(data, [this] (volatile uint16_t* data) { freeListAppend(data); });
+    free_list.emplace_back(data, [this] (volatile int16_t* data) { freeListAppend(data); });
     has_space.notify_all();
 }
 
 
-void Solver::sumbit(std::shared_ptr<TileHeader> tile, uint16_t iterations) {
+void Solver::sumbit(std::shared_ptr<TileHeader> tile, int16_t iterations) {
     std::unique_lock<std::mutex> lock(mutex);
     while (free_list.empty()) has_space.wait(lock);
 

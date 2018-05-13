@@ -8,15 +8,15 @@
 class FPGASolver : public Solver {
 private:
     // Addresses on the bus
-    volatile int16_t* out_pixel_ptr;
+    volatile int16_t* sram_base_ptr;
     volatile uint32_t* fifo_ptr;
     volatile uint32_t* fifo_control_ptr;
-    volatile int16_t* out_last_pixel;
+
+protected:
+    void solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) override;
 
 public:
     FPGASolver();
-
-    //std::vector<uint16_t> solveTile(std::shared_ptr<TileHeader> tile, uint16_t iterations) override;
 
 };
 

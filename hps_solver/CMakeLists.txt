@@ -17,7 +17,7 @@ project(mandelbrot C CXX)
 set(MANDELBROT_SOURCES
     main.cpp
     bignum.cpp
-    #fpga_solver.cpp
+    fpga_solver.cpp
     tile.cpp
     cpu_solver.cpp
     tile_client.cpp

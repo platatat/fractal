@@ -14,16 +14,16 @@
 
 class Solver {
 public:
-    typedef std::unique_ptr<volatile uint16_t[], std::function<void(volatile uint16_t*)>> data;
+    typedef std::unique_ptr<volatile int16_t[], std::function<void(volatile int16_t*)>> data;
 
     virtual ~Solver() = 0;
 
-    void sumbit(std::shared_ptr<TileHeader> tile, uint16_t iterations);
+    void sumbit(std::shared_ptr<TileHeader> tile, int16_t iterations);
     Solver::data retrieve(std::shared_ptr<TileHeader> tile);
 
 protected:
-    void freeListAppend(volatile uint16_t* data);
-    virtual void solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, uint16_t iterations) = 0;
+    void freeListAppend(volatile int16_t* data);
+    virtual void solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) = 0;
 
 private:
     std::mutex mutex;

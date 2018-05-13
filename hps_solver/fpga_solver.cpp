@@ -34,6 +34,9 @@
 #define HW_REGS_SPAN          0x00005000
 
 
+#define NUM_SLOTS 3
+
+
 FPGASolver::FPGASolver() {
     // Open /dev/mem
     int fd = open( "/dev/mem", O_RDWR | O_SYNC);
@@ -53,16 +56,16 @@ FPGASolver::FPGASolver() {
     }
 
     // Addresses on the bus
-    out_pixel_ptr = (int16_t*)(h2f_base_address);
+    sram_base_ptr = (int16_t*)(h2f_base_address);
     fifo_ptr = (uint32_t*) ((uint8_t*)(h2f_base_address) + SDRAM_SPAN);
     fifo_control_ptr = fifo_ptr + 1;
 
-    out_last_pixel = out_pixel_ptr + Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1;
+    for (int i = 0; i < NUM_SLOTS; i++) {
+        freeListAppend(sram_base_ptr + (i * Constants::TILE_WIDTH * Constants::TILE_HEIGHT));
+    }
 }
 
-std::vector<uint16_t> FPGASolver::solveTile(std::shared_ptr<TileHeader> header, uint16_t iterations) {
-    std::vector<uint16_t> tile_data;
-
+void FPGASolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, int16_t iterations) {
     int num_limbs = (Constants::TILE_SIZE_BITS + header->z + 26) / 27 + 1;
     int loc_shift = (27 - 1) - ((Constants::TILE_SIZE_BITS - 1 + header->z) % 27);
 
@@ -73,9 +76,6 @@ std::vector<uint16_t> FPGASolver::solveTile(std::shared_ptr<TileHeader> header, 
     //Pad limb vectors with zeros to ensure that they are the correct size
     while (real_limbs.size() < num_limbs) real_limbs.push_back(0);
     while (imag_limbs.size() < num_limbs) imag_limbs.push_back(0);
-
-    // Write a sentinel into the last possible output value
-    *out_last_pixel = -2;
 
     // Generate data for the FIFO
     const uint32_t fifo_start = 0x01;
@@ -89,7 +89,7 @@ std::vector<uint16_t> FPGASolver::solveTile(std::shared_ptr<TileHeader> header, 
 
     std::vector<uint32_t> fifo_data;
 
-    fifo_data.push_back(BITST_OUT_ADDR  | 0);
+    fifo_data.push_back(BITST_OUT_ADDR  | data.get() - sram_base_ptr);
     fifo_data.push_back(BITST_NUM_LIMBS | num_limbs);
 
     for (uint32_t limb : real_limbs) {
@@ -132,20 +132,4 @@ std::vector<uint16_t> FPGASolver::solveTile(std::shared_ptr<TileHeader> header, 
 
         *fifo_ptr = fifo_data[i];
     }
-
-    // Wait for data
-    while (*out_last_pixel == -2) {
-        struct timespec wait, out;
-        wait.tv_sec = 0;
-        wait.tv_nsec = 100000;
-        nanosleep(&wait, &out);
-    }
-
-    for (int i = 0; i < Constants::TILE_HEIGHT; i++) {
-        for (int j = 0; j < Constants::TILE_WIDTH; j++) {
-            tile_data.push_back(out_pixel_ptr[i * Constants::TILE_WIDTH + j]);
-        }
-    }
-
-    return tile_data;
 }
