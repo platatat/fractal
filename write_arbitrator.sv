@@ -53,7 +53,7 @@ end
 // State machine
 always @(posedge clock) begin
     if (reset) begin
-        state <= 0;
+        state <= ST_WAIT_DATA;
         in_ack <= 0;
 
         out_data <= 'x;
@@ -66,9 +66,11 @@ always @(posedge clock) begin
 
             out_data <= available_data;
             out_addr <= available_addr;
+            out_write_en <= 1;
         end else begin
             state <= ST_WAIT_DATA;
             in_ack <= 0;
+            out_write_en <= 0;
         end
     end else if (state == ST_WRITE) begin
         // Wait for ack
@@ -77,15 +79,17 @@ always @(posedge clock) begin
 
             out_data <= 'x;
             out_addr <= 'x;
+
+            out_write_en <= 0;
         end else begin
             state <= ST_WRITE;
+            out_write_en <= 1;
         end
+
 
         in_ack <= 0;
     end
 end
-
-assign out_write_en = (state == ST_WRITE);
 
 endmodule
 
