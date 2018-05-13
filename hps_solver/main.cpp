@@ -22,7 +22,7 @@ int runClient() {
 
 
 int runServer() {
-    TileServer server(Constants::PORT, 4);
+    TileServer server(Constants::PORT);
     server.init();
     server.serveForever();
 }

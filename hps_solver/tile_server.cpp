@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 
-TileServer::TileServer(int port, int queue_depth) : _port(port), _queue_depth(queue_depth), solver(new CPUSolver()) {
+TileServer::TileServer(int port) : _port(port), solver(new CPUSolver()) {
     _tile_poll_thread = std::thread(tilePollTask, this);
 }
 
@@ -73,7 +73,6 @@ void TileServer::tilePollTask(TileServer* tile_server) {
                 Solver::data tile_data = tile_server->solver->retrieve(header);
                 if (tile_data != nullptr) {
                     it = tile_server->_requests.erase(it);
-                    tile_server->_requests_space_available.notify_all();
 
                     std::vector<uint8_t> tile_bytes;
                     for (int i = 0; i < Constants::TILE_WIDTH * Constants::TILE_HEIGHT; i++) {
@@ -109,11 +108,6 @@ void TileServer::serveForever() {
 
             {
                 std::unique_lock<std::mutex> lock(_mutex);
-
-                while (_requests.size() >= _queue_depth) {
-                    _requests_space_available.wait(lock);
-                }
-
                 _requests.insert(header);
             }
             solver->sumbit(header, Constants::ITERATIONS);

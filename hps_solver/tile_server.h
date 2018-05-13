@@ -24,10 +24,8 @@ private:
     socklen_t _address_len;
     int _connection;
 
-    int _queue_depth;
     std::set<std::shared_ptr<TileHeader>> _requests;
     std::mutex _mutex;
-    std::condition_variable _requests_space_available;
     std::thread _tile_poll_thread;
 
     std::unique_ptr<Solver> solver;
@@ -35,7 +33,7 @@ private:
     static void tilePollTask(TileServer* tile_server);
 
 public:
-    TileServer(int port, int queue_depth);
+    TileServer(int port);
 
     void init();
 
