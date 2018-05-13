@@ -14,7 +14,7 @@ int runClient(std::string ip_addr) {
     return 0;
 }
 #else
-int runClient() {
+int runClient(std::string ip_addr) {
     printf("Client not supported on HPS build.\n");
     return 1;
 }
