@@ -24,6 +24,7 @@ set(MANDELBROT_SOURCES
     tile_server.cpp
     tile_request_heap.cpp
     socket_util.cpp
+    solver.cpp
 )
 
 if (NOT HPS)

@@ -15,46 +15,7 @@ CPUSolver::CPUSolver() {
 }
 
 
-void CPUSolver::freeListAppend(volatile uint16_t* data) {
-    std::unique_lock<std::mutex> lock(mutex);
-    free_list.emplace_back(data, [this] (volatile uint16_t* data) { deleteData(data); });
-    has_space.notify_all();
-}
-
-
-void CPUSolver::deleteData(volatile uint16_t* data) {
-    freeListAppend(data);
-}
-
-
-void CPUSolver::sumbit(std::shared_ptr<TileHeader> tile, uint16_t iterations) {
-    std::unique_lock<std::mutex> lock(mutex);
-    while (free_list.empty()) has_space.wait(lock);
-
-    Solver::data data = std::move(free_list.front());
-    free_list.pop_front();
-    data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] = -2;
-    inflight[tile] = std::move(data);
-
-    solveTile(tile, iterations);
-}
-
-
-Solver::data CPUSolver::retrieve(std::shared_ptr<TileHeader> tile) {
-    std::unique_lock<std::mutex> lock(mutex);
-
-    Solver::data& data = inflight[tile];
-    if (data == nullptr) return nullptr;
-    if (data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] == -2) return nullptr;
-    Solver::data ret = std::move(inflight[tile]);
-    inflight.erase(tile);
-    return ret;
-}
-
-
-void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, uint16_t iterations) {
-    Solver::data& tile_data = inflight[header];
-
+void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, Solver::data& data, uint16_t iterations) {
     complex origin = header->getOrigin();
     complex size = {header->getSize(), header->getSize()};
     complex stride = {size.real / Constants::TILE_WIDTH, size.imag / Constants::TILE_HEIGHT};
@@ -63,7 +24,7 @@ void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, uint16_t iteration
         for (int x_index = 0; x_index < Constants::TILE_WIDTH; x_index++) {
             complex c = {stride.real * x_index + origin.real, stride.imag * y_index + origin.imag};
             uint16_t solution = solvePixel(c, iterations);
-            tile_data[y_index * Constants::TILE_WIDTH + x_index] = solution;
+            data[y_index * Constants::TILE_WIDTH + x_index] = solution;
         }
     }
 }
