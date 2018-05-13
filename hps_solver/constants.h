@@ -6,7 +6,6 @@ class Constants {
 public:
     static constexpr const char* WINDOW_TITLE = "Mandelbrot Renderer";
     static const int TARGET_FPS         = 60;
-    static const int PORT               = 8080;
 
     static const int SCREEN_WIDTH       = 512;
     static const int SCREEN_HEIGHT      = 512;
