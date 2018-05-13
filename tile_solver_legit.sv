@@ -111,8 +111,8 @@ solver #(
 reg [2:0] state;
 reg [2:0] next_state;
 
-reg addr;
-reg next_addr;
+reg [31:0] addr;
+reg [31:0] next_addr;
 
 reg [31:0] iterator_shift;
 reg [31:0] next_iterator_shift;
