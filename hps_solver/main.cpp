@@ -1,4 +1,3 @@
-#include "application.h"
 #include "constants.h"
 #include "tile_client.h"
 #include "tile_server.h"
@@ -6,6 +5,8 @@
 #include <iostream>
 #include <chrono>
 
+#ifndef HPS
+#include "application.h"
 
 int runClient() {
     Application app;
@@ -13,6 +14,12 @@ int runClient() {
     app.run();
     return 0;
 }
+#else
+int runClient() {
+    printf("Client not supported on HPS build.\n");
+    return 1;
+}
+#endif
 
 
 int runServer() {
