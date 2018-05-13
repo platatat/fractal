@@ -27,7 +27,6 @@ private:
     int _queue_depth;
     std::set<std::shared_ptr<TileHeader>> _requests;
     std::mutex _mutex;
-    std::condition_variable _requests_nonempty;
     std::condition_variable _requests_space_available;
     std::thread _tile_poll_thread;
 

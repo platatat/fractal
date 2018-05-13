@@ -5,14 +5,34 @@
 #include <iostream>
 
 
+#define NUM_SLOTS 3
+
+
+CPUSolver::CPUSolver() {
+    for (int i = 0; i < NUM_SLOTS; i++) {
+        freeListAppend(new uint16_t[Constants::TILE_WIDTH * Constants::TILE_HEIGHT]);
+    }
+}
+
+
+void CPUSolver::freeListAppend(volatile uint16_t* data) {
+    std::unique_lock<std::mutex> lock(mutex);
+    free_list.emplace_back(data, [this] (volatile uint16_t* data) { deleteData(data); });
+    has_space.notify_all();
+}
+
+
 void CPUSolver::deleteData(volatile uint16_t* data) {
-    delete[] data;
+    freeListAppend(data);
 }
 
 
 void CPUSolver::sumbit(std::shared_ptr<TileHeader> tile, uint16_t iterations) {
-    Solver::data data(new uint16_t[Constants::TILE_WIDTH * Constants::TILE_HEIGHT],
-                      [this] (volatile uint16_t* data) { deleteData(data); });
+    std::unique_lock<std::mutex> lock(mutex);
+    while (free_list.empty()) has_space.wait(lock);
+
+    Solver::data data = std::move(free_list.front());
+    free_list.pop_front();
     data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] = -2;
     inflight[tile] = std::move(data);
 
@@ -21,7 +41,10 @@ void CPUSolver::sumbit(std::shared_ptr<TileHeader> tile, uint16_t iterations) {
 
 
 Solver::data CPUSolver::retrieve(std::shared_ptr<TileHeader> tile) {
+    std::unique_lock<std::mutex> lock(mutex);
+
     Solver::data& data = inflight[tile];
+    if (data == nullptr) return nullptr;
     if (data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] == -2) return nullptr;
     Solver::data ret = std::move(inflight[tile]);
     inflight.erase(tile);
