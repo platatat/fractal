@@ -6,15 +6,16 @@
 #include "socket_util.h"
 #include "tile.h"
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#include <chrono>
 #include <iostream>
 #include <memory>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 
 TileServer::TileServer(int port, int queue_depth) : _port(port), _queue_depth(queue_depth), solver(new CPUSolver()) {
-    _tile_generation_thread = std::thread(tileGenerationTask, this);
+    _tile_poll_thread = std::thread(tilePollTask, this);
 }
 
 
@@ -60,7 +61,7 @@ int TileServer::awaitConnection() {
 }
 
 
-void TileServer::tileGenerationTask(TileServer* tile_server) {
+void TileServer::tilePollTask(TileServer* tile_server) {
     while(true) {
         std::shared_ptr<TileHeader> header;
 
@@ -71,25 +72,31 @@ void TileServer::tileGenerationTask(TileServer* tile_server) {
                 tile_server->_requests_nonempty.wait(lock);
             }
 
-            header = tile_server->_requests.front();
-            tile_server->_requests.pop_front();
-            tile_server->_requests_space_available.notify_one();
-        }
-        
-        // TODO: iterations (and maybe tile size) should be sent from client.
-        std::vector<uint16_t> tile_data = tile_server->solver->solveTile(header, Constants::ITERATIONS);
-        std::vector<uint8_t> tile_bytes;
-        for (uint16_t data : tile_data) {
-            uint8_t buffer[2];
-            ((uint16_t*) buffer)[0] = htons(data);
-            tile_bytes.push_back(buffer[0]);
-            tile_bytes.push_back(buffer[1]);
+            for (auto it = tile_server->_requests.begin(); it != tile_server->_requests.end(); ) {
+                std::shared_ptr<TileHeader> header = *it;
+                Solver::data tile_data = tile_server->solver->retrieve(header);
+                if (tile_data != nullptr) {
+                    it = tile_server->_requests.erase(it);
+
+                    std::vector<uint8_t> tile_bytes;
+                    for (int i = 0; i < Constants::TILE_WIDTH * Constants::TILE_HEIGHT; i++) {
+                        uint8_t buffer[2];
+                        ((uint16_t*) buffer)[0] = htons(tile_data[i]);
+                        tile_bytes.push_back(buffer[0]);
+                        tile_bytes.push_back(buffer[1]);
+                    }
+
+                    std::vector<uint8_t> header_data = header->serialize();
+
+                    SocketUtil::sendPacket(tile_server->_connection, header_data);
+                    SocketUtil::sendPacket(tile_server->_connection, tile_bytes);
+                } else {
+                    ++it;
+                }
+            }
         }
 
-        std::vector<uint8_t> header_data = header->serialize();
-
-        SocketUtil::sendPacket(tile_server->_connection, header_data);
-        SocketUtil::sendPacket(tile_server->_connection, tile_bytes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
@@ -110,8 +117,10 @@ void TileServer::serveForever() {
                     _requests_space_available.wait(lock);
                 }
 
-                _requests.push_back(header);
-                _requests_nonempty.notify_one();
+                solver->sumbit(header, Constants::ITERATIONS);
+
+                _requests.insert(header);
+                _requests_nonempty.notify_all();
             }
         } catch (std::runtime_error& e) {
             std::cout << e.what() << std::endl;

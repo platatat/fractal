@@ -1,10 +1,36 @@
 #include "cpu_solver.h"
+
 #include "constants.h"
+
 #include <iostream>
 
 
-std::vector<uint16_t> CPUSolver::solveTile(std::shared_ptr<TileHeader> header, uint16_t iterations) {
-    std::vector<uint16_t> tile_data;
+void CPUSolver::deleteData(uint16_t* data) {
+    delete[] data;
+}
+
+
+void CPUSolver::sumbit(std::shared_ptr<TileHeader> tile, uint16_t iterations) {
+    Solver::data data(new uint16_t[Constants::TILE_WIDTH * Constants::TILE_HEIGHT],
+                      [this] (uint16_t* data) { deleteData(data); });
+    data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] = -2;
+    inflight[tile] = std::move(data);
+
+    solveTile(tile, iterations);
+}
+
+
+Solver::data CPUSolver::retrieve(std::shared_ptr<TileHeader> tile) {
+    Solver::data& data = inflight[tile];
+    if (data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] == -2) return nullptr;
+    Solver::data ret = std::move(inflight[tile]);
+    inflight.erase(tile);
+    return ret;
+}
+
+
+void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, uint16_t iterations) {
+    Solver::data& tile_data = inflight[header];
 
     complex origin = header->getOrigin();
     complex size = {header->getSize(), header->getSize()};
@@ -14,11 +40,9 @@ std::vector<uint16_t> CPUSolver::solveTile(std::shared_ptr<TileHeader> header, u
         for (int x_index = 0; x_index < Constants::TILE_WIDTH; x_index++) {
             complex c = {stride.real * x_index + origin.real, stride.imag * y_index + origin.imag};
             uint16_t solution = solvePixel(c, iterations);
-            tile_data.push_back(solution);
+            tile_data[y_index * Constants::TILE_WIDTH + x_index] = solution;
         }
     }
-
-    return tile_data;
 }
 
 
