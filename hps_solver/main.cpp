@@ -7,8 +7,8 @@
 #include <chrono>
 
 
-int runClient() {
-    Application app;
+int runClient(std::string ip_addr) {
+    Application app(ip_addr);
     app.init();
     app.run();
     return 0;
@@ -31,7 +31,12 @@ int main(int argc, char* args[])
 
     try {
         if (strcmp(args[1], "client") == 0) {
-            return runClient();
+            if (argc < 3) {
+                std::cout << "must specify ip address" << std::endl;
+                return -1;
+            }
+            std::string ip_addr = args[2];
+            return runClient(ip_addr);
         }
 
         else if (strcmp(args[1], "server") == 0) {

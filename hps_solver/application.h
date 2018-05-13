@@ -38,7 +38,7 @@ private:
     double getScreenHeight();
 
 public:
-    Application();
+    Application(std::string ip_addr);
 
     void init();
     void run();

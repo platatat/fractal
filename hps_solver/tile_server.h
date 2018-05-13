@@ -3,6 +3,7 @@
 
 #include "tile_header.h"
 #include "fpga_solver.h"
+#include "tile_solver.h"
 #include <deque>
 #include <mutex>
 #include <condition_variable>
@@ -29,7 +30,7 @@ private:
     std::condition_variable _requests_space_available;
     std::thread _tile_generation_thread;
 
-    FPGASolver solver;
+    TileSolver solver;
 
     static void tileGenerationTask(TileServer* tile_server);
 
