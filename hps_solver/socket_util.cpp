@@ -7,7 +7,7 @@
 
 
 void SocketUtil::sendData(int sock, uint8_t* data, int size) {
-    send(sock, data, size, 0);
+    send(sock, data, size, MSG_NOSIGNAL);
 }
 
 
@@ -19,7 +19,6 @@ int SocketUtil::receiveData(int sock, uint8_t* buffer, int size) {
         int result = read(sock, buffer + bytes_read, bytes_to_read);
 
         if (result < 1) {
-            std::cout << "read failed" << std::endl;
             return -1;
         }
 
@@ -42,7 +41,9 @@ void SocketUtil::sendPacket(int sock, std::vector<uint8_t> data) {
 std::vector<uint8_t> SocketUtil::receivePacket(int sock) {
     // Receive packet header.
     uint8_t packet_header [4];
-    receiveData(sock, packet_header, 4);
+    int err = receiveData(sock, packet_header, 4);
+    if (err == -1) return std::vector<uint8_t>();
+
     uint32_t packet_size = ntohl(((uint32_t*) packet_header)[0]);
 
     // Receive packet body.

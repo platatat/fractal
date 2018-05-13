@@ -111,6 +111,8 @@ void TileServer::serveForever() {
             while (true) {
                 try {
                     std::vector<uint8_t> header_data = SocketUtil::receivePacket(connection);
+                    if (header_data.size() == 0) return;
+
                     std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
                     std::shared_ptr<TileHeader> header = std::move(unique_header);
 
