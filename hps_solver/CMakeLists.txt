@@ -13,6 +13,7 @@ add_executable(mandelbrot
     main.cpp
     application.cpp
     bignum.cpp
+    fpga_solver.cpp
     renderer.cpp
     sdl_input_controller.cpp
     tile.cpp

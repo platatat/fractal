@@ -2,6 +2,7 @@
 #define __TILE_SERVER_H__
 
 #include "tile_header.h"
+#include "fpga_solver.h"
 #include <deque>
 #include <mutex>
 #include <condition_variable>
@@ -27,6 +28,8 @@ private:
     std::condition_variable _requests_nonempty;
     std::condition_variable _requests_space_available;
     std::thread _tile_generation_thread;
+
+    FPGASolver solver;
 
     static void tileGenerationTask(TileServer* tile_server);
 
