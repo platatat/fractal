@@ -1,8 +1,7 @@
 #ifndef __TILE_SERVER_H__
 #define __TILE_SERVER_H__
 
-#include "cpu_solver.h"
-#include "fpga_solver.h"
+#include "solver.h"
 #include "tile_header.h"
 
 #include <deque>
@@ -31,7 +30,7 @@ private:
     std::condition_variable _requests_space_available;
     std::thread _tile_generation_thread;
 
-    CPUSolver solver;
+    std::unique_ptr<Solver> solver;
 
     static void tileGenerationTask(TileServer* tile_server);
 

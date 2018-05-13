@@ -1,8 +1,11 @@
 #include "tile_server.h"
 
+#include "cpu_solver.h"
+#include "fpga_solver.h"
 #include "constants.h"
 #include "socket_util.h"
 #include "tile.h"
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -10,7 +13,7 @@
 #include <memory>
 
 
-TileServer::TileServer(int port, int queue_depth) : _port(port), _queue_depth(queue_depth) {
+TileServer::TileServer(int port, int queue_depth) : _port(port), _queue_depth(queue_depth), solver(new CPUSolver()) {
     _tile_generation_thread = std::thread(tileGenerationTask, this);
 }
 
@@ -74,7 +77,7 @@ void TileServer::tileGenerationTask(TileServer* tile_server) {
         }
         
         // TODO: iterations (and maybe tile size) should be sent from client.
-        std::vector<uint16_t> tile_data = tile_server->solver.solveTile(header, Constants::ITERATIONS);
+        std::vector<uint16_t> tile_data = tile_server->solver->solveTile(header, Constants::ITERATIONS);
         std::vector<uint8_t> tile_bytes;
         for (uint16_t data : tile_data) {
             uint8_t buffer[2];

@@ -2,12 +2,10 @@
 #define __FPGA_SOLVER_H__
 
 
-#include "complex.h"
-#include "tile.h"
-#include <memory>
+#include "solver.h"
 
 
-class FPGASolver {
+class FPGASolver : public Solver {
 private:
     // Addresses on the bus
     volatile int16_t* out_pixel_ptr;
@@ -18,7 +16,7 @@ private:
 public:
     FPGASolver();
 
-    std::vector<uint16_t> solveTile(std::shared_ptr<TileHeader> tile, uint16_t iterations);
+    std::vector<uint16_t> solveTile(std::shared_ptr<TileHeader> tile, uint16_t iterations) override;
 
 };
 
