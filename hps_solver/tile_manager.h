@@ -55,7 +55,7 @@ private:
     std::unordered_map<std::shared_ptr<TileHeader>, CachedTile, TileHeader::Hasher, TileHeader::Comparator> _cache;
 
 public:
-    TileManager(int cache_size, int request_depth = 4);
+    TileManager(std::string ip_addr, int cache_size, int request_depth = 4);
 
     ~TileManager();
 

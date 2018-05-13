@@ -7,10 +7,10 @@
 using namespace std::chrono;
 
 
-Application::Application() :
+Application::Application(std::string ip_addr) :
     _origin({0.0, 0.0}),
     _zoom(2),
-    _tile_manager(Constants::CACHE_SIZE),
+    _tile_manager(ip_addr, Constants::CACHE_SIZE),
     _renderer()
 {
     mpf_class real("0.3750001200618655");

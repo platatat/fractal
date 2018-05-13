@@ -16,13 +16,14 @@ typedef struct sockaddr sockaddr;
 
 class TileClient {
 private:
+    std::string ip_addr;
     int _port;
     int _socket_fd;
     sockaddr_in _address;
     sockaddr_in _server_address;
 
 public:
-    TileClient(int port);
+    TileClient(std::string ip_addr, int port);
 
     void init();
 

@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include <math.h>
-#include <cairo.h>
 
 
 Renderer::Renderer() {

@@ -9,7 +9,7 @@
 #include <iostream>
 
 
-TileClient::TileClient(int port) : _port(port) {
+TileClient::TileClient(std::string ip_addr, int port) : ip_addr(ip_addr), _port(port) {
 
 }
 
@@ -26,7 +26,7 @@ void TileClient::init() {
     _server_address.sin_family = AF_INET;
     _server_address.sin_port = htons(_port);
       
-    if (inet_pton(AF_INET, "127.0.0.1", &_server_address.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, ip_addr.c_str(), &_server_address.sin_addr) <= 0) {
         std::cout << "invalid address" << std::endl;
     }
 

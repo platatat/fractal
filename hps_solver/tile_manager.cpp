@@ -1,5 +1,4 @@
 #include "tile_manager.h"
-#include "tile_solver.h"
 #include <math.h>
 #include <iostream>
 #include <png.h>
@@ -10,10 +9,10 @@ using std::chrono::system_clock;
 using std::chrono::time_point;
 
 
-TileManager::TileManager(int cache_size, int request_depth) : 
+TileManager::TileManager(std::string ip_addr, int cache_size, int request_depth) : 
         _request_heap(64), 
         _cache_size(cache_size), 
-        _tile_client(Constants::PORT),
+        _tile_client(ip_addr, Constants::PORT),
         _request_depth(request_depth) {
     _tile_client.init();
 
