@@ -63,8 +63,8 @@ FPGASolver::FPGASolver() {
 std::vector<uint16_t> FPGASolver::solveTile(std::shared_ptr<TileHeader> header, uint16_t iterations) {
     std::vector<uint16_t> tile_data;
 
-    int num_limbs = (Constants::TILE_SIZE_BITS - 1 + header->z + 26) / 27;
-    int loc_shift = (Constants::TILE_SIZE_BITS - 1 + header->z) % 27;
+    int num_limbs = (Constants::TILE_SIZE_BITS + header->z + 26) / 27 + 1;
+    int loc_shift = (27 - 1) - ((Constants::TILE_SIZE_BITS - 1 + header->z) % 27);
 
     complex origin = header->getOrigin();
     std::vector<uint32_t> real_limbs = origin.get_real_limbs(27);
@@ -105,6 +105,22 @@ std::vector<uint16_t> FPGASolver::solveTile(std::shared_ptr<TileHeader> header, 
     // This is the number of bits to offset the x/y value of the pixel,
     // as measured from the right hand edge of the last limb.
     fifo_data.push_back(BITST_LOC_SHIFT | loc_shift);
+
+    /*
+    printf("Generating tile. z: %d num_limbs: %d, loc_shift: %d\n", header->z, num_limbs, loc_shift);
+
+    printf("real: ");
+    for (uint32_t limb : real_limbs) {
+        printf("%x ", limb);
+    }
+    printf("\n");
+
+    printf("imag: ");
+    for (uint32_t limb : imag_limbs) {
+        printf("%x ", limb);
+    }
+    printf("\n");
+    */
 
     // Write our data to the fifo
     *fifo_control_ptr = fifo_start;

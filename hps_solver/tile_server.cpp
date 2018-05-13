@@ -25,10 +25,12 @@ void TileServer::init() {
     }
 
     int opt = 1;
-      
+
+    /*
     if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         std::cout << "setsockopt failed" << std::endl;
     }
+    */
 
     _address.sin_family = AF_INET;
     _address.sin_addr.s_addr = INADDR_ANY;

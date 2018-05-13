@@ -30,7 +30,7 @@ uint16_t TileSolver::solvePixel(complex c, uint16_t iterations) {
     for (uint16_t i = 1; i < iterations - 1; i++) {
         mpf_class z_real_new = (z.real * z.real) - (z.imag * z.imag) + c.real;
         mpf_class z_imag_new = (z.imag * z.real * 2) + c.imag;
-        z = {.real = z_real_new, .imag = z_imag_new};
+        z = {z_real_new, z_imag_new};
 
         if (z == cycle_z) {
             break;
