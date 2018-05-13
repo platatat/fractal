@@ -22,9 +22,10 @@ private:
     int _socket_fd;
     sockaddr_in _address;
     socklen_t _address_len;
-    int _connection;
 
-    std::set<std::shared_ptr<TileHeader>> _requests;
+    std::vector<std::thread> client_listeners;
+
+    std::set<std::tuple<std::shared_ptr<TileHeader>, int>> requests;
     std::mutex _mutex;
     std::thread _tile_poll_thread;
 

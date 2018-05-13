@@ -74,11 +74,12 @@ void TileServer::tilePollTask(TileServer* tile_server) {
         {
             std::unique_lock<std::mutex> lock(tile_server->_mutex);
 
-            for (auto it = tile_server->_requests.begin(); it != tile_server->_requests.end(); ) {
-                std::shared_ptr<TileHeader> header = *it;
+            for (auto it = tile_server->requests.begin(); it != tile_server->requests.end(); ) {
+                std::shared_ptr<TileHeader> header = std::get<0>(*it);
+                int connection = std::get<1>(*it);
                 Solver::data tile_data = tile_server->solver->retrieve(header);
                 if (tile_data != nullptr) {
-                    it = tile_server->_requests.erase(it);
+                    it = tile_server->requests.erase(it);
 
                     std::vector<uint8_t> tile_bytes;
                     for (int i = 0; i < Constants::TILE_WIDTH * Constants::TILE_HEIGHT; i++) {
@@ -90,8 +91,8 @@ void TileServer::tilePollTask(TileServer* tile_server) {
 
                     std::vector<uint8_t> header_data = header->serialize();
 
-                    SocketUtil::sendPacket(tile_server->_connection, header_data);
-                    SocketUtil::sendPacket(tile_server->_connection, tile_bytes);
+                    SocketUtil::sendPacket(connection, header_data);
+                    SocketUtil::sendPacket(connection, tile_bytes);
                 } else {
                     ++it;
                 }
@@ -104,22 +105,27 @@ void TileServer::tilePollTask(TileServer* tile_server) {
 
 
 void TileServer::serveForever() {
-    _connection = awaitConnection();
-
     while (true) {
-        try {
-            std::vector<uint8_t> header_data = SocketUtil::receivePacket(_connection);
-            std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
-            std::shared_ptr<TileHeader> header = std::move(unique_header);
+        int connection = awaitConnection();
+        client_listeners.emplace_back([connection] (TileServer* server) {
+            while (true) {
+                try {
+                    std::vector<uint8_t> header_data = SocketUtil::receivePacket(connection);
+                    std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
+                    std::shared_ptr<TileHeader> header = std::move(unique_header);
 
-            {
-                std::unique_lock<std::mutex> lock(_mutex);
-                _requests.insert(header);
+                    {
+                        std::unique_lock<std::mutex> lock(server->_mutex);
+                        server->requests.emplace(header, connection);
+                    }
+                    server->solver->sumbit(header, Constants::ITERATIONS);
+                } catch (std::runtime_error& e) {
+                    std::cout << e.what() << std::endl;
+                    return;
+                }
             }
-            solver->sumbit(header, Constants::ITERATIONS);
-        } catch (std::runtime_error& e) {
-            std::cout << e.what() << std::endl;
-            return;
-        }
+        }, this);
     }
+
+
 }
