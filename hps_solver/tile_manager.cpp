@@ -145,21 +145,45 @@ void TileManager::cacheEvictOldest() {
 }
 
 
-std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> header) {
+// TODO: find a better way to do this, this is horrible.
+std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> header, int depth) {
     if (cacheContains(header)) {
         auto cache_result = _cache.find(header);
         cache_result->second.last_hit = system_clock::now();
         return cache_result->second.tile;
     }
     else {
+        // Request tile if it hasn't been requested yet.
         if (!isTileRequested(header)) {
             _request_heap.push(header);
             _requests_nonempty.notify_one();
         }
 
-        std::shared_ptr<Tile> placeholder_tile = std::make_shared<Tile>(header);
-
-        return placeholder_tile;
+        if (depth > 0) {
+            // Get a lower resolution tile if possible.
+            auto parent_header = std::make_shared<TileHeader>(header->x >> 1, header->y >> 1, header->z - 1);
+            // auto lowres_header = std::make_shared<TileHeader>(original_header->x, original_header->y, header->z - 1);
+            return requestTile(parent_header, depth - 1);
+            
+            // if (parent_tile->hasData()) {
+            //     return parent_tile;
+            // }
+            // else {
+            //     return std::make_shared<Tile>(lowres_header);
+            // }
+            
+            // if (cacheContains(parent_header)) {
+            //     auto cache_result = _cache.find(parent_header);
+            //     cache_result->second.last_hit = system_clock::now();
+            //     std::vector<uint8_t> tile_data = cache_result->second.tile->getData();
+            //     return std::make_shared<Tile>(lowres_header, tile_data);
+            // }
+        }
+        
+        else {
+            // Otherwise return a placeholder tile with no data.
+            return std::make_shared<Tile>(header);
+        }
     }
 }
 
@@ -187,7 +211,19 @@ TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size
     for (mpz_class y = bottom; y <= top; y++) {
         for (mpz_class x = left; x <= right; x++) {
             std::shared_ptr<TileHeader> header = std::make_shared<TileHeader>(x, y, viewport_z);
-            std::shared_ptr<Tile> tile = requestTile(header);
+            std::shared_ptr<Tile> r_tile = requestTile(header, 1);
+            std::shared_ptr<TileHeader> r_header = r_tile->getHeader();
+            auto tile_header = std::make_shared<TileHeader>(header->x, header->y, r_header->z);
+
+            std::shared_ptr<Tile> tile;
+
+            if (r_tile->hasData()) {
+                tile = std::make_shared<Tile>(tile_header, r_tile->getData());
+            }
+            else {
+                tile = std::make_shared<Tile>(tile_header);
+            }
+
             tiles.push_back(tile);
         }
     }

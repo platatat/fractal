@@ -156,7 +156,7 @@ void Application::drawFrame() {
     complex screen_size = {getScreenWidth(), getScreenHeight()};
     auto viewport_info = _tile_manager.loadViewport(_origin, screen_size, mipmap_level, tiles);
 
-    _renderer.render(viewport_info, tiles, fractional_scale, _sdl_renderer);
+    _renderer.render(viewport_info, tiles, mipmap_level, fractional_scale, _sdl_renderer);
 }
 
 

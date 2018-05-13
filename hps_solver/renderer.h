@@ -23,6 +23,7 @@ public:
 
     void render(const TileManager::ViewportInfo& viewport_info,
                 const std::vector<std::shared_ptr<Tile>>& tiles,
+                int mipmap_level,
                 double fractional_scale,
                 SDL_Renderer* sdl_renderer);
 };

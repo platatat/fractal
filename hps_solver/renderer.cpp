@@ -23,6 +23,7 @@ Renderer::~Renderer() {
 
 void Renderer::render(const TileManager::ViewportInfo& viewport_info,
                       const std::vector<std::shared_ptr<Tile>>& tiles,
+                      int mipmap_level,
                       double fractional_scale,
                       SDL_Renderer* sdl_renderer) {
     // Clear PDF for coloring.
@@ -44,6 +45,7 @@ void Renderer::render(const TileManager::ViewportInfo& viewport_info,
 
             if (tile->hasData()) {
                 std::vector<uint8_t> tile_data = tile->getData();
+                std::shared_ptr<TileHeader> header = tile->getHeader();
 
                 for (int i = 0; i < Constants::TILE_PIXELS; i++) {
                     SDL_Color color = cyclicColor(tile_data[i]);
@@ -61,14 +63,29 @@ void Renderer::render(const TileManager::ViewportInfo& viewport_info,
                     0, 0, 0, 0
                 );
 
+                SDL_Texture* tile_texture = SDL_CreateTextureFromSurface(sdl_renderer, tile_surface);
+
                 SDL_Rect dst_rect;
                 dst_rect.x = std::floor(tile_screen_x);
                 dst_rect.y = std::floor(tile_screen_y);
                 dst_rect.w = std::ceil(Constants::TILE_WIDTH * fractional_scale);
                 dst_rect.h = std::ceil(Constants::TILE_HEIGHT * fractional_scale);
 
-                SDL_Texture* tile_texture = SDL_CreateTextureFromSurface(sdl_renderer, tile_surface);
-                SDL_RenderCopy(sdl_renderer, tile_texture, NULL, &dst_rect);
+                // TODO: It's weird and inefficient to do this here, find a better separation for
+                // application, renderer, and tile manager.
+                int scale = 1 << (mipmap_level - header->z);
+
+                int src_x = header->x.get_ui() % scale;
+                int src_y = header->y.get_ui() % scale;
+
+                SDL_Rect src_rect;
+                src_rect.x = (int) ((double) src_x / scale * Constants::TILE_WIDTH);
+                src_rect.y = (int) ((double) src_y / scale * Constants::TILE_HEIGHT);
+                src_rect.w = Constants::TILE_WIDTH / scale;
+                src_rect.h = Constants::TILE_HEIGHT / scale;
+
+                // std::cout << src_x << ", " << src_y << ", " << src_rect.x << ", " << src_rect.y << std::endl;
+                SDL_RenderCopy(sdl_renderer, tile_texture, &src_rect, &dst_rect);
 
                 SDL_DestroyTexture(tile_texture);
                 SDL_FreeSurface(tile_surface);

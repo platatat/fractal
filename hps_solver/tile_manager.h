@@ -59,7 +59,7 @@ public:
 
     ~TileManager();
 
-    std::shared_ptr<Tile> requestTile(std::shared_ptr<TileHeader> header);
+    std::shared_ptr<Tile> requestTile(std::shared_ptr<TileHeader> header, int depth);
 
     struct ViewportInfo {
         int tiles_width, tiles_height;
