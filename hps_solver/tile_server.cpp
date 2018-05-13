@@ -14,7 +14,13 @@
 #include <unistd.h>
 
 
-TileServer::TileServer(int port) : _port(port), solver(new FPGASolver()) {
+TileServer::TileServer(int port) : _port(port), solver(
+#ifndef HPS
+        new CPUSolver()
+#else
+        new FPGASolver()
+#endif
+) {
     _tile_poll_thread = std::thread(tilePollTask, this);
 }
 
