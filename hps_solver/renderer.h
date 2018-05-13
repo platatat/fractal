@@ -1,11 +1,12 @@
 #ifndef __RENDERER_H__
 #define __RENDERER_H__
 
+#include "tile_manager.h"
+#include "viewport.h"
 #include <memory>
-#include <vector>
+#include <set>
 #include <SDL2/SDL.h>
 
-#include "tile_manager.h"
 
 class Renderer {
 private:
@@ -21,10 +22,8 @@ public:
     Renderer();
     ~Renderer();
 
-    void render(const TileManager::ViewportInfo& viewport_info,
-                const std::vector<std::shared_ptr<Tile>>& tiles,
-                int mipmap_level,
-                double fractional_scale,
+    void render(const std::set<std::shared_ptr<Tile>>& tiles,
+                Viewport viewport,
                 SDL_Renderer* sdl_renderer);
 };
 

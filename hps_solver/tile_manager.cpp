@@ -188,30 +188,22 @@ std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> heade
 }
 
 
-TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size, int viewport_z, 
-                                                    std::vector<std::shared_ptr<Tile>>& tiles) {
+std::set<std::shared_ptr<Tile>> TileManager::loadViewport(Viewport viewport) {
     std::unique_lock<std::mutex> lock(_mutex);
 
-    double tile_length = pow(2, -viewport_z);
-
-    mpf_class left_float    = origin.real / tile_length;
-    mpf_class bottom_float  = origin.imag / tile_length;
-    mpf_class right_float   = (origin.real + size.real) / tile_length;
-    mpf_class top_float     = (origin.imag + size.imag) / tile_length;
-
-    mpz_class left(floor(left_float));
-    mpz_class right(floor(right_float));
-    mpz_class bottom(floor(bottom_float));
-    mpz_class top(floor(top_float));
+    std::set<std::shared_ptr<Tile>> tiles;
 
     tiles.clear();
     _request_heap.clear();
 
     // Request tiles for current viewport.
-    for (mpz_class y = bottom; y <= top; y++) {
-        for (mpz_class x = left; x <= right; x++) {
-            std::shared_ptr<TileHeader> header = std::make_shared<TileHeader>(x, y, viewport_z);
-            std::shared_ptr<Tile> r_tile = requestTile(header, 1);
+    for (int tile_y = 0; tile_y < viewport.height; tile_y++) {
+        for (int tile_x = 0; tile_x < viewport.width; tile_x++) {
+            mpz_class x = viewport.origin_x + tile_x;
+            mpz_class y = viewport.origin_y + tile_y;
+
+            std::shared_ptr<TileHeader> header = std::make_shared<TileHeader>(x, y, viewport.zoom);
+            std::shared_ptr<Tile> r_tile = requestTile(header, 0);
             std::shared_ptr<TileHeader> r_header = r_tile->getHeader();
             auto tile_header = std::make_shared<TileHeader>(header->x, header->y, r_header->z);
 
@@ -224,7 +216,7 @@ TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size
                 tile = std::make_shared<Tile>(tile_header);
             }
 
-            tiles.push_back(tile);
+            tiles.insert(tile);
         }
     }
 
@@ -247,12 +239,13 @@ TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size
     //     }
     // }
 
-    // Re-prioritize the tile request heap based on the current viewport.
-    _request_heap.rebuild([left, right, top, bottom, viewport_z](std::shared_ptr<TileHeader> header) {
-        int z_dist = header->z - viewport_z;
+    // Re-prioritize the tile request heap based on the current viewport
+    _request_heap.rebuild([viewport](std::shared_ptr<TileHeader> header) {
+        int z_dist = header->z - viewport.zoom;
 
-        mpz_class center_x = (left.get_si() + right.get_si()) / 2;
-        mpz_class center_y = (bottom.get_si() + top.get_si()) / 2;
+        // TODO: use real viewport center, not tile center.
+        mpz_class center_x = viewport.origin_x + (viewport.width / 2);
+        mpz_class center_y = viewport.origin_y + (viewport.height / 2);
 
         mpz_class header_x_eff = header->x / (1 << z_dist);
         mpz_class header_y_eff = header->y / (1 << z_dist);
@@ -267,13 +260,5 @@ TileManager::ViewportInfo TileManager::loadViewport(complex origin, complex size
         return std::max(loss_x, loss_y) + loss_z;
     });
 
-    ViewportInfo out_info = {0, };
-
-    out_info.tiles_width = right.get_si() - left.get_si() + 1;
-    out_info.tiles_height = top.get_si() - bottom.get_si() + 1;
-
-    out_info.fractional_x = left_float.get_d() - left.get_si();
-    out_info.fractional_y = bottom_float.get_d() - bottom.get_si();
-
-    return out_info;
+    return tiles;
 }

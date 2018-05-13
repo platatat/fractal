@@ -1,5 +1,6 @@
 #include "application.h"
 #include "sdl_input_controller.h"
+#include "viewport.h"
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -120,14 +121,14 @@ void Application::handleInput() {
     _origin.imag = _origin.imag - (input.dy * 0.1 * pow(2, -_zoom));
 
     // Translate origin to screen center before zooming.
-    _origin.real = _origin.real + getScreenWidth() * 0.5;
-    _origin.imag = _origin.imag + getScreenHeight() * 0.5;
+    _origin.real = _origin.real + Viewport::screenWidth(_zoom) * 0.5;
+    _origin.imag = _origin.imag + Viewport::screenHeight(_zoom) * 0.5;
 
     _zoom += input.dz * 0.04;
 
     // Translate origin back to top left.
-    _origin.real = _origin.real - getScreenWidth() * 0.5;
-    _origin.imag = _origin.imag - getScreenHeight() * 0.5;
+    _origin.real = _origin.real - Viewport::screenWidth(_zoom) * 0.5;
+    _origin.imag = _origin.imag - Viewport::screenHeight(_zoom) * 0.5;
 }
 
 
@@ -136,27 +137,12 @@ void Application::setDrawColor(const SDL_Color& color) {
 }
 
 
-double Application::getScreenWidth() {
-    return pow(2, -_zoom) * Constants::SCREEN_WIDTH / Constants::TILE_WIDTH;
-}
-
-
-double Application::getScreenHeight() {
-    return pow(2, -_zoom) * Constants::SCREEN_HEIGHT / Constants::TILE_HEIGHT;
-}
-
-
 void Application::drawFrame() {
     SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_ADD);
 
-    int mipmap_level = (int) std::ceil(_zoom);
-    double fractional_scale = std::pow(2.0, -(mipmap_level - _zoom));
-
-    std::vector<std::shared_ptr<Tile>> tiles;
-    complex screen_size = {getScreenWidth(), getScreenHeight()};
-    auto viewport_info = _tile_manager.loadViewport(_origin, screen_size, mipmap_level, tiles);
-
-    _renderer.render(viewport_info, tiles, mipmap_level, fractional_scale, _sdl_renderer);
+    Viewport viewport(_origin, _zoom);
+    std::set<std::shared_ptr<Tile>> tiles = _tile_manager.loadViewport(viewport);
+    _renderer.render(tiles, viewport, _sdl_renderer);
 }
 
 

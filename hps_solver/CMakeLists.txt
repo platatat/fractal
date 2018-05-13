@@ -22,6 +22,7 @@ add_executable(mandelbrot
     tile_server.cpp
     tile_request_heap.cpp
     socket_util.cpp
+    viewport.cpp
 )
 
 find_package(PkgConfig REQUIRED)
