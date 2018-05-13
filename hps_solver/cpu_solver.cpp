@@ -5,14 +5,14 @@
 #include <iostream>
 
 
-void CPUSolver::deleteData(uint16_t* data) {
+void CPUSolver::deleteData(volatile uint16_t* data) {
     delete[] data;
 }
 
 
 void CPUSolver::sumbit(std::shared_ptr<TileHeader> tile, uint16_t iterations) {
     Solver::data data(new uint16_t[Constants::TILE_WIDTH * Constants::TILE_HEIGHT],
-                      [this] (uint16_t* data) { deleteData(data); });
+                      [this] (volatile uint16_t* data) { deleteData(data); });
     data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] = -2;
     inflight[tile] = std::move(data);
 

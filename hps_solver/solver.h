@@ -9,7 +9,7 @@
 
 class Solver {
 public:
-    typedef std::unique_ptr<uint16_t[], std::function<void(uint16_t*)>> data;
+    typedef std::unique_ptr<volatile uint16_t[], std::function<void(volatile uint16_t*)>> data;
 
     virtual ~Solver() = 0;
 
