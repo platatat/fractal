@@ -33,6 +33,7 @@ private:
     void drawHUD();
 
     void setDrawColor(const SDL_Color& color);
+    void moveTo(mpf_class x, mpf_class y, double z);
 
 public:
     Application(std::vector<std::tuple<std::string, int>> ip_addrs);

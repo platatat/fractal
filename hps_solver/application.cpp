@@ -9,20 +9,9 @@ using namespace std::chrono;
 
 
 Application::Application(std::vector<std::tuple<std::string, int>> ip_addrs) :
-    _origin({0.0, 0.0}),
-    _zoom(2),
-    _tile_manager(ip_addrs, Constants::CACHE_SIZE),
-    _renderer()
+    _tile_manager(ip_addrs, Constants::CACHE_SIZE)
 {
-    mpf_class real("0.3750001200618655");
-    mpf_class imag("-0.2166393884377127");
-
-    double screen_width = pow(2, -_zoom) * Constants::SCREEN_WIDTH / Constants::TILE_WIDTH;
-    double screen_height = pow(2, -_zoom) * Constants::SCREEN_HEIGHT / Constants::TILE_HEIGHT;
-
-    _origin = {real - screen_width * 0.5, imag - screen_width * 0.5};
-    std::cout << real.get_d() << ", " << imag.get_d() << std::endl;
-
+    moveTo(-0.5, 0, 2.5);
     _running = false;
 }
 
@@ -106,6 +95,19 @@ void Application::run() {
 void Application::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT:
+                _running = false;
+                break;
+
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym) {
+                    case SDLK_ESCAPE:
+                        _running = false;
+                        break;
+                }
+                break;
+        }
         if (event.type == SDL_QUIT) {
             _running = false;
         }
@@ -132,6 +134,13 @@ void Application::handleInput() {
 }
 
 
+void Application::moveTo(mpf_class x, mpf_class y, double z) {
+    _zoom = z;
+    _origin.real = x - Viewport::screenWidth(_zoom) * 0.5;
+    _origin.imag = y - Viewport::screenHeight(_zoom) * 0.5;
+}
+
+
 void Application::setDrawColor(const SDL_Color& color) {
     SDL_SetRenderDrawColor(_sdl_renderer, color.r, color.g, color.b, color.a);
 }
@@ -142,7 +151,7 @@ void Application::drawFrame() {
 
     _tile_manager.clearRequests();
 
-    for (int level = -5; level <= 0; level++) {
+    for (int level = -5; level <= -1; level++) {
         Viewport viewport(_origin, _zoom, level);
         std::set<std::shared_ptr<Tile>> tiles = _tile_manager.loadViewport(viewport);
         _renderer.render(tiles, viewport, _sdl_renderer);
