@@ -17,7 +17,7 @@ TileManager::TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int
         _cache_size(cache_size), 
         next_request_index(0),
         _request_depth(request_depth),
-        iterations(32) {
+        iterations(Constants::ITERATIONS) {
 
     for (int i = 0; i < ip_addrs.size(); i++) {
         std::string ip_addr = std::get<0>(ip_addrs[i]);

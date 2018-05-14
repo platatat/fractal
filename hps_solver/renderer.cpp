@@ -117,14 +117,21 @@ void Renderer::cacheEvictOldest() {
 
 
 SDL_Color Renderer::cyclicColor(int16_t iterations, int16_t iter_lim) {
-    double cycle_period = 20;
-    double phase = iterations / cycle_period;
+    float scale     = 1000.0;
+    float offset    = 10;
+
+    float period_red    = 33.19395;
+    float period_green  = 47.59324;
+    float period_blue   = 27.23957;
+    float period_sat    = 10.23467;
+
+    float value = iterations / scale + offset;
+    float sat = sin(value * period_sat) * 0.5 + 0.5;
 
     SDL_Color color;
-
-    color.r = sin(sqrt(iterations + 20) * 0.25 + (4 * M_PI / 3)) * 128 + 127;
-    color.g = sin(sqrt(iterations + 20) * 0.25 + (2 * M_PI / 3)) * 128 + 127;
-    color.b = sin(sqrt(iterations + 20) * 0.25 + (0 * M_PI / 3)) * 128 + 127;
+    color.r = (sin(value * period_red  ) * 128 + 127) * sat;
+    color.g = (sin(value * period_green) * 128 + 127) * sat;
+    color.b = (sin(value * period_green) * 128 + 127) * sat;
 
     if (iterations == iter_lim - 1) {
         color.r = 255;
