@@ -378,6 +378,8 @@ HexDigit Digit5(HEX5, hex5_hex0[23:20]);
 wire reset_key;
 assign reset_key = ~KEY[0];
 
+wire clock;
+
 // wire stream_ready;
 // wire stream_start;
 // wire stream_end;
@@ -589,7 +591,7 @@ multi_tile_solver #(
     LIMB_SIZE_BITS,
     DIVERGENCE_RADIUS
 ) multi_solv (
-    .clock(CLOCK_50),
+    .clock(clock),
     .reset(reset_key),
 
     .in_data(in_data),
@@ -746,5 +748,7 @@ Computer_System The_System (
     .in_fifo_ready (in_ready),
     .in_fifo_startofpacket (),
     .in_fifo_endofpacket   (in_end_of_stream),
+
+    .solver_clock_clk(clock)
 );
 endmodule // end top level
