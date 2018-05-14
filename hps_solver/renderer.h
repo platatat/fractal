@@ -12,8 +12,20 @@ class Renderer {
 private:
     uint8_t* _colored_buffer;
 
-    unsigned int* _iterations_pdf;
-    double* _iterations_cdf;
+    struct CachedTexture {
+        SDL_Texture* texture;
+        std::chrono::time_point<std::chrono::system_clock> last_hit;
+    };
+
+    SDL_Texture* createTextureForTile(std::shared_ptr<Tile> tile, SDL_Renderer* sdl_renderer);
+
+    std::unordered_map<std::shared_ptr<TileHeader>, CachedTexture, TileHeader::Hasher, TileHeader::Comparator> _cache;
+
+    void cacheInsert(std::shared_ptr<TileHeader> header, SDL_Texture* texture);
+
+    bool cacheContains(std::shared_ptr<TileHeader> header);
+
+    void cacheEvictOldest();
 
     void histogramColor();
     SDL_Color cyclicColor(uint16_t iterations);

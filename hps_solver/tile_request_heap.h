@@ -26,6 +26,8 @@ public:
 
     std::shared_ptr<TileHeader> front();
 
+    void clear() { _heap.clear(); }
+
     void rebuild(std::function<double(std::shared_ptr<TileHeader>)> priority);
 
     bool contains(std::shared_ptr<TileHeader> header);

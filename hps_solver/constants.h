@@ -14,9 +14,11 @@ public:
     static const int TILE_WIDTH         = 1 << TILE_SIZE_BITS;
     static const int TILE_HEIGHT        = 1 << TILE_SIZE_BITS;
 
-    static const int ITERATIONS         = 32;
-    static const int MPF_PRECISION      = 64;
-    static const int CACHE_SIZE         = 1024;
+    static const int ITERATIONS             = 32;
+    static const int MPF_PRECISION          = 64;
+    static const int TILE_REQUEST_HEAP_SIZE = 128;
+    static const int CACHE_SIZE             = 1024;
+    static const int TEXTURE_CACHE_SIZE     = 1024;
 
     static const int SCREEN_PIXELS      = SCREEN_WIDTH * SCREEN_HEIGHT;
     static const int TILE_PIXELS        = TILE_WIDTH * TILE_HEIGHT;

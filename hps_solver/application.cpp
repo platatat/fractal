@@ -140,6 +140,8 @@ void Application::setDrawColor(const SDL_Color& color) {
 void Application::drawFrame() {
     SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_ADD);
 
+    _tile_manager.clearRequests();
+
     for (int level = -5; level <= 0; level++) {
         Viewport viewport(_origin, _zoom, level);
         std::set<std::shared_ptr<Tile>> tiles = _tile_manager.loadViewport(viewport);
