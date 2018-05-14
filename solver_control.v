@@ -20,17 +20,19 @@ module solver_control #(
     output reg [LIMB_INDEX_BITS-1:0] c_limb_ind,
     output reg [LIMB_INDEX_BITS-1:0] zre_rd_ind,
     output reg [LIMB_INDEX_BITS-1:0] zim_rd_ind,
+    output reg [1:0]                 zre_neg_sel,
+    output reg [1:0]                 zim_neg_sel,
     output reg [1:0]                 zre_reg_sel,
     output reg [1:0]                 zim_reg_sel,
     output reg [1:0]                 m1_a_sel,
     output reg [1:0]                 m1_b_sel,
     output reg [1:0]                 m2_a_sel,
     output reg [1:0]                 m2_b_sel,
-    output reg                       op_sel,
     output reg [2:0]                 zre_partial_sel,
     output reg [1:0]                 zim_partial_sel,
     output reg [1:0]                 zre_acc_sel,
     output reg [1:0]                 zim_acc_sel,
+    output reg                       clear_lsd,
     output reg                       zre_wr_en,
     output reg                       zim_wr_en,
     output reg [LIMB_INDEX_BITS-1:0] zre_wr_ind,
@@ -39,6 +41,8 @@ module solver_control #(
     input zre_sign,
     input zim_sign,
     input diverged,
+    input [LIMB_INDEX_BITS-1:0] zre_lsd,
+    input [LIMB_INDEX_BITS-1:0] zim_lsd,
 
     output reg        out_ready,
     output reg [15:0] iteration_count
@@ -46,15 +50,13 @@ module solver_control #(
 
     //States
     localparam STATE_LOAD       = 0; // Load c / Output iteration count from last solve
-    localparam STATE_ABS        = 1; // z = abs(z)
-    localparam STATE_ABS_FLUSH  = 2; // Wait for pipeline to flush
-    localparam STATE_ITER       = 3; // Compute a z series iteration
-    localparam STATE_ITER_FLUSH = 4; // Wait for pipeline to flush
-    localparam STATE_CHECK      = 5; // Check if z diverged
+    localparam STATE_ITER       = 1; // Compute a z series iteration
+    localparam STATE_ITER_FLUSH = 2; // Wait for pipeline to flush
+    localparam STATE_CHECK      = 3; // Check if z diverged
     reg  [2:0] state;
     reg  [2:0] next_state;
 
-    localparam FLUSH_WAIT = 4;
+    localparam FLUSH_WAIT = 7;
     reg  [2:0] flush_counter;
     reg  [2:0] next_flush_counter;
 
@@ -82,8 +84,12 @@ module solver_control #(
     reg  last_zre_sign;
     reg  last_zim_sign;
 
-    localparam OP_ITER = 0;
-    localparam OP_ABS  = 1;
+    reg  [LIMB_INDEX_BITS-1:0] last_zre_lsd;
+    reg  [LIMB_INDEX_BITS-1:0] last_zim_lsd;
+
+    localparam NEGATE_NOP       = 0;
+    localparam NEGATE_FLIP      = 1;
+    localparam NEGATE_FLIP_INC  = 2;
 
     localparam ZRE_PART_ZERO       = 0;
     localparam ZRE_PART_DOUBLE_POS = 1;
@@ -107,8 +113,8 @@ module solver_control #(
         next_out_ready       = out_ready;
         next_iteration_count = iteration_count;
         next_flush_counter   = FLUSH_WAIT;
-        next_limb_index      = num_limbs - 1;
-        next_partial_index   = 0;
+        next_limb_index      = num_limbs;
+        next_partial_index   = 1;
         next_flip_partial    = 0;
         next_pattern_index   = 0;
 
@@ -117,18 +123,20 @@ module solver_control #(
         zim_rd_ind           = 0;
         cre_wr_en            = 0;
         cim_wr_en            = 0;
+        zre_neg_sel          = 0;
+        zim_neg_sel          = 0;
         zre_reg_sel          = 0;
         zim_reg_sel          = 0;
         next_m1_a_sel        = 0;
         next_m1_b_sel        = 0;
         m2_a_sel             = 0;
         m2_b_sel             = 0;
-        op_sel               = OP_ITER;
         next_zre_partial_sel = ZRE_PART_ZERO;
         zim_partial_sel      = ZIM_PART_ZERO;
         next_zre_acc_sel     = ITER_NOP;
         zim_acc_sel          = ITER_NOP;
         next_zre_wr_en       = 0;
+        clear_lsd            = 0;
         zim_wr_en            = 0;
         zre_wr_ind           = 0;
         zim_wr_ind           = 0;
@@ -145,38 +153,8 @@ module solver_control #(
                 next_iteration_count <= 0;
             end
         end
-        else if (state == STATE_ABS)
-        begin
-            op_sel    = OP_ABS;
-            if (limb_index > 0) next_zre_wr_en = 1;
-            zim_wr_en = 1;
-
-            next_limb_index = limb_index - 1;
-            zre_rd_ind      = limb_index;
-            zim_rd_ind      = limb_index;
-            zre_wr_ind      = limb_index;
-            zim_wr_ind      = limb_index;
-
-            next_zre_acc_sel = last_zre_sign ? ABS_CARRY : ABS_NOP;
-
-            if (last_zim_sign) zim_acc_sel = limb_index == num_limbs - 1 ? ABS_START : ABS_CARRY;
-            else               zim_acc_sel = ABS_NOP;
-
-            if (limb_index == 0) next_state = STATE_ABS_FLUSH;
-        end
-        else if (state == STATE_ABS_FLUSH)
-        begin
-            next_flush_counter = flush_counter - 1;
-            if (flush_counter == 0) begin
-                next_state = STATE_ITER;
-                next_limb_index = num_limbs;
-                next_partial_index = 1;
-            end
-        end
         else if (state == STATE_ITER)
         begin
-            op_sel = OP_ITER;
-
             next_limb_index    = limb_index;
             next_partial_index = partial_index;
             next_flip_partial  = !flip_partial;
@@ -196,6 +174,13 @@ module solver_control #(
 
             zre_rd_ind      = flip_partial ?              partial_index : limb_index - partial_index;
             zim_rd_ind      = flip_partial ? limb_index - partial_index :              partial_index;
+
+            if (last_zre_sign == 1 && zre_rd_ind <= last_zre_lsd) begin
+                zre_neg_sel = (zre_rd_ind == last_zre_lsd) ? NEGATE_FLIP_INC : NEGATE_FLIP;
+            end
+            if (last_zim_sign == 1 && zim_rd_ind <= last_zim_lsd) begin
+                zim_neg_sel = (zim_rd_ind == last_zim_lsd) ? NEGATE_FLIP_INC : NEGATE_FLIP;
+            end
 
             zre_reg_sel     = pattern_index == 0 ? 0 :
                               pattern_index == 1 ? 2 :
@@ -245,6 +230,7 @@ module solver_control #(
         end
         else if (state == STATE_CHECK)
         begin
+            clear_lsd = 1;
             if (diverged && iteration_count > 0) begin
                 next_state <= STATE_LOAD;
                 next_out_ready = 1;
@@ -253,10 +239,9 @@ module solver_control #(
                 next_out_ready = 1;
                 next_iteration_count <= iteration_limit - 1;
             end else begin
-                next_state <= STATE_ABS;
+                next_state <= STATE_ITER;
                 next_iteration_count = iteration_count + 1;
                 next_zre_acc_sel = zre_sign ? ABS_START : ABS_NOP;
-                next_zre_wr_en = 1;
             end
         end
         else
@@ -285,6 +270,9 @@ module solver_control #(
 
             last_zre_sign   <= 0;
             last_zim_sign   <= 0;
+
+            last_zre_lsd    <= 0;
+            last_zim_lsd    <= 0;
         end else begin
             state           <= next_state;
             flush_counter   <= next_flush_counter;
@@ -309,6 +297,8 @@ module solver_control #(
             end else if (state == STATE_CHECK) begin
                 last_zre_sign <= zre_sign;
                 last_zim_sign <= zim_sign;
+                last_zre_lsd  <= zre_lsd;
+                last_zim_lsd  <= zim_lsd;
             end
         end
     end
