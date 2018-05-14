@@ -126,7 +126,7 @@ SDL_Color Renderer::cyclicColor(int16_t iterations, int16_t iter_lim) {
     float period_sat    = 10.23467;
 
     float value = iterations / scale + offset;
-    float sat = sin(value * period_sat) * 0.5 + 0.5;
+    float sat = sin(value * period_sat) * 0.35 + 0.6;
 
     SDL_Color color;
     color.r = (sin(value * period_red  ) * 128 + 127) * sat;
