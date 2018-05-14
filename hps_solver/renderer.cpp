@@ -121,9 +121,9 @@ SDL_Color Renderer::cyclicColor(int16_t iterations, int16_t iter_lim) {
 
     SDL_Color color;
 
-    color.r = 0;
-    color.g = (sin(phase) * 127) + 128;
-    color.b = (sin(phase) * 127) + 128;
+    color.r = sin(sqrt(iterations + 20) * 0.25 + (4 * M_PI / 3)) * 128 + 127;
+    color.g = sin(sqrt(iterations + 20) * 0.25 + (2 * M_PI / 3)) * 128 + 127;
+    color.b = sin(sqrt(iterations + 20) * 0.25 + (0 * M_PI / 3)) * 128 + 127;
 
     if (iterations == iter_lim - 1) {
         color.r = 255;
