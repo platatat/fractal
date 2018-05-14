@@ -21,17 +21,12 @@ module top();
         $dumpfile("build/solver_repeatability_test.vcd");
         $dumpvars(0, top);
 
-        clock <= 0;
-        reset <= 1;
-        #20
-        reset <= 0;
-
         // Limb definitions
-        c_re_data[0] <= 1;
-        c_re_data[1] <= 0;
+        c_re_data[0] <= 0;
+        c_re_data[1] <= 8'h04;
 
-        c_im_data[0] <= 1;
-        c_im_data[1] <= 0;
+        c_im_data[0] <= 0;
+        c_im_data[1] <= 8'hbc;
 
         // Run the solver
         wr_real_en <= 0;
@@ -41,22 +36,23 @@ module top();
         imag_data <= 0;
 
         wr_num_limbs_en <= 0;
-        num_limbs_data <= 0;
-
         wr_iter_lim_en <= 0;
-        iter_lim_data <= 0;
+
+        num_limbs_data <= NUM_LIMBS;
+        iter_lim_data <= 10;
 
         start <= 0;
 
         clock <= 0;
+        reset <= 1;
+        #20
+        reset <= 0;
         #20
 
         for (i = 0; i < 4; i = i + 1) begin
             wr_num_limbs_en <= 1;
             wr_iter_lim_en <= 1;
 
-            num_limbs_data <= NUM_LIMBS;
-            iter_lim_data <= 10;
             #20
 
             wr_num_limbs_en <= 0;
