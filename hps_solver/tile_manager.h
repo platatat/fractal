@@ -5,6 +5,7 @@
 #include "tile.h"
 #include "tile_request_heap.h"
 #include "tile_client.h"
+#include "viewport.h"
 #include <algorithm>
 #include <chrono>
 #include <mutex>
@@ -12,7 +13,7 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
+#include <set>
 
 
 class TileManager {
@@ -58,14 +59,9 @@ public:
 
     ~TileManager();
 
-    std::shared_ptr<Tile> requestTile(std::shared_ptr<TileHeader> header);
+    std::shared_ptr<Tile> requestTile(std::shared_ptr<TileHeader> header, int depth);
 
-    struct ViewportInfo {
-        int tiles_width, tiles_height;
-        double fractional_x, fractional_y;
-    };
-
-    ViewportInfo loadViewport(complex origin, complex size, int z, std::vector<std::shared_ptr<Tile>>& tiles);
+    std::set<std::shared_ptr<Tile>> loadViewport(Viewport viewport);
 };
 
 

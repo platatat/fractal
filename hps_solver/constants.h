@@ -14,7 +14,7 @@ public:
     static const int TILE_WIDTH         = 1 << TILE_SIZE_BITS;
     static const int TILE_HEIGHT        = 1 << TILE_SIZE_BITS;
 
-    static const int ITERATIONS         = 64;
+    static const int ITERATIONS         = 32;
     static const int MPF_PRECISION      = 64;
     static const int CACHE_SIZE         = 1024;
 

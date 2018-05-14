@@ -2,6 +2,7 @@
 #define __TILE_REQUEST_HEAP_H__
 
 #include "tile_header.h"
+#include <iostream>
 #include <functional>
 #include <vector>
 
@@ -28,8 +29,6 @@ public:
     void rebuild(std::function<double(std::shared_ptr<TileHeader>)> priority);
 
     bool contains(std::shared_ptr<TileHeader> header);
-
-    void clear() { _heap.clear(); }
 
     unsigned int size() { return _heap.size(); }
 };

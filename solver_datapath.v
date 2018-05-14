@@ -324,7 +324,11 @@ reg  [ACCUMULATOR_BITS-1:0] X_zim_acc_next;
 wire [LIMB_SIZE_BITS-1:0]   X_zre_limb_out;
 wire [LIMB_SIZE_BITS-1:0]   X_zim_limb_out;
 
-assign X_diverged = X_m1_old + X_m1_out >= DIVERGENCE_RADIUS;
+reg  [ACCUMULATOR_BITS-1:0] X_diverge_acc;
+reg  [ACCUMULATOR_BITS-1:0] X_diverge_partial;
+reg  [ACCUMULATOR_BITS-1:0] X_diverge_acc_next;
+
+assign X_diverged = X_diverge_acc_next >= DIVERGENCE_RADIUS;
 
 assign X_zre_limb_out = X_zre_acc_next[LIMB_SIZE_BITS-1:0];
 assign X_zim_limb_out = X_zim_acc_next[LIMB_SIZE_BITS-1:0];
@@ -345,6 +349,22 @@ always @* begin
         2: X_zim_partial = -X_m2_out << 1;
     endcase
 
+    X_diverge_partial = 0;
+    case (X_zre_partial_sel)
+        1: X_diverge_partial = X_m1_out << 1;
+        2: X_diverge_partial = X_m1_out << 1;
+        3: X_diverge_partial = X_m1_out;
+        4: X_diverge_partial = X_m1_out;
+    endcase
+
+    X_diverge_acc_next = X_diverge_acc;
+    case (X_zre_acc_sel)
+        0: X_diverge_acc_next = X_diverge_partial + X_diverge_acc;
+        1: X_diverge_acc_next = X_diverge_partial + (X_diverge_acc >> LIMB_SIZE_BITS);
+        2: X_diverge_acc_next = X_diverge_partial + 0;
+        3: X_diverge_acc_next = X_diverge_acc;
+    endcase
+
     X_zre_acc_next = X_zre_acc;
     X_zim_acc_next = X_zim_acc;
 
@@ -354,14 +374,14 @@ always @* begin
             0: X_zre_acc_next = X_zre_partial + X_zre_acc;                                                  //Add partial into the accumulator
             1: X_zre_acc_next = X_zre_partial + $signed(X_zre_acc >>> LIMB_SIZE_BITS) + X_cre_limb;         //Shift accumulator to only store the carry and add partial and c
             2: X_zre_acc_next = X_zre_partial + 0;                                                          //Set accumulator to partial
-            3: X_zre_acc_next = X_zre_acc_next;                                                             //Do nothing
+            3: X_zre_acc_next = X_zre_acc;                                                                  //Do nothing
             default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for multiply op", X_zre_acc_sel);
         endcase
         case (X_zim_acc_sel)
             0: X_zim_acc_next = X_zim_partial + X_zim_acc;                                                  //Add partial into the accumulator
             1: X_zim_acc_next = X_zim_partial + $signed(X_zim_acc >>> LIMB_SIZE_BITS) + X_cim_limb;         //Shift accumulator to only store the carry and add partial and c
             2: X_zim_acc_next = X_zim_partial + 0;                                                          //Set accumulator to partial
-            3: X_zim_acc_next = X_zim_acc_next;                                                             //Do nothing
+            3: X_zim_acc_next = X_zim_acc;                                                                  //Do nothing
             default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for multiply op", X_zim_acc_sel);
         endcase
     end else if (X_op_sel == 1'b1) begin
@@ -406,6 +426,7 @@ always @(posedge clock) begin
         X_m1_old   <= 0;
         X_zre_acc  <= 0;
         X_zim_acc  <= 0;
+        X_diverge_acc <= 0;
     end else begin
         //Control
         X_zre_partial_sel <= M_zre_partial_sel;
@@ -428,6 +449,7 @@ always @(posedge clock) begin
         X_m1_old   <= X_m1_out;
         X_zre_acc  <= X_zre_acc_next;
         X_zim_acc  <= X_zim_acc_next;
+        X_diverge_acc <= X_diverge_acc_next;
     end
 end
 
