@@ -35,8 +35,8 @@ module solver_datapath #(
     input [1:0]                 C_zim_reg_sel,
 
     //Multiply (M) control signals
-    input [1:0]                 C_m1_a_sel,
-    input [1:0]                 C_m1_b_sel,
+    input                       C_mov_CtoA,
+    input                       C_mov_DtoB,
 
     //Execute (X) control signals
     input [2:0]                 C_zre_partial_sel,
@@ -72,8 +72,8 @@ reg  [1:0]                  R_zre_neg_sel;
 reg  [1:0]                  R_zim_neg_sel;
 reg  [1:0]                  R_zre_reg_sel;
 reg  [1:0]                  R_zim_reg_sel;
-reg  [1:0]                  R_m1_a_sel;
-reg  [1:0]                  R_m1_b_sel;
+reg  [1:0]                  R_mov_CtoA;
+reg  [1:0]                  R_mov_DtoB;
 reg  [2:0]                  R_zre_partial_sel;
 reg  [1:0]                  R_zim_partial_sel;
 reg  [1:0]                  R_zre_acc_sel;
@@ -93,11 +93,6 @@ reg  [LIMB_SIZE_BITS-1:0]   zre_ram [RAM_BITS-1:0];
 reg  [LIMB_SIZE_BITS-1:0]   zim_ram [RAM_BITS-1:0];
 reg  [LIMB_SIZE_BITS-1:0]   cre_ram [RAM_BITS-1:0];
 reg  [LIMB_SIZE_BITS-1:0]   cim_ram [RAM_BITS-1:0];
-
-reg  [LIMB_SIZE_BITS-1:0]   R_regA;
-reg  [LIMB_SIZE_BITS-1:0]   R_regB;
-reg  [LIMB_SIZE_BITS-1:0]   R_regC;
-reg  [LIMB_SIZE_BITS-1:0]   R_regD;
 
 reg  [LIMB_SIZE_BITS-1:0]   R_zre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   R_zim_limb;
@@ -136,8 +131,8 @@ always @(posedge clock) begin
         R_zim_neg_sel     <= 0;
         R_zre_reg_sel     <= 0;
         R_zim_reg_sel     <= 0;
-        R_m1_a_sel        <= 0;
-        R_m1_b_sel        <= 0;
+        R_mov_CtoA        <= 0;
+        R_mov_DtoB        <= 0;
         R_zre_partial_sel <= 0;
         R_zim_partial_sel <= 0;
         R_zre_acc_sel     <= 0;
@@ -151,10 +146,6 @@ always @(posedge clock) begin
         //Datapath
         L_cre_limb <= 0;
         L_cim_limb <= 0;
-        R_regA     <= 0;
-        R_regB     <= 0;
-        R_regC     <= 0;
-        R_regD     <= 0;
     end else begin
         //Control
         L_cre_wr_en       <= C_cre_wr_en;
@@ -166,8 +157,8 @@ always @(posedge clock) begin
         R_zim_neg_sel     <= C_zim_neg_sel;
         R_zre_reg_sel     <= C_zre_reg_sel;
         R_zim_reg_sel     <= C_zim_reg_sel;
-        R_m1_a_sel        <= C_m1_a_sel;
-        R_m1_b_sel        <= C_m1_b_sel;
+        R_mov_CtoA        <= C_mov_CtoA;
+        R_mov_DtoB        <= C_mov_DtoB;
         R_zre_partial_sel <= C_zre_partial_sel;
         R_zim_partial_sel <= C_zim_partial_sel;
         R_zre_acc_sel     <= C_zre_acc_sel;
@@ -184,15 +175,6 @@ always @(posedge clock) begin
 
         if (L_cre_wr_en) cre_ram[R_c_limb_ind] <= L_cre_limb;
         if (L_cim_wr_en) cim_ram[R_c_limb_ind] <= L_cim_limb;
-
-        if      (R_zre_reg_sel == 0) R_regA <= R_zre_limb;
-        else if (R_zim_reg_sel == 0) R_regA <= R_zim_limb;
-        if      (R_zre_reg_sel == 1) R_regB <= R_zre_limb;
-        else if (R_zim_reg_sel == 1) R_regB <= R_zim_limb;
-        if      (R_zre_reg_sel == 2) R_regC <= R_zre_limb;
-        else if (R_zim_reg_sel == 2) R_regC <= R_zim_limb;
-        if      (R_zre_reg_sel == 3) R_regD <= R_zre_limb;
-        else if (R_zim_reg_sel == 3) R_regD <= R_zim_limb;
     end
 end
 
@@ -200,8 +182,8 @@ end
 // ---------- Multiply Stage (M) ----------------------------------------------
 
 //Control signals
-reg  [1:0]                  M_m1_a_sel;
-reg  [1:0]                  M_m1_b_sel;
+reg                         M_mov_CtoA;
+reg                         M_mov_DtoB;
 reg  [2:0]                  M_zre_partial_sel;
 reg  [1:0]                  M_zim_partial_sel;
 reg  [1:0]                  M_zre_acc_sel;
@@ -218,6 +200,10 @@ reg  [LIMB_SIZE_BITS-1:0]   M_cim_limb;
 reg  [LIMB_SIZE_BITS-1:0]   M_zre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   M_zim_limb;
 
+reg  [LIMB_SIZE_BITS-1:0]   M_regA;
+reg  [LIMB_SIZE_BITS-1:0]   M_regB;
+reg  [LIMB_SIZE_BITS-1:0]   M_regC;
+reg  [LIMB_SIZE_BITS-1:0]   M_regD;
 
 reg  [LIMB_SIZE_BITS-1:0]   M_m1_a;
 reg  [LIMB_SIZE_BITS-1:0]   M_m1_b;
@@ -231,18 +217,8 @@ assign M_m1_out = M_m1_a * M_m1_b;
 assign M_m2_out = M_m2_a * M_m2_b;
 
 always @* begin
-    case (M_m1_a_sel)
-        0: M_m1_a = R_regA;
-        1: M_m1_a = R_regB;
-        2: M_m1_a = R_regC;
-        3: M_m1_a = R_regD;
-    endcase
-    case (M_m1_b_sel)
-        0: M_m1_b = R_regA;
-        1: M_m1_b = R_regB;
-        2: M_m1_b = R_regC;
-        3: M_m1_b = R_regD;
-    endcase
+    M_m1_a = M_regA;
+    M_m1_b = M_regB;
 
     M_m2_a = M_zre_limb;
     M_m2_b = M_zim_limb;
@@ -251,8 +227,8 @@ end
 always @(posedge clock) begin
     if (reset) begin
         //Control
-        M_m1_a_sel        <= 0;
-        M_m1_b_sel        <= 0;
+        M_mov_CtoA        <= 0;
+        M_mov_DtoB        <= 0;
         M_zre_partial_sel <= 0;
         M_zim_partial_sel <= 0;
         M_zre_acc_sel     <= 0;
@@ -268,11 +244,14 @@ always @(posedge clock) begin
         M_cim_limb <= 0;
         M_zre_limb <= 0;
         M_zim_limb <= 0;
-
+        M_regA     <= 0;
+        M_regB     <= 0;
+        M_regC     <= 0;
+        M_regD     <= 0;
     end else begin
         //Control
-        M_m1_a_sel        <= R_m1_a_sel;
-        M_m1_b_sel        <= R_m1_b_sel;
+        M_mov_CtoA        <= R_mov_CtoA;
+        M_mov_DtoB        <= R_mov_DtoB;
         M_zre_partial_sel <= R_zre_partial_sel;
         M_zim_partial_sel <= R_zim_partial_sel;
         M_zre_acc_sel     <= R_zre_acc_sel;
@@ -289,6 +268,19 @@ always @(posedge clock) begin
         M_zre_limb <= R_zre_limb;
         M_zim_limb <= R_zim_limb;
 
+        if      (M_mov_CtoA)         M_regA <= M_regC;
+        else if (R_zre_reg_sel == 0) M_regA <= R_zre_limb;
+        else if (R_zim_reg_sel == 0) M_regA <= R_zim_limb;
+
+        if      (M_mov_DtoB)         M_regB <= M_regD;
+        else if (R_zre_reg_sel == 1) M_regB <= R_zre_limb;
+        else if (R_zim_reg_sel == 1) M_regB <= R_zim_limb;
+
+        if      (R_zre_reg_sel == 2) M_regC <= R_zre_limb;
+        else if (R_zim_reg_sel == 2) M_regC <= R_zim_limb;
+
+        if      (R_zre_reg_sel == 3) M_regD <= R_zre_limb;
+        else if (R_zim_reg_sel == 3) M_regD <= R_zim_limb;
     end
 end
 

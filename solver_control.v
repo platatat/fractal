@@ -24,8 +24,8 @@ module solver_control #(
     output reg [1:0]                 zim_neg_sel,
     output reg [1:0]                 zre_reg_sel,
     output reg [1:0]                 zim_reg_sel,
-    output reg [1:0]                 m1_a_sel,
-    output reg [1:0]                 m1_b_sel,
+    output reg                       mov_CtoA,
+    output reg                       mov_DtoB,
     output reg [2:0]                 zre_partial_sel,
     output reg [1:0]                 zim_partial_sel,
     output reg [1:0]                 zre_acc_sel,
@@ -52,6 +52,7 @@ module solver_control #(
     localparam STATE_ITER_FLUSH = 2; // Wait for pipeline to flush
     localparam STATE_CHECK      = 3; // Check if z diverged
     reg  [2:0] state;
+    reg  [2:0] last_state;
     reg  [2:0] next_state;
 
     localparam FLUSH_WAIT = 3;
@@ -70,11 +71,9 @@ module solver_control #(
     reg  [LIMB_INDEX_BITS-1:0] next_partial_index;
     reg                        flip_partial;
     reg                        next_flip_partial;
-    reg  [1:0]                 pattern_index;
-    reg  [1:0]                 next_pattern_index;
 
-    reg  [1:0] next_m1_a_sel;
-    reg  [1:0] next_m1_b_sel;
+    reg  [1:0] next_mov_CtoA;
+    reg  [1:0] next_mov_DtoB;
     reg  [2:0] next_zre_partial_sel;
     reg  [1:0] next_zre_acc_sel;
     reg        next_zre_wr_en;
@@ -114,7 +113,6 @@ module solver_control #(
         next_limb_index      = num_limbs;
         next_partial_index   = 1;
         next_flip_partial    = 0;
-        next_pattern_index   = 0;
 
         c_limb_ind           = limb_index;
         zre_rd_ind           = 0;
@@ -125,8 +123,8 @@ module solver_control #(
         zim_neg_sel          = 0;
         zre_reg_sel          = 0;
         zim_reg_sel          = 0;
-        next_m1_a_sel        = 0;
-        next_m1_b_sel        = 0;
+        next_mov_CtoA        = 0;
+        next_mov_DtoB        = 0;
         next_zre_partial_sel = ZRE_PART_ZERO;
         zim_partial_sel      = ZIM_PART_ZERO;
         next_zre_acc_sel     = ITER_NOP;
@@ -154,7 +152,6 @@ module solver_control #(
             next_limb_index    = limb_index;
             next_partial_index = partial_index;
             next_flip_partial  = !flip_partial;
-            next_pattern_index = pattern_index + 1;
             if (flip_partial == 1) begin
                 next_partial_index = partial_index + 1;
                 if (partial_index == limb_index >> 1) begin
@@ -178,25 +175,16 @@ module solver_control #(
                 zim_neg_sel = (zim_rd_ind == last_zim_lsd) ? NEGATE_FLIP_INC : NEGATE_FLIP;
             end
 
-            zre_reg_sel     = pattern_index == 0 ? 0 :
-                              pattern_index == 1 ? 2 :
-                              pattern_index == 2 ? 0 :
-                                                   1;
+            if (last_state != state) begin
+                zre_reg_sel = 0;
+                zim_reg_sel = 3;
+            end else begin
+                zre_reg_sel = flip_partial ? 1 : 2;
+                zim_reg_sel = flip_partial ? 2 : 3;
+            end
 
-            zim_reg_sel     = pattern_index == 0 ? 1 :
-                              pattern_index == 1 ? 3 :
-                              pattern_index == 2 ? 2 :
-                                                   3;
-
-            next_m1_a_sel   = pattern_index == 0 ? 0 :
-                              pattern_index == 1 ? 1 :
-                              pattern_index == 2 ? 0 :
-                                                   2;
-
-            next_m1_b_sel   = pattern_index == 0 ? 2 :
-                              pattern_index == 1 ? 3 :
-                              pattern_index == 2 ? 1 :
-                                                   3;
+            next_mov_CtoA = 1;
+            next_mov_DtoB = !flip_partial;
 
             if (iteration_count > 0) begin
                 next_zre_partial_sel = zre_rd_ind == zim_rd_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
@@ -246,6 +234,7 @@ module solver_control #(
     always @(posedge clock) begin
         if (reset) begin
             state           <= STATE_LOAD;
+            last_state       <= 0;
             flush_counter   <= 0;
             out_ready       <= 0;
             iteration_count <= 0;
@@ -253,10 +242,9 @@ module solver_control #(
             limb_index      <= 0;
             partial_index   <= 0;
             flip_partial    <= 0;
-            pattern_index   <= 0;
 
-            m1_a_sel        <= 0;
-            m1_b_sel        <= 0;
+            mov_CtoA        <= 0;
+            mov_DtoB        <= 0;
             zre_partial_sel <= 0;
             zre_acc_sel     <= 0;
             zre_wr_en       <= 0;
@@ -268,16 +256,16 @@ module solver_control #(
             last_zim_lsd    <= 0;
         end else begin
             state           <= next_state;
+            last_state      <= state;
             flush_counter   <= next_flush_counter;
             out_ready       <= next_out_ready;
             iteration_count <= next_iteration_count;
             limb_index      <= next_limb_index;
             partial_index   <= next_partial_index;
             flip_partial    <= next_flip_partial;
-            pattern_index   <= next_pattern_index;
 
-            m1_a_sel        <= next_m1_a_sel;
-            m1_b_sel        <= next_m1_b_sel;
+            mov_CtoA        <= next_mov_CtoA;
+            mov_DtoB        <= next_mov_DtoB;
             zre_partial_sel <= next_zre_partial_sel;
             zre_acc_sel     <= next_zre_acc_sel;
             zre_wr_en       <= next_zre_wr_en;
