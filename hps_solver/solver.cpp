@@ -12,7 +12,7 @@ void Solver::freeListAppend(volatile int16_t* data) {
 }
 
 
-void Solver::sumbit(std::shared_ptr<TileHeader> tile, int16_t iterations) {
+void Solver::sumbit(std::shared_ptr<TileHeader> tile) {
     std::unique_lock<std::mutex> lock(mutex);
     while (free_list.empty()) has_space.wait(lock);
 
@@ -21,7 +21,7 @@ void Solver::sumbit(std::shared_ptr<TileHeader> tile, int16_t iterations) {
     data[Constants::TILE_WIDTH * Constants::TILE_HEIGHT - 1] = -2;
 
     inflight[tile] = std::move(data);
-    queueTile(tile, iterations);
+    queueTile(tile);
 }
 
 

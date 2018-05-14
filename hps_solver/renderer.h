@@ -16,7 +16,7 @@ private:
     double* _iterations_cdf;
 
     void histogramColor();
-    SDL_Color cyclicColor(uint16_t iterations);
+    SDL_Color cyclicColor(int16_t iterations, int16_t iter_lim);
 
 public:
     Renderer();

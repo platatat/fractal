@@ -21,6 +21,8 @@ private:
     int _cache_size;
     int _request_depth;
 
+    int16_t iterations;
+
     int next_request_index;
     std::vector<TileClient> clients;
 
@@ -62,6 +64,9 @@ public:
     std::shared_ptr<Tile> requestTile(std::shared_ptr<TileHeader> header, int depth);
 
     std::set<std::shared_ptr<Tile>> loadViewport(Viewport viewport);
+
+    int16_t getIterations() { return iterations; }
+    void setIterations(int16_t iterations) { this->iterations = iterations; }
 };
 
 

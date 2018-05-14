@@ -116,19 +116,11 @@ void TileServer::serveForever() {
                     std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
                     std::shared_ptr<TileHeader> header = std::move(unique_header);
 
-                    std::vector<uint8_t> iteration_data = SocketUtil::receivePacket(connection);
-                    if (iteration_data.size() != 2) {
-                        std::cout << "Client sent invalid packet. Expected two bytes of iteration data" << std::endl;
-                        return;
-                    }
-
-                    int16_t iterations = ntohs(*((uint16_t*) &iteration_data[0]));
-
                     {
                         std::unique_lock<std::mutex> lock(server->_mutex);
                         server->requests.insert(std::tuple<std::shared_ptr<TileHeader>, int>(header, connection));
                     }
-                    server->solver->sumbit(header, iterations);
+                    server->solver->sumbit(header);
                 } catch (std::runtime_error& e) {
                     std::cout << e.what() << std::endl;
                     return;

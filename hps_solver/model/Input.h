@@ -10,7 +10,11 @@ struct Input {
     // The amount to zoom in or out, in the range [-1, +1].
     double dz;
 
-    Input() : dx(0), dy(0), dz(0) {};
+    // The amount to scale iterations by
+    bool inc_iter;
+    bool dec_iter;
+
+    Input() : dx(0), dy(0), dz(0), inc_iter(false), dec_iter(false) {};
 };
 
 }

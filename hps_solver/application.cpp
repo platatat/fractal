@@ -129,6 +129,13 @@ void Application::handleInput() {
     // Translate origin back to top left.
     _origin.real = _origin.real - Viewport::screenWidth(_zoom) * 0.5;
     _origin.imag = _origin.imag - Viewport::screenHeight(_zoom) * 0.5;
+
+    if (input.inc_iter) {
+        _tile_manager.setIterations(_tile_manager.getIterations() * 2);
+    } else if (input.dec_iter) {
+        _tile_manager.setIterations(_tile_manager.getIterations() / 2);
+    }
+
 }
 
 
@@ -153,7 +160,8 @@ void Application::drawHUD() {
 
     std::ostringstream ss;
     ss << "fps: " << (int) _fps << " | ";
-    ss << "zoom: " << (int) _zoom;
+    ss << "zoom: " << (int) _zoom << " | ";
+    ss << "iter: " << _tile_manager.getIterations();
     std::string hud_string = ss.str();
 
     SDL_Surface* message_surface = TTF_RenderText_Solid(_font_regular, hud_string.c_str(), _color_white);
