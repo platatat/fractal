@@ -20,7 +20,8 @@ private:
     int _cache_size;
     int _request_depth;
 
-    TileClient _tile_client;
+    int next_request_index;
+    std::vector<TileClient> clients;
 
     TileRequestHeap _request_heap;
     std::unordered_set<std::shared_ptr<TileHeader>, TileHeader::Hasher, TileHeader::Comparator> _outstanding_requests;
@@ -29,13 +30,11 @@ private:
     std::condition_variable _requests_nonempty;
     std::condition_variable _requests_available;
     std::thread _tile_requesting_thread;
-    std::thread _tile_receiving_thread;
+    std::vector<std::thread> receiving_threads;
 
     unsigned char* _placeholder_data;
 
     static void tileRequestingTask(TileManager* tile_manager);
-
-    static void tileReceivingTask(TileManager* tile_manager);
 
     static void loadPlaceholder(unsigned char* data_buffer);
 
@@ -55,7 +54,7 @@ private:
     std::unordered_map<std::shared_ptr<TileHeader>, CachedTile, TileHeader::Hasher, TileHeader::Comparator> _cache;
 
 public:
-    TileManager(std::string ip_addr, int cache_size, int request_depth = 4);
+    TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int cache_size, int request_depth = 4);
 
     ~TileManager();
 

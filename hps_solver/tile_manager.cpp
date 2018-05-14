@@ -1,4 +1,7 @@
 #include "tile_manager.h"
+
+#include "constants.h"
+
 #include <math.h>
 #include <iostream>
 #include <png.h>
@@ -9,18 +12,38 @@ using std::chrono::system_clock;
 using std::chrono::time_point;
 
 
-TileManager::TileManager(std::string ip_addr, int cache_size, int request_depth) : 
+TileManager::TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int cache_size, int request_depth) :
         _request_heap(64), 
         _cache_size(cache_size), 
-        _tile_client(ip_addr, Constants::PORT),
+        next_request_index(0),
         _request_depth(request_depth) {
-    _tile_client.init();
+
+    for (int i = 0; i < ip_addrs.size(); i++) {
+        std::string ip_addr = std::get<0>(ip_addrs[i]);
+        int port = std::get<1>(ip_addrs[i]);
+        clients.emplace_back(ip_addr, port);
+        clients[i].init();
+        receiving_threads.emplace_back([this, i] (TileManager* manager) {
+            while (true) {
+                std::unique_ptr<Tile> unique_tile = manager->clients[i].receiveTile();
+                std::shared_ptr<Tile> tile = std::move(unique_tile);
+                std::shared_ptr<TileHeader> header = tile->getHeader();
+
+                {
+                    std::unique_lock<std::mutex> lock(manager->_mutex);
+                    std::cout << "adding tile " << header->get_str() << std::endl;
+                    manager->cacheInsert(tile);
+                    manager->_outstanding_requests.erase(header);
+                    manager->_requests_available.notify_all();
+                }
+            }
+        }, this);
+    }
 
     _placeholder_data = new unsigned char [Constants::TILE_WIDTH * Constants::TILE_HEIGHT];
     loadPlaceholder(_placeholder_data);
 
     _tile_requesting_thread = std::thread(tileRequestingTask, this);
-    _tile_receiving_thread = std::thread(tileReceivingTask, this);
 }
 
 
@@ -59,24 +82,9 @@ void TileManager::tileRequestingTask(TileManager* tile_manager) {
         
         // Send the tile request to the server.
         if (tile_requested) {
-            tile_manager->_tile_client.requestTile(header);
-        }
-    }
-}
-
-
-void TileManager::tileReceivingTask(TileManager* tile_manager) {
-    while (true) {
-        std::unique_ptr<Tile> unique_tile = tile_manager->_tile_client.receiveTile();
-        std::shared_ptr<Tile> tile = std::move(unique_tile);
-        std::shared_ptr<TileHeader> header = tile->getHeader();
-
-        {
-            std::unique_lock<std::mutex> lock(tile_manager->_mutex);
-            std::cout << "adding tile " << header->get_str() << std::endl;
-            tile_manager->cacheInsert(tile);
-            tile_manager->_outstanding_requests.erase(header);
-            tile_manager->_requests_available.notify_one();
+            tile_manager->clients[tile_manager->next_request_index].requestTile(header);
+            tile_manager->next_request_index++;
+            tile_manager->next_request_index %= tile_manager->clients.size();
         }
     }
 }

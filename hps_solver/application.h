@@ -38,7 +38,7 @@ private:
     double getScreenHeight();
 
 public:
-    Application(std::string ip_addr);
+    Application(std::vector<std::tuple<std::string, int>> ip_addrs);
 
     void init();
     void run();
