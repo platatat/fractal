@@ -112,13 +112,13 @@ void Application::handleEvents() {
 
                     case SDLK_e:
                         if (_tile_manager.getIterations() < Constants::MAX_ITERS) {
-                            _tile_manager.setIterations(_tile_manager.getIterations() * 2);
+                            _tile_manager.setIterations(_tile_manager.getIterations() * 1.25);
                         }
                         break;
 
                     case SDLK_q:
                         if (_tile_manager.getIterations() > Constants::MIN_ITERS) {
-                            _tile_manager.setIterations(_tile_manager.getIterations() / 2);
+                            _tile_manager.setIterations(_tile_manager.getIterations() / 1.25);
                         }
                         break;
                 }
@@ -135,8 +135,8 @@ void Application::handleInput() {
     SdlInputController inputController;
     auto input = inputController.getInput();
 
-    _origin.real = _origin.real + (input.dx * 0.1 * pow(2, -_zoom));
-    _origin.imag = _origin.imag - (input.dy * 0.1 * pow(2, -_zoom));
+    _origin.real = _origin.real + (input.dx * 0.2 * pow(2, -_zoom));
+    _origin.imag = _origin.imag - (input.dy * 0.2 * pow(2, -_zoom));
 
     // Translate origin to screen center before zooming.
     _origin.real = _origin.real + Viewport::screenWidth(_zoom) * 0.5;
