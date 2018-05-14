@@ -34,7 +34,7 @@
 #define HW_REGS_SPAN          0x00005000
 
 
-#define NUM_SLOTS 3
+#define NUM_SLOTS 30
 
 
 FPGASolver::FPGASolver() {
