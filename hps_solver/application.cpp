@@ -179,8 +179,8 @@ void Application::handleInput(double timestep) {
 
 void Application::moveTo(mpf_class x, mpf_class y, double z) {
     _zoom = z;
-    _origin.real.set_prec(std::max(x.get_prec(), z + 64));
-    _origin.imag.set_prec(std::max(y.get_prec(), z + 64));
+    _origin.real.set_prec(std::max((int) x.get_prec(), (int) (z + 64)));
+    _origin.imag.set_prec(std::max((int) y.get_prec(), (int) (z + 64)));
     _origin.real = x - Viewport::screenWidth(_zoom) * 0.5;
     _origin.imag = y - Viewport::screenHeight(_zoom) * 0.5;
 }
