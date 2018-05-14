@@ -56,7 +56,7 @@ module solver_control #(
     reg  [2:0] state;
     reg  [2:0] next_state;
 
-    localparam FLUSH_WAIT = 7;
+    localparam FLUSH_WAIT = 3;
     reg  [2:0] flush_counter;
     reg  [2:0] next_flush_counter;
 
