@@ -36,16 +36,9 @@ void TileClient::init() {
 }
 
 
-void TileClient::requestTile(std::shared_ptr<TileHeader> header, int16_t iterations) {
+void TileClient::requestTile(std::shared_ptr<TileHeader> header) {
     std::vector<uint8_t> data = header->serialize();
     SocketUtil::sendPacket(_socket_fd, data);
-
-    std::vector<uint8_t> iteration_bytes;
-    uint8_t buffer[2];
-    ((uint16_t*) buffer)[0] = htons(iterations);
-    iteration_bytes.push_back(buffer[0]);
-    iteration_bytes.push_back(buffer[1]);
-    SocketUtil::sendPacket(_socket_fd, iteration_bytes);
 }
 
 

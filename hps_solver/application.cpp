@@ -109,6 +109,18 @@ void Application::handleEvents() {
                     case SDLK_ESCAPE:
                         _running = false;
                         break;
+
+                    case SDLK_e:
+                        if (_tile_manager.getIterations() < Constants::MAX_ITERS) {
+                            _tile_manager.setIterations(_tile_manager.getIterations() * 2);
+                        }
+                        break;
+
+                    case SDLK_q:
+                        if (_tile_manager.getIterations() > Constants::MIN_ITERS) {
+                            _tile_manager.setIterations(_tile_manager.getIterations() / 2);
+                        }
+                        break;
                 }
                 break;
         }
@@ -168,7 +180,8 @@ void Application::drawHUD() {
 
     std::ostringstream ss;
     ss << "fps: " << (int) _fps << " | ";
-    ss << "zoom: " << (int) _zoom;
+    ss << "zoom: " << (int) _zoom << " | ";
+    ss << "iter: " << _tile_manager.getIterations();
     std::string hud_string = ss.str();
 
     SDL_Surface* message_surface = TTF_RenderText_Solid(_font_regular, hud_string.c_str(), _color_white);

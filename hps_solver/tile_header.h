@@ -17,11 +17,12 @@ public:
     mpz_class x;
     mpz_class y;
     int32_t z;
+    int16_t iter_lim;
 
     // Delete copy constructor.
     TileHeader(const TileHeader&) = delete;
 
-    TileHeader(mpz_class x_in, mpz_class y_in, uint32_t z_in) : x(x_in), y(y_in), z(z_in) {};
+    TileHeader(mpz_class x_in, mpz_class y_in, uint32_t z_in, int16_t iter_lim) : x(x_in), y(y_in), z(z_in), iter_lim(iter_lim) {};
 
     complex getOrigin() const {
         mpf_class f_header_x(x, z + 64);
@@ -36,7 +37,7 @@ public:
     }
 
     bool operator==(const TileHeader& other) const {
-        return (x == other.x) && (y == other.y) && (z == other.z);
+        return (x == other.x) && (y == other.y) && (z == other.z) && iter_lim == other.iter_lim;
     }
 
     struct Hasher {
@@ -46,13 +47,14 @@ public:
             h = header->x.get_si() + (h << 6) + (h << 16) - h;
             h = header->y.get_si() + (h << 6) + (h << 16) - h;
             h = header->z + (h << 6) + (h << 16) - h;
+            h = header->iter_lim + (h << 6) + (h << 16) - h;
             return h;
         }
     };
 
     struct Comparator {
         bool operator()(const std::shared_ptr<TileHeader>& a, const std::shared_ptr<TileHeader>& b) const {
-            return (a->x == b->x) && (a->y == b->y) && (a->z == b->z);
+            return (a->x == b->x) && (a->y == b->y) && (a->z == b->z) && (a->iter_lim == b->iter_lim);
         }
     };
 
@@ -62,7 +64,7 @@ public:
 
         uint32_t x_size = x_str.length() + 1;
         uint32_t y_size = y_str.length() + 1;
-        int serialized_size = x_size + y_size + 12;
+        int serialized_size = x_size + y_size + sizeof(x_size) + sizeof(y_size) + sizeof(z) + sizeof(iter_lim);
 
         uint8_t buffer [serialized_size];
 
@@ -83,6 +85,10 @@ public:
 
         // Put z into buffer.
         *((uint32_t*) (buffer + offset)) = htonl(z);
+        offset += sizeof(z);
+
+        // Put iter_lim into buffer
+        *((int16_t*) (buffer + offset)) = htons(iter_lim);
 
         std::vector<uint8_t> result(buffer, buffer + serialized_size);
         return result;
@@ -97,7 +103,7 @@ public:
         int offset = 8;
 
         // Make sure buffer is correct size.
-        if (data.size() != x_size + y_size + 12) {
+        if (data.size() != x_size + y_size + sizeof(x_size) + sizeof(y_size) + sizeof(z) + sizeof(iter_lim)) {
             throw std::runtime_error("tille header deserialization size mismatch");
         }
 
@@ -109,13 +115,17 @@ public:
 
         // Read z from buffer;
         uint32_t z = ntohl(*((uint32_t*) (buffer + offset)));
+        offset += sizeof(z);
 
-        return std::unique_ptr<TileHeader>(new TileHeader(x, y, z));
+        // Read iter_lim from buffer
+        int16_t iter_lim = ntohs(*((int16_t*) (buffer + offset)));
+
+        return std::unique_ptr<TileHeader>(new TileHeader(x, y, z, iter_lim));
     }
 
     std::string get_str() {
         std::ostringstream ss;
-        ss << "(" << x.get_str() << ", " << y.get_str() << ", " << z << ")";
+        ss << "(" << x.get_str() << ", " << y.get_str() << ", " << z << ", " << iter_lim << ")";
         return ss.str();
     }
 };

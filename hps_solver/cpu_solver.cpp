@@ -24,28 +24,25 @@ CPUSolver::CPUSolver() {
 void CPUSolver::solverTask(CPUSolver* solver) {
     while (true) {
         std::shared_ptr<TileHeader> header;
-        int16_t iterations;
         {
             std::unique_lock<std::mutex> lock(solver->mutex);
             while (solver->jobs.empty()) solver->has_jobs.wait(lock);
 
-            CPUSolver::job job = solver->jobs.front();
+            header = solver->jobs.front();
             solver->jobs.pop_front();
-            header = std::get<0>(job);
-            iterations = std::get<1>(job);
         }
-        solver->solveTile(header, iterations);
+        solver->solveTile(header);
     }
 }
 
 
-void CPUSolver::queueTile(std::shared_ptr<TileHeader> header, int16_t iterations) {
-    jobs.emplace_back(header, iterations);
+void CPUSolver::queueTile(std::shared_ptr<TileHeader> header) {
+    jobs.emplace_back(header);
     has_jobs.notify_all();
 }
 
 
-void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, int16_t iterations) {
+void CPUSolver::solveTile(std::shared_ptr<TileHeader> header) {
     Solver::data& data = inflight[header];
 
     complex origin = header->getOrigin();
@@ -55,7 +52,7 @@ void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, int16_t iterations
     for (int y_index = 0; y_index < Constants::TILE_HEIGHT; y_index++) {
         for (int x_index = 0; x_index < Constants::TILE_WIDTH; x_index++) {
             complex c(stride.real * x_index + origin.real, stride.imag * y_index + origin.imag);
-            uint16_t solution = solvePixel(c, iterations);
+            uint16_t solution = solvePixel(c, header->iter_lim);
 
             std::unique_lock<std::mutex> lock(mutex);
             data[y_index * Constants::TILE_WIDTH + x_index] = solution;

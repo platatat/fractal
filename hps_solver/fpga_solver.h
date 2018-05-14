@@ -13,7 +13,7 @@ private:
     volatile uint32_t* fifo_control_ptr;
 
 protected:
-    void queueTile(std::shared_ptr<TileHeader> header, int16_t iterations);
+    void queueTile(std::shared_ptr<TileHeader> header);
 
 public:
     FPGASolver();

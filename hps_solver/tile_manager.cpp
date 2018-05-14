@@ -16,7 +16,8 @@ TileManager::TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int
         _request_heap(64), 
         _cache_size(cache_size), 
         next_request_index(0),
-        _request_depth(request_depth) {
+        _request_depth(request_depth),
+        iterations(32) {
 
     for (int i = 0; i < ip_addrs.size(); i++) {
         std::string ip_addr = std::get<0>(ip_addrs[i]);
@@ -73,7 +74,7 @@ void TileManager::tileRequestingTask(TileManager* tile_manager) {
         
         // Send the tile request to the server.
         if (tile_requested) {
-            tile_manager->clients[tile_manager->next_request_index].requestTile(header, Constants::ITERATIONS);
+            tile_manager->clients[tile_manager->next_request_index].requestTile(header);
             tile_manager->next_request_index++;
             tile_manager->next_request_index %= tile_manager->clients.size();
         }
@@ -135,7 +136,7 @@ std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> heade
 
         // Get a lower resolution tile if possible, or return a placeholder tile with no data.
         if (depth > 0) {
-            auto parent_header = std::make_shared<TileHeader>(header->x >> 1, header->y >> 1, header->z - 1);
+            auto parent_header = std::make_shared<TileHeader>(header->x >> 1, header->y >> 1, header->z - 1, header->iter_lim);
             return requestTile(parent_header, depth - 1);
         }
         else {
@@ -156,7 +157,7 @@ std::set<std::shared_ptr<Tile>> TileManager::loadViewport(Viewport viewport) {
             mpz_class x = viewport.origin_x + tile_x;
             mpz_class y = viewport.origin_y + tile_y;
 
-            std::shared_ptr<TileHeader> header = std::make_shared<TileHeader>(x, y, viewport.zoom);
+            std::shared_ptr<TileHeader> header = std::make_shared<TileHeader>(x, y, viewport.zoom, iterations);
             std::shared_ptr<Tile> tile = requestTile(header, 0);
 
             tiles.insert(tile);

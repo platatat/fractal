@@ -62,7 +62,7 @@ SDL_Texture* Renderer::createTextureForTile(std::shared_ptr<Tile> tile, SDL_Rend
     std::vector<uint16_t> tile_data = tile->getData();
 
     for (int i = 0; i < Constants::TILE_PIXELS; i++) {
-        SDL_Color color = cyclicColor(tile_data[i]);
+        SDL_Color color = cyclicColor(tile_data[i], tile->getHeader()->iter_lim);
         _colored_buffer[i * 3 + 0] = color.b;
         _colored_buffer[i * 3 + 1] = color.g;
         _colored_buffer[i * 3 + 2] = color.r;
@@ -116,17 +116,17 @@ void Renderer::cacheEvictOldest() {
 }
 
 
-SDL_Color Renderer::cyclicColor(uint16_t iterations) {
+SDL_Color Renderer::cyclicColor(int16_t iterations, int16_t iter_lim) {
     double cycle_period = 20;
     double phase = iterations / cycle_period;
 
     SDL_Color color;
 
-    color.r = 0;
-    color.g = (sin(phase) * 127) + 128;
-    color.b = (sin(phase) * 127) + 128;
+    color.r = sin(sqrt(iterations + 20) * 0.25 + (4 * M_PI / 3)) * 128 + 127;
+    color.g = sin(sqrt(iterations + 20) * 0.25 + (2 * M_PI / 3)) * 128 + 127;
+    color.b = sin(sqrt(iterations + 20) * 0.25 + (0 * M_PI / 3)) * 128 + 127;
 
-    if (iterations == Constants::ITERATIONS - 1) {
+    if (iterations == iter_lim - 1) {
         color.r = 255;
         color.g = 255;
         color.b = 255;
