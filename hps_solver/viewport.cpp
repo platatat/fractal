@@ -31,8 +31,11 @@ Viewport::Viewport(complex origin_in, double zoom_in, int mipmap_shift) {
     width = mp_width.get_si();
     height = mp_height.get_si();
 
-    partial_x = left_float.get_d() - left_int.get_si();
-    partial_y = bottom_float.get_d() - bottom_int.get_si();
+    mpf_class mp_partial_x = left_float - left_int;
+    mpf_class mp_partial_y = bottom_float - bottom_int;
+
+    partial_x = mp_partial_x.get_d();
+    partial_y = mp_partial_y.get_d();
 }
 
 

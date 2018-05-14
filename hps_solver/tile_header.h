@@ -24,13 +24,14 @@ public:
     TileHeader(mpz_class x_in, mpz_class y_in, uint32_t z_in) : x(x_in), y(y_in), z(z_in) {};
 
     complex getOrigin() const {
-        mpf_class f_header_x(x);
-        mpf_class f_header_y(y);
+        mpf_class f_header_x(x, z + 64);
+        mpf_class f_header_y(y, z + 64);
         double size = getSize();
         return {f_header_x * size, f_header_y * size};
     }
 
     double getSize() const {
+        // TODO: precision
         return pow(2.0, (double) -z);
     }
 

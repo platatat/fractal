@@ -9,7 +9,8 @@ using namespace std::chrono;
 
 
 Application::Application(std::vector<std::tuple<std::string, int>> ip_addrs) :
-    _tile_manager(ip_addrs, Constants::CACHE_SIZE)
+    _tile_manager(ip_addrs, Constants::CACHE_SIZE),
+    _origin(0, 0)
 {
     moveTo(-0.5, 0, 2.5);
     _running = false;
@@ -71,6 +72,9 @@ void Application::run() {
 
         setDrawColor(_clear_color);
         SDL_RenderClear(_sdl_renderer);
+
+        _origin.real.set_prec(_zoom + 64);
+        _origin.imag.set_prec(_zoom + 64);
 
         handleEvents();
         handleInput();

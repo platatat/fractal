@@ -5,23 +5,7 @@
 #include <iostream>
 #include <vector>
 
-struct complex {
-public:
-    mpf_class real;
-    mpf_class imag;
-
-    bool operator==(const complex& other) const {
-        return real == other.real && imag == other.imag;
-    }
-
-    std::vector<uint32_t> get_real_limbs(int limb_bits) const {
-        return this->get_limbs(this->real, limb_bits);
-    }
-
-    std::vector<uint32_t> get_imag_limbs(int limb_bits) const {
-        return this->get_limbs(this->imag, limb_bits);
-    }
-
+class complex {
 private:
     std::vector<uint32_t> get_limbs(mpf_class big_float, int limb_bits) const {
         std::vector<uint32_t> limbs;
@@ -42,6 +26,28 @@ private:
 
         return limbs;
     }
+
+public:
+    mpf_class real;
+    mpf_class imag;
+
+    complex(mpf_class real_, mpf_class imag_) : real(real_), imag(imag_) {};
+
+    complex(mpf_class real_, mpf_class imag_, int precision) : real(real_, precision), imag(imag_, precision) {};
+
+    bool operator==(const complex& other) const {
+        return real == other.real && imag == other.imag;
+    }
+
+    std::vector<uint32_t> get_real_limbs(int limb_bits) const {
+        return this->get_limbs(this->real, limb_bits);
+    }
+
+    std::vector<uint32_t> get_imag_limbs(int limb_bits) const {
+        return this->get_limbs(this->imag, limb_bits);
+    }
+
+
 };
 
 

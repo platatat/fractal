@@ -49,12 +49,12 @@ void CPUSolver::solveTile(std::shared_ptr<TileHeader> header, int16_t iterations
     Solver::data& data = inflight[header];
 
     complex origin = header->getOrigin();
-    complex size = {header->getSize(), header->getSize()};
-    complex stride = {size.real / Constants::TILE_WIDTH, size.imag / Constants::TILE_HEIGHT};
+    complex size(header->getSize(), header->getSize(), header->z + 64);
+    complex stride(size.real / Constants::TILE_WIDTH, size.imag / Constants::TILE_HEIGHT);
 
     for (int y_index = 0; y_index < Constants::TILE_HEIGHT; y_index++) {
         for (int x_index = 0; x_index < Constants::TILE_WIDTH; x_index++) {
-            complex c = {stride.real * x_index + origin.real, stride.imag * y_index + origin.imag};
+            complex c(stride.real * x_index + origin.real, stride.imag * y_index + origin.imag);
             uint16_t solution = solvePixel(c, iterations);
 
             std::unique_lock<std::mutex> lock(mutex);

@@ -26,6 +26,7 @@ void Renderer::render(const std::set<std::shared_ptr<Tile>>& tiles, Viewport vie
 
         mpz_class mp_tile_x = header->x - viewport.origin_x;
         mpz_class mp_tile_y = header->y - viewport.origin_y;
+
         int tile_x = mp_tile_x.get_si();
         int tile_y = mp_tile_y.get_si();
 
