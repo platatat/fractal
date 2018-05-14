@@ -470,7 +470,7 @@ reg  [LIMB_INDEX_BITS-1:0]  W_zim_wr_ind;
 reg  [LIMB_SIZE_BITS-1:0]   W_zre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   W_zim_limb;
 
-assign W_diverged = X_diverge_acc_next >= DIVERGENCE_RADIUS;
+assign W_diverged = X_diverge_acc >= DIVERGENCE_RADIUS;
 
 assign W_zre_sign = W_zre_limb[LIMB_SIZE_BITS-1];
 assign W_zim_sign = W_zim_limb[LIMB_SIZE_BITS-1];
