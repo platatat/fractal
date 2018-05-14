@@ -82,7 +82,7 @@ void TileManager::tileRequestingTask(TileManager* tile_manager) {
         
         // Send the tile request to the server.
         if (tile_requested) {
-            tile_manager->clients[tile_manager->next_request_index].requestTile(header);
+            tile_manager->clients[tile_manager->next_request_index].requestTile(header, Constants::ITERATIONS);
             tile_manager->next_request_index++;
             tile_manager->next_request_index %= tile_manager->clients.size();
         }
