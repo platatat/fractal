@@ -14,7 +14,7 @@ struct Input {
     bool inc_iter;
     bool dec_iter;
 
-    Input() : dx(0), dy(0), dz(0), inc_iter(false), dec_iter(false) {};
+    Input() : dx(0), dy(0), dz(0) {};
 };
 
 }

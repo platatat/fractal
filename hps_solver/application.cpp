@@ -105,6 +105,18 @@ void Application::handleEvents() {
                     case SDLK_ESCAPE:
                         _running = false;
                         break;
+
+                    case SDLK_e:
+                        if (_tile_manager.getIterations() < Constants::MAX_ITERS) {
+                            _tile_manager.setIterations(_tile_manager.getIterations() * 2);
+                        }
+                        break;
+
+                    case SDLK_q:
+                        if (_tile_manager.getIterations() > Constants::MIN_ITERS) {
+                            _tile_manager.setIterations(_tile_manager.getIterations() / 2);
+                        }
+                        break;
                 }
                 break;
         }
@@ -131,13 +143,6 @@ void Application::handleInput() {
     // Translate origin back to top left.
     _origin.real = _origin.real - Viewport::screenWidth(_zoom) * 0.5;
     _origin.imag = _origin.imag - Viewport::screenHeight(_zoom) * 0.5;
-
-    if (input.inc_iter) {
-        _tile_manager.setIterations(_tile_manager.getIterations() * 2);
-    } else if (input.dec_iter) {
-        _tile_manager.setIterations(_tile_manager.getIterations() / 2);
-    }
-
 }
 
 

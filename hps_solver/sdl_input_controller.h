@@ -4,12 +4,7 @@
 #include "model/Input.h"
 
 class SdlInputController {
-private:
-    bool last_iter_inc_state;
-    bool last_iter_dec_state;
-
 public:
-    SdlInputController();
     model::Input getInput();
 };
 
