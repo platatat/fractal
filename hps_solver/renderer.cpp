@@ -20,58 +20,57 @@ Renderer::~Renderer() {
 }
 
 
-void Renderer::render(const TileManager::ViewportInfo& viewport_info,
-                      const std::vector<std::shared_ptr<Tile>>& tiles,
-                      double fractional_scale,
-                      SDL_Renderer* sdl_renderer) {
+void Renderer::render(const std::set<std::shared_ptr<Tile>>& tiles, Viewport viewport, SDL_Renderer* sdl_renderer) {
     // Clear PDF for coloring.
     for (int i = 0; i < Constants::ITERATIONS; i++) {
         _iterations_pdf[i] = 0;
     }
 
-    double translate_x = -viewport_info.fractional_x * (Constants::TILE_WIDTH);
-    double translate_y = -viewport_info.fractional_y * (Constants::TILE_HEIGHT);
+    double translate_x = -viewport.partial_x * (Constants::TILE_WIDTH);
+    double translate_y = -viewport.partial_y * (Constants::TILE_HEIGHT);
 
-    for (int tile_x = 0; tile_x < viewport_info.tiles_width; tile_x++) {
-        for (int tile_y = 0; tile_y < viewport_info.tiles_height; tile_y++) {
+    for (std::shared_ptr<Tile> tile : tiles) {
+        std::shared_ptr<TileHeader> header = tile->getHeader();
 
-            int tile_index = tile_y * viewport_info.tiles_width + tile_x;
-            std::shared_ptr<Tile> tile = tiles[tile_index];
+        mpz_class mp_tile_x = header->x - viewport.origin_x;
+        mpz_class mp_tile_y = header->y - viewport.origin_y;
+        int tile_x = mp_tile_x.get_si();
+        int tile_y = mp_tile_y.get_si();
 
-            double tile_screen_x = (translate_x + tile_x * Constants::TILE_WIDTH) * fractional_scale;
-            double tile_screen_y = (translate_y + tile_y * Constants::TILE_HEIGHT) * fractional_scale;
+        double tile_screen_x = (translate_x + tile_x * Constants::TILE_WIDTH) * viewport.partial_zoom;
+        double tile_screen_y = (translate_y + tile_y * Constants::TILE_HEIGHT) * viewport.partial_zoom;
 
-            if (tile->hasData()) {
-                std::vector<uint16_t> tile_data = tile->getData();
+        if (tile->hasData()) {
+            std::vector<uint16_t> tile_data = tile->getData();
 
-                for (int i = 0; i < Constants::TILE_PIXELS; i++) {
-                    SDL_Color color = cyclicColor(tile_data[i]);
-                    _colored_buffer[i * 3 + 0] = color.b;
-                    _colored_buffer[i * 3 + 1] = color.g;
-                    _colored_buffer[i * 3 + 2] = color.r;
-                }
-
-                SDL_Surface* tile_surface = SDL_CreateRGBSurfaceFrom(
-                    (void*) _colored_buffer,
-                    Constants::TILE_WIDTH,
-                    Constants::TILE_HEIGHT,
-                    24,
-                    Constants::TILE_WIDTH * 3,
-                    0, 0, 0, 0
-                );
-
-                SDL_Rect dst_rect;
-                dst_rect.x = std::floor(tile_screen_x);
-                dst_rect.y = std::floor(tile_screen_y);
-                dst_rect.w = std::ceil(Constants::TILE_WIDTH * fractional_scale);
-                dst_rect.h = std::ceil(Constants::TILE_HEIGHT * fractional_scale);
-
-                SDL_Texture* tile_texture = SDL_CreateTextureFromSurface(sdl_renderer, tile_surface);
-                SDL_RenderCopy(sdl_renderer, tile_texture, NULL, &dst_rect);
-
-                SDL_DestroyTexture(tile_texture);
-                SDL_FreeSurface(tile_surface);
+            for (int i = 0; i < Constants::TILE_PIXELS; i++) {
+                SDL_Color color = cyclicColor(tile_data[i]);
+                _colored_buffer[i * 3 + 0] = color.b;
+                _colored_buffer[i * 3 + 1] = color.g;
+                _colored_buffer[i * 3 + 2] = color.r;
             }
+
+            SDL_Surface* tile_surface = SDL_CreateRGBSurfaceFrom(
+                (void*) _colored_buffer,
+                Constants::TILE_WIDTH,
+                Constants::TILE_HEIGHT,
+                24,
+                Constants::TILE_WIDTH * 3,
+                0, 0, 0, 0
+            );
+
+            SDL_Texture* tile_texture = SDL_CreateTextureFromSurface(sdl_renderer, tile_surface);
+
+            SDL_Rect dst_rect;
+            dst_rect.x = std::floor(tile_screen_x);
+            dst_rect.y = std::floor(tile_screen_y);
+            dst_rect.w = std::ceil(Constants::TILE_WIDTH * viewport.partial_zoom);
+            dst_rect.h = std::ceil(Constants::TILE_HEIGHT * viewport.partial_zoom);
+
+            SDL_RenderCopy(sdl_renderer, tile_texture, NULL, &dst_rect);
+
+            SDL_DestroyTexture(tile_texture);
+            SDL_FreeSurface(tile_surface);
         }
     }
 

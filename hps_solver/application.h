@@ -34,9 +34,6 @@ private:
 
     void setDrawColor(const SDL_Color& color);
 
-    double getScreenWidth();
-    double getScreenHeight();
-
 public:
     Application(std::vector<std::tuple<std::string, int>> ip_addrs);
 
