@@ -15,8 +15,8 @@ Application::Application(std::vector<std::tuple<std::string, int>> ip_addrs) :
     //moveTo(-0.5, 0, 2.5);
 
     moveTo(
-        mpf_class("-1.769383179195515018213847286085473782905747263654751437465528216527888191264756458836163446389529667"),
-        mpf_class("0.0042368479187367722149265071713679970766826709174037572794594356501123440008055451573024309950236365"),
+        mpf_class("-1.769383179195515018213847286085473782905747263654751437465528216527888191264756458836163446389529667", 300),
+        mpf_class("0.0042368479187367722149265071713679970766826709174037572794594356501123440008055451573024309950236365", 300),
         20
     );
 
@@ -179,6 +179,8 @@ void Application::handleInput(double timestep) {
 
 void Application::moveTo(mpf_class x, mpf_class y, double z) {
     _zoom = z;
+    _origin.real.set_prec(std::max(x.get_prec(), z + 64));
+    _origin.imag.set_prec(std::max(y.get_prec(), z + 64));
     _origin.real = x - Viewport::screenWidth(_zoom) * 0.5;
     _origin.imag = y - Viewport::screenHeight(_zoom) * 0.5;
 }
