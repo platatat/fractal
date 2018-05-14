@@ -475,7 +475,7 @@ reg stream_valid_delay [2:1];
 // NEW Solvers and VGA logic
 //=======================================================
 
-localparam NUM_SOLVERS 			= 1;
+localparam NUM_SOLVERS 			= 20;
 localparam TILE_WIDTH_BITS      = 6;
 localparam LIMB_INDEX_BITS 		= 6;
 localparam LIMB_SIZE_BITS 		= 27;
@@ -512,6 +512,7 @@ solver_manager #(
 );
 */
 
+/*
 wire [15:0] write_out_data;
 wire [31:0] write_out_addr;
 wire write_out_ready;
@@ -569,6 +570,38 @@ end
 
 assign write_en = (state == 1);
 assign write_out_ready = (state == 0);
+*/
+
+wire [31:0] in_data;
+wire        in_valid;
+wire        in_end_of_stream;
+wire        in_ready;
+
+wire [15:0] out_data;
+wire [31:0] out_addr;
+wire        out_write_en;
+wire        out_ack;
+
+multi_tile_solver #(
+    NUM_SOLVERS,
+    TILE_WIDTH_BITS,
+    LIMB_INDEX_BITS,
+    LIMB_SIZE_BITS,
+    DIVERGENCE_RADIUS
+) multi_solv (
+    .clock(CLOCK_50),
+    .reset(reset_key),
+
+    .in_data(in_data),
+    .in_valid(in_valid),
+    .in_end_of_stream(in_end_of_stream),
+    .in_ready(in_ready),
+
+    .out_data(out_data),
+    .out_addr(out_addr),
+    .out_write_en(out_write_en),
+    .out_ack(out_ack)
+);
 
 //=======================================================
 //  Structural coding
@@ -700,18 +733,18 @@ Computer_System The_System (
 	.hps_io_hps_io_usb1_inst_DIR		(HPS_USB_DIR),
 	.hps_io_hps_io_usb1_inst_NXT		(HPS_USB_NXT),
 
-    .sdram_writer_address     (write_addr),
+    .sdram_writer_address     (out_addr),
     .sdram_writer_byte_enable (2'b11),
-    .sdram_writer_write       (write_en),
-    .sdram_writer_write_data  (write_data),
-    .sdram_writer_acknowledge (ack),
+    .sdram_writer_write       (out_write_en),
+    .sdram_writer_write_data  (out_data),
+    .sdram_writer_acknowledge (out_ack),
     //.sdram_writer_read        (),
     //.sdram_writer_read_data   (),
 
-    .in_fifo_data  (fifo_raw_data),
-    .in_fifo_valid (fifo_valid),
-    .in_fifo_ready (fifo_ready),
-    .in_fifo_startofpacket (fifo_startofpacket),
-    .in_fifo_endofpacket   (fifo_endofpacket),
+    .in_fifo_data  (in_data),
+    .in_fifo_valid (in_valid),
+    .in_fifo_ready (in_ready),
+    .in_fifo_startofpacket (),
+    .in_fifo_endofpacket   (in_end_of_stream),
 );
 endmodule // end top level

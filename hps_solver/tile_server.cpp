@@ -118,7 +118,7 @@ void TileServer::serveForever() {
 
                     {
                         std::unique_lock<std::mutex> lock(server->_mutex);
-                        server->requests.emplace(header, connection);
+                        server->requests.insert(std::tuple<std::shared_ptr<TileHeader>, int>(header, connection));
                     }
                     server->solver->sumbit(header, Constants::ITERATIONS);
                 } catch (std::runtime_error& e) {
