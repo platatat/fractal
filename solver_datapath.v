@@ -92,10 +92,11 @@ reg  [LIMB_INDEX_BITS-1:0]  R_zim_wr_ind;
 reg  [LIMB_SIZE_BITS-1:0]   L_cre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   L_cim_limb;
 
-reg  [LIMB_SIZE_BITS-1:0]   zre_ram [1<<LIMB_INDEX_BITS:0];
-reg  [LIMB_SIZE_BITS-1:0]   zim_ram [1<<LIMB_INDEX_BITS:0];
-reg  [LIMB_SIZE_BITS-1:0]   cre_ram [1<<LIMB_INDEX_BITS:0];
-reg  [LIMB_SIZE_BITS-1:0]   cim_ram [1<<LIMB_INDEX_BITS:0];
+localparam RAM_BITS = 1 << LIMB_INDEX_BITS;
+reg  [LIMB_SIZE_BITS-1:0]   zre_ram [RAM_BITS-1:0];
+reg  [LIMB_SIZE_BITS-1:0]   zim_ram [RAM_BITS-1:0];
+reg  [LIMB_SIZE_BITS-1:0]   cre_ram [RAM_BITS-1:0];
+reg  [LIMB_SIZE_BITS-1:0]   cim_ram [RAM_BITS-1:0];
 
 reg  [LIMB_SIZE_BITS-1:0]   R_regA;
 reg  [LIMB_SIZE_BITS-1:0]   R_regB;

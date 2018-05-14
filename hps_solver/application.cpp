@@ -122,13 +122,13 @@ void Application::handleEvents() {
 
                     case SDLK_e:
                         if (_tile_manager.getIterations() < Constants::MAX_ITERS) {
-                            _tile_manager.setIterations(_tile_manager.getIterations() * 2);
+                            _tile_manager.setIterations(_tile_manager.getIterations() * 1.25);
                         }
                         break;
 
                     case SDLK_q:
                         if (_tile_manager.getIterations() > Constants::MIN_ITERS) {
-                            _tile_manager.setIterations(_tile_manager.getIterations() / 2);
+                            _tile_manager.setIterations(_tile_manager.getIterations() / 1.25);
                         }
                         break;
                 }
