@@ -56,7 +56,7 @@ module solver_datapath #(
     //Output
     output     W_zre_sign,
     output     W_zim_sign,
-    output reg W_diverged,
+    output     W_diverged,
     output reg [LIMB_INDEX_BITS-1:0] W_zre_lsd,
     output reg [LIMB_INDEX_BITS-1:0] W_zim_lsd
 );
@@ -337,8 +337,6 @@ reg  [ACCUMULATOR_BITS-1:0] X_m1_out;
 reg  [ACCUMULATOR_BITS-1:0] X_m2_out;
 reg  [ACCUMULATOR_BITS-1:0] X_m1_old;
 
-wire X_diverged;
-
 reg  signed [ACCUMULATOR_BITS-1:0] X_zre_acc; //zre accumulator
 reg  signed [ACCUMULATOR_BITS-1:0] X_zim_acc; //zim accumulator
 
@@ -353,8 +351,6 @@ wire [LIMB_SIZE_BITS-1:0]   X_zim_limb_out;
 reg  [ACCUMULATOR_BITS-1:0] X_diverge_acc;
 reg  [ACCUMULATOR_BITS-1:0] X_diverge_partial;
 reg  [ACCUMULATOR_BITS-1:0] X_diverge_acc_next;
-
-assign X_diverged = X_diverge_acc_next >= DIVERGENCE_RADIUS;
 
 assign X_zre_limb_out = X_zre_acc_next[LIMB_SIZE_BITS-1:0];
 assign X_zim_limb_out = X_zim_acc_next[LIMB_SIZE_BITS-1:0];
@@ -474,6 +470,8 @@ reg  [LIMB_INDEX_BITS-1:0]  W_zim_wr_ind;
 reg  [LIMB_SIZE_BITS-1:0]   W_zre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   W_zim_limb;
 
+assign W_diverged = X_diverge_acc_next >= DIVERGENCE_RADIUS;
+
 assign W_zre_sign = W_zre_limb[LIMB_SIZE_BITS-1];
 assign W_zim_sign = W_zim_limb[LIMB_SIZE_BITS-1];
 
@@ -489,7 +487,6 @@ always @(posedge clock) begin
         //Datapath
         W_zre_limb <= 0;
         W_zim_limb <= 0;
-        W_diverged <= 0;
         W_zre_lsd  <= 0;
         W_zim_lsd  <= 0;
     end else begin
@@ -503,7 +500,6 @@ always @(posedge clock) begin
         //Datapath
         W_zre_limb <= X_zre_limb_out;
         W_zim_limb <= X_zim_limb_out;
-        W_diverged <= X_diverged;
 
         if (W_clear_lsd) begin
             W_zre_lsd <= 0;
