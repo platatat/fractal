@@ -27,7 +27,7 @@ public:
 
     void init();
 
-    void requestTile(std::shared_ptr<TileHeader> header);
+    void requestTile(std::shared_ptr<TileHeader> header, int16_t iterations);
 
     std::unique_ptr<Tile> receiveTile();
 };

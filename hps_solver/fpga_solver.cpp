@@ -104,7 +104,7 @@ void FPGASolver::queueTile(std::shared_ptr<TileHeader> header, int16_t iteration
         fifo_data.push_back(BITST_C_IMAG | limb);
     }
 
-    fifo_data.push_back(BITST_MAX_ITER | Constants::ITERATIONS);
+    fifo_data.push_back(BITST_MAX_ITER | iterations);
 
     // This is the number of bits to offset the x/y value of the pixel,
     // as measured from the right hand edge of the last limb.
