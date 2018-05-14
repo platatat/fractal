@@ -589,8 +589,8 @@ multi_tile_solver #(
     LIMB_SIZE_BITS,
     DIVERGENCE_RADIUS
 ) (
-    .clock(clock),
-    .reset(reset),
+    .clock(CLOCK_50),
+    .reset(reset_key),
 
     .in_data(in_data),
     .in_valid(in_valid),
