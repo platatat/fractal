@@ -3,29 +3,21 @@
 
 #include <math.h>
 
+using std::chrono::system_clock;
+using std::chrono::time_point;
+
 
 Renderer::Renderer() {
     _colored_buffer = new uint8_t [Constants::TILE_PIXELS * 3];
-
-    _iterations_pdf = new unsigned int [Constants::ITERATIONS];
-    _iterations_cdf = new double [Constants::ITERATIONS];
 }
 
 
 Renderer::~Renderer() {
     delete[] _colored_buffer;
-
-    delete[] _iterations_pdf;
-    delete[] _iterations_cdf;
 }
 
 
 void Renderer::render(const std::set<std::shared_ptr<Tile>>& tiles, Viewport viewport, SDL_Renderer* sdl_renderer) {
-    // Clear PDF for coloring.
-    for (int i = 0; i < Constants::ITERATIONS; i++) {
-        _iterations_pdf[i] = 0;
-    }
-
     double translate_x = -viewport.partial_x * (Constants::TILE_WIDTH);
     double translate_y = -viewport.partial_y * (Constants::TILE_HEIGHT);
 
@@ -41,25 +33,17 @@ void Renderer::render(const std::set<std::shared_ptr<Tile>>& tiles, Viewport vie
         double tile_screen_y = (translate_y + tile_y * Constants::TILE_HEIGHT) * viewport.partial_zoom;
 
         if (tile->hasData()) {
-            std::vector<uint16_t> tile_data = tile->getData();
+            SDL_Texture* tile_texture;
 
-            for (int i = 0; i < Constants::TILE_PIXELS; i++) {
-                SDL_Color color = cyclicColor(tile_data[i], header->iter_lim);
-                _colored_buffer[i * 3 + 0] = color.b;
-                _colored_buffer[i * 3 + 1] = color.g;
-                _colored_buffer[i * 3 + 2] = color.r;
+            if (cacheContains(header)) {
+                auto cache_result = _cache.find(header);
+                cache_result->second.last_hit = system_clock::now();
+                tile_texture = cache_result->second.texture;
             }
-
-            SDL_Surface* tile_surface = SDL_CreateRGBSurfaceFrom(
-                (void*) _colored_buffer,
-                Constants::TILE_WIDTH,
-                Constants::TILE_HEIGHT,
-                24,
-                Constants::TILE_WIDTH * 3,
-                0, 0, 0, 0
-            );
-
-            SDL_Texture* tile_texture = SDL_CreateTextureFromSurface(sdl_renderer, tile_surface);
+            else {
+                tile_texture = createTextureForTile(tile, sdl_renderer);
+                cacheInsert(header, tile_texture);
+            }
 
             SDL_Rect dst_rect;
             dst_rect.x = std::floor(tile_screen_x);
@@ -68,50 +52,71 @@ void Renderer::render(const std::set<std::shared_ptr<Tile>>& tiles, Viewport vie
             dst_rect.h = std::ceil(Constants::TILE_HEIGHT * viewport.partial_zoom);
 
             SDL_RenderCopy(sdl_renderer, tile_texture, NULL, &dst_rect);
-
-            SDL_DestroyTexture(tile_texture);
-            SDL_FreeSurface(tile_surface);
         }
     }
-
-    // Recompute CDF by normalizing and integrating new PDF.
-    // double pdf_sum = 0;
-    // for (int i = 1; i < Constants::ITERATIONS - 1; i++) {
-    //     pdf_sum += _iterations_pdf[i];
-    // }
-
-    // _iterations_cdf[0] = _iterations_pdf[0] / pdf_sum;
-    // for (int i = 1; i < Constants::ITERATIONS; i++) {
-    //     _iterations_cdf[i] = _iterations_cdf[i - 1] + (_iterations_pdf[i] / pdf_sum);
-    // }
-
-    // histogramColor();
-    // cyclicColor();
 }
 
 
-// void Renderer::histogramColor() {
-//     for (int i = 0; i < Constants::SCREEN_PIXELS; i++) {
-//         unsigned char value = _data_buffer[i];
-//         double color = _iterations_cdf[value];
+SDL_Texture* Renderer::createTextureForTile(std::shared_ptr<Tile> tile, SDL_Renderer* sdl_renderer) {
+    std::vector<uint16_t> tile_data = tile->getData();
 
-//         if (value == Constants::ITERATIONS - 1) {
-//             color = 1.0;
-//         }
+    for (int i = 0; i < Constants::TILE_PIXELS; i++) {
+        SDL_Color color = cyclicColor(tile_data[i], tile->getHeader()->iter_lim);
+        _colored_buffer[i * 3 + 0] = color.b;
+        _colored_buffer[i * 3 + 1] = color.g;
+        _colored_buffer[i * 3 + 2] = color.r;
+    }
 
-//         unsigned char red   = color * 255;
-//         unsigned char green = color * 255;
-//         unsigned char blue  = color * 255;
+    SDL_Surface* tile_surface = SDL_CreateRGBSurfaceFrom(
+        (void*) _colored_buffer,
+        Constants::TILE_WIDTH,
+        Constants::TILE_HEIGHT,
+        24,
+        Constants::TILE_WIDTH * 3,
+        0, 0, 0, 0
+    );
 
-//         _screen_buffer[3 * i + 2] = red;
-//         _screen_buffer[3 * i + 1] = green;
-//         _screen_buffer[3 * i + 0] = blue;
-//     }
-// }
+    SDL_Texture* tile_texture = SDL_CreateTextureFromSurface(sdl_renderer, tile_surface);
+    SDL_FreeSurface(tile_surface);
+
+    return tile_texture;
+}
+
+
+void Renderer::cacheInsert(std::shared_ptr<TileHeader> header, SDL_Texture* texture) {
+    while (_cache.size() >= Constants::TEXTURE_CACHE_SIZE - 1) {
+        cacheEvictOldest();
+    }
+
+    _cache[header] = {texture, system_clock::now()};
+}
+
+
+bool Renderer::cacheContains(std::shared_ptr<TileHeader> header) {
+    return _cache.find(header) != _cache.end();
+}
+
+
+void Renderer::cacheEvictOldest() {
+    time_point<system_clock> oldest_time = system_clock::now();
+    std::shared_ptr<TileHeader> oldest_header;
+    SDL_Texture* oldest_texture;
+
+    for (std::pair<std::shared_ptr<TileHeader>, CachedTexture> element : _cache) {
+        if (element.second.last_hit < oldest_time) {
+            oldest_texture = element.second.texture;
+            oldest_time = element.second.last_hit;
+            oldest_header = element.first;
+        }
+    }
+
+    SDL_DestroyTexture(oldest_texture);
+    _cache.erase(oldest_header);
+}
 
 
 SDL_Color Renderer::cyclicColor(int16_t iterations, int16_t iter_lim) {
-    double cycle_period = 5;
+    double cycle_period = 20;
     double phase = iterations / cycle_period;
 
     SDL_Color color;

@@ -32,7 +32,6 @@ TileManager::TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int
 
                 {
                     std::unique_lock<std::mutex> lock(manager->_mutex);
-                    std::cout << "adding tile " << header->get_str() << std::endl;
                     manager->cacheInsert(tile);
                     manager->_outstanding_requests.erase(header);
                     manager->_requests_available.notify_all();
@@ -41,15 +40,7 @@ TileManager::TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int
         }, this);
     }
 
-    _placeholder_data = new unsigned char [Constants::TILE_WIDTH * Constants::TILE_HEIGHT];
-    loadPlaceholder(_placeholder_data);
-
     _tile_requesting_thread = std::thread(tileRequestingTask, this);
-}
-
-
-TileManager::~TileManager() {
-    delete[] _placeholder_data;
 }
 
 
@@ -61,14 +52,14 @@ void TileManager::tileRequestingTask(TileManager* tile_manager) {
         {
             std::unique_lock<std::mutex> lock(tile_manager->_mutex);
 
-            // Wait for a request from the viewport.
-            while (tile_manager->_request_heap.size() == 0) {
-                tile_manager->_requests_nonempty.wait(lock);
-            }
-
             // Wait for space on the server request queue.
             while (tile_manager->_outstanding_requests.size() >= tile_manager->_request_depth) {
                 tile_manager->_requests_available.wait(lock);
+            }
+
+            // Wait for a request from the viewport.
+            while (tile_manager->_request_heap.size() == 0) {
+                tile_manager->_requests_nonempty.wait(lock);
             }
             
             // Get the highest priority tile request.
@@ -86,29 +77,6 @@ void TileManager::tileRequestingTask(TileManager* tile_manager) {
             tile_manager->clients[tile_manager->next_request_index].requestTile(header);
             tile_manager->next_request_index++;
             tile_manager->next_request_index %= tile_manager->clients.size();
-        }
-    }
-}
-
-
-void TileManager::loadPlaceholder(unsigned char* data_buffer) {
-    SDL_Surface* surface = IMG_Load("../data/land.jpg");
-
-    if (surface == nullptr) {
-        std::cout << "IMG_Load: " << IMG_GetError() << "\n";
-        return;
-    }
-
-    int sx = 2;
-    int sy = 2;
-    int ox = 140;
-    int oy = 20;
-    
-    for (int y = 0; y < Constants::TILE_HEIGHT; y++) {
-        for (int x = 0; x < Constants::TILE_WIDTH; x++) {
-            int bpp = surface->format->BytesPerPixel;
-            Uint8 *p = (Uint8*) surface->pixels + (sy * y + oy) * surface->pitch + (sx * x + ox) * bpp;
-            data_buffer[y * Constants::TILE_WIDTH + x] = *p;
         }
     }
 }
@@ -148,7 +116,7 @@ void TileManager::cacheEvictOldest() {
         }
     }
 
-    std::cout << "evicting " << oldest_header->get_str() << std::endl;
+    // std::cout << "evicting data " << oldest_header->get_str() << std::endl;
     _cache.erase(oldest_header);
 }
 
@@ -237,4 +205,10 @@ std::set<std::shared_ptr<Tile>> TileManager::loadViewport(Viewport viewport) {
     });
 
     return tiles;
+}
+
+
+void TileManager::clearRequests() {
+    std::lock_guard<std::mutex> lock(_mutex);
+    _request_heap.clear();
 }

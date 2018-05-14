@@ -35,11 +35,7 @@ private:
     std::thread _tile_requesting_thread;
     std::vector<std::thread> receiving_threads;
 
-    unsigned char* _placeholder_data;
-
     static void tileRequestingTask(TileManager* tile_manager);
-
-    static void loadPlaceholder(unsigned char* data_buffer);
 
     bool isTileRequested(std::shared_ptr<TileHeader> header);
 
@@ -59,14 +55,14 @@ private:
 public:
     TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int cache_size, int request_depth = 30);
 
-    ~TileManager();
-
     std::shared_ptr<Tile> requestTile(std::shared_ptr<TileHeader> header, int depth);
 
     std::set<std::shared_ptr<Tile>> loadViewport(Viewport viewport);
 
     int16_t getIterations() { return iterations; }
     void setIterations(int16_t iterations) { this->iterations = iterations; }
+
+    void clearRequests();
 };
 
 
