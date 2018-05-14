@@ -697,7 +697,7 @@
    kind="altera_clock_bridge"
    version="15.0"
    enabled="1">
-  <parameter name="DERIVED_CLOCK_RATE" value="100000000" />
+  <parameter name="DERIVED_CLOCK_RATE" value="150000000" />
   <parameter name="EXPLICIT_CLOCK_RATE" value="0" />
   <parameter name="NUM_CLOCK_OUTPUTS" value="1" />
  </module>
@@ -841,7 +841,7 @@
   <parameter name="gui_multiply_factor" value="1" />
   <parameter name="gui_number_of_clocks" value="1" />
   <parameter name="gui_operation_mode" value="direct" />
-  <parameter name="gui_output_clock_frequency0" value="100.0" />
+  <parameter name="gui_output_clock_frequency0" value="150.0" />
   <parameter name="gui_output_clock_frequency1" value="100.0" />
   <parameter name="gui_output_clock_frequency10" value="100.0" />
   <parameter name="gui_output_clock_frequency11" value="100.0" />
@@ -959,7 +959,7 @@
    kind="altera_up_external_bus_to_avalon_bridge"
    version="15.0"
    enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="150000000" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="addr_size" value="64" />
   <parameter name="addr_size_multiplier" value="Mbytes" />
