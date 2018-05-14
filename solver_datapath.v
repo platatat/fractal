@@ -29,6 +29,8 @@ module solver_datapath #(
     input [LIMB_INDEX_BITS-1:0] C_c_limb_ind,
     input [LIMB_INDEX_BITS-1:0] C_zre_rd_ind,
     input [LIMB_INDEX_BITS-1:0] C_zim_rd_ind,
+    input [1:0]                 C_zre_neg_sel,
+    input [1:0]                 C_zim_neg_sel,
     input [1:0]                 C_zre_reg_sel,
     input [1:0]                 C_zim_reg_sel,
 
@@ -39,13 +41,13 @@ module solver_datapath #(
     input [1:0]                 C_m2_b_sel,
 
     //Execute (X) control signals
-    input                       C_op_sel,
     input [2:0]                 C_zre_partial_sel,
     input [1:0]                 C_zim_partial_sel,
     input [1:0]                 C_zre_acc_sel,
     input [1:0]                 C_zim_acc_sel,
 
     //Write (W) control signals
+    input                       C_clear_lsd,
     input                       C_zre_wr_en,
     input                       C_zim_wr_en,
     input [LIMB_INDEX_BITS-1:0] C_zre_wr_ind,
@@ -54,7 +56,9 @@ module solver_datapath #(
     //Output
     output     W_zre_sign,
     output     W_zim_sign,
-    output reg W_diverged
+    output reg W_diverged,
+    output reg [LIMB_INDEX_BITS-1:0] W_zre_lsd,
+    output reg [LIMB_INDEX_BITS-1:0] W_zim_lsd
 );
 
 
@@ -66,17 +70,19 @@ reg                         L_cim_wr_en;
 reg  [LIMB_INDEX_BITS-1:0]  R_c_limb_ind;
 reg  [LIMB_INDEX_BITS-1:0]  R_zre_rd_ind;
 reg  [LIMB_INDEX_BITS-1:0]  R_zim_rd_ind;
+reg  [1:0]                  R_zre_neg_sel;
+reg  [1:0]                  R_zim_neg_sel;
 reg  [1:0]                  R_zre_reg_sel;
 reg  [1:0]                  R_zim_reg_sel;
 reg  [1:0]                  R_m1_a_sel;
 reg  [1:0]                  R_m1_b_sel;
 reg  [1:0]                  R_m2_a_sel;
 reg  [1:0]                  R_m2_b_sel;
-reg                         R_op_sel;
 reg  [2:0]                  R_zre_partial_sel;
 reg  [1:0]                  R_zim_partial_sel;
 reg  [1:0]                  R_zre_acc_sel;
 reg  [1:0]                  R_zim_acc_sel;
+reg                         R_clear_lsd;
 reg                         R_zre_wr_en;
 reg                         R_zim_wr_en;
 reg  [LIMB_INDEX_BITS-1:0]  R_zre_wr_ind;
@@ -96,15 +102,30 @@ reg  [LIMB_SIZE_BITS-1:0]   R_regB;
 reg  [LIMB_SIZE_BITS-1:0]   R_regC;
 reg  [LIMB_SIZE_BITS-1:0]   R_regD;
 
-wire [LIMB_SIZE_BITS-1:0]   R_zre_limb;
-wire [LIMB_SIZE_BITS-1:0]   R_zim_limb;
-wire [LIMB_SIZE_BITS-1:0]   R_cre_limb;
-wire [LIMB_SIZE_BITS-1:0]   R_cim_limb;
+reg  [LIMB_SIZE_BITS-1:0]   R_zre_limb;
+reg  [LIMB_SIZE_BITS-1:0]   R_zim_limb;
+reg  [LIMB_SIZE_BITS-1:0]   R_cre_limb;
+reg  [LIMB_SIZE_BITS-1:0]   R_cim_limb;
 
-assign R_zre_limb = zre_ram[R_zre_rd_ind];
-assign R_zim_limb = zim_ram[R_zim_rd_ind];
-assign R_cre_limb = cre_ram[R_c_limb_ind];
-assign R_cim_limb = cim_ram[R_c_limb_ind];
+always @* begin
+    R_cre_limb = cre_ram[R_c_limb_ind];
+    R_cim_limb = cim_ram[R_c_limb_ind];
+    R_zre_limb = zre_ram[R_zre_rd_ind];
+    R_zim_limb = zim_ram[R_zim_rd_ind];
+
+    case (R_zre_neg_sel)
+        0: R_zre_limb = R_zre_limb;                                 // Don't negate
+        1: R_zre_limb = R_zre_limb ^ {LIMB_SIZE_BITS{1'b1}};        // Flip bits
+        2: R_zre_limb = (R_zre_limb ^ {LIMB_SIZE_BITS{1'b1}}) + 1;  // Flip bits and add one
+        default: $display("[ERROR] R_zre_neg_sel has illegal value: %b", R_zre_neg_sel);
+    endcase
+    case (R_zim_neg_sel)
+        0: R_zim_limb = R_zim_limb;                                 // Don't negate
+        1: R_zim_limb = R_zim_limb ^ {LIMB_SIZE_BITS{1'b1}};        // Flip bits
+        2: R_zim_limb = (R_zim_limb ^ {LIMB_SIZE_BITS{1'b1}}) + 1;  // Flip bits and add one
+        default: $display("[ERROR] R_zim_neg_sel has illegal value: %b", R_zim_neg_sel);
+    endcase
+end
 
 always @(posedge clock) begin
     if (reset) begin
@@ -114,17 +135,19 @@ always @(posedge clock) begin
         R_c_limb_ind      <= 0;
         R_zre_rd_ind      <= 0;
         R_zim_rd_ind      <= 0;
+        R_zre_neg_sel     <= 0;
+        R_zim_neg_sel     <= 0;
         R_zre_reg_sel     <= 0;
         R_zim_reg_sel     <= 0;
         R_m1_a_sel        <= 0;
         R_m1_b_sel        <= 0;
         R_m2_a_sel        <= 0;
         R_m2_b_sel        <= 0;
-        R_op_sel          <= 0;
         R_zre_partial_sel <= 0;
         R_zim_partial_sel <= 0;
         R_zre_acc_sel     <= 0;
         R_zim_acc_sel     <= 0;
+        R_clear_lsd       <= 0;
         R_zre_wr_en       <= 0;
         R_zim_wr_en       <= 0;
         R_zre_wr_ind      <= 0;
@@ -144,17 +167,19 @@ always @(posedge clock) begin
         R_c_limb_ind      <= C_c_limb_ind;
         R_zre_rd_ind      <= C_zre_rd_ind;
         R_zim_rd_ind      <= C_zim_rd_ind;
+        R_zre_neg_sel     <= C_zre_neg_sel;
+        R_zim_neg_sel     <= C_zim_neg_sel;
         R_zre_reg_sel     <= C_zre_reg_sel;
         R_zim_reg_sel     <= C_zim_reg_sel;
         R_m1_a_sel        <= C_m1_a_sel;
         R_m1_b_sel        <= C_m1_b_sel;
         R_m2_a_sel        <= C_m2_a_sel;
         R_m2_b_sel        <= C_m2_b_sel;
-        R_op_sel          <= C_op_sel;
         R_zre_partial_sel <= C_zre_partial_sel;
         R_zim_partial_sel <= C_zim_partial_sel;
         R_zre_acc_sel     <= C_zre_acc_sel;
         R_zim_acc_sel     <= C_zim_acc_sel;
+        R_clear_lsd       <= C_clear_lsd;
         R_zre_wr_en       <= C_zre_wr_en;
         R_zim_wr_en       <= C_zim_wr_en;
         R_zre_wr_ind      <= C_zre_wr_ind;
@@ -186,11 +211,11 @@ reg  [1:0]                  M_m1_a_sel;
 reg  [1:0]                  M_m1_b_sel;
 reg  [1:0]                  M_m2_a_sel;
 reg  [1:0]                  M_m2_b_sel;
-reg                         M_op_sel;
 reg  [2:0]                  M_zre_partial_sel;
 reg  [1:0]                  M_zim_partial_sel;
 reg  [1:0]                  M_zre_acc_sel;
 reg  [1:0]                  M_zim_acc_sel;
+reg                         M_clear_lsd;
 reg                         M_zre_wr_en;
 reg                         M_zim_wr_en;
 reg  [LIMB_INDEX_BITS-1:0]  M_zre_wr_ind;
@@ -247,11 +272,11 @@ always @(posedge clock) begin
         M_m1_b_sel        <= 0;
         M_m2_a_sel        <= 0;
         M_m2_b_sel        <= 0;
-        M_op_sel          <= 0;
         M_zre_partial_sel <= 0;
         M_zim_partial_sel <= 0;
         M_zre_acc_sel     <= 0;
         M_zim_acc_sel     <= 0;
+        M_clear_lsd       <= 0;
         M_zre_wr_en       <= 0;
         M_zim_wr_en       <= 0;
         M_zre_wr_ind      <= 0;
@@ -268,11 +293,11 @@ always @(posedge clock) begin
         M_m1_b_sel        <= R_m1_b_sel;
         M_m2_a_sel        <= R_m2_a_sel;
         M_m2_b_sel        <= R_m2_b_sel;
-        M_op_sel          <= R_op_sel;
         M_zre_partial_sel <= R_zre_partial_sel;
         M_zim_partial_sel <= R_zim_partial_sel;
         M_zre_acc_sel     <= R_zre_acc_sel;
         M_zim_acc_sel     <= R_zim_acc_sel;
+        M_clear_lsd       <= R_clear_lsd;
         M_zre_wr_en       <= R_zre_wr_en;
         M_zim_wr_en       <= R_zim_wr_en;
         M_zre_wr_ind      <= R_zre_wr_ind;
@@ -290,11 +315,11 @@ end
 // ---------- Execute Stage (X) -----------------------------------------------
 
 //Control signals
-reg                         X_op_sel;
 reg  [2:0]                  X_zre_partial_sel;
 reg  [1:0]                  X_zim_partial_sel;
 reg  [1:0]                  X_zre_acc_sel;
 reg  [1:0]                  X_zim_acc_sel;
+reg                         X_clear_lsd;
 reg                         X_zre_wr_en;
 reg                         X_zim_wr_en;
 reg  [LIMB_INDEX_BITS-1:0]  X_zre_wr_ind;
@@ -334,7 +359,6 @@ assign X_zre_limb_out = X_zre_acc_next[LIMB_SIZE_BITS-1:0];
 assign X_zim_limb_out = X_zim_acc_next[LIMB_SIZE_BITS-1:0];
 
 always @* begin
-
     X_zre_partial = 0;
     X_zim_partial = 0;
 
@@ -368,88 +392,70 @@ always @* begin
     X_zre_acc_next = X_zre_acc;
     X_zim_acc_next = X_zim_acc;
 
-    if (X_op_sel == 1'b0) begin
-        //Multiply operation
-        case (X_zre_acc_sel)
-            0: X_zre_acc_next = X_zre_partial + X_zre_acc;                                                  //Add partial into the accumulator
-            1: X_zre_acc_next = X_zre_partial + $signed(X_zre_acc >>> LIMB_SIZE_BITS) + X_cre_limb;         //Shift accumulator to only store the carry and add partial and c
-            2: X_zre_acc_next = X_zre_partial + 0;                                                          //Set accumulator to partial
-            3: X_zre_acc_next = X_zre_acc;                                                                  //Do nothing
-            default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for multiply op", X_zre_acc_sel);
-        endcase
-        case (X_zim_acc_sel)
-            0: X_zim_acc_next = X_zim_partial + X_zim_acc;                                                  //Add partial into the accumulator
-            1: X_zim_acc_next = X_zim_partial + $signed(X_zim_acc >>> LIMB_SIZE_BITS) + X_cim_limb;         //Shift accumulator to only store the carry and add partial and c
-            2: X_zim_acc_next = X_zim_partial + 0;                                                          //Set accumulator to partial
-            3: X_zim_acc_next = X_zim_acc;                                                                  //Do nothing
-            default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for multiply op", X_zim_acc_sel);
-        endcase
-    end else if (X_op_sel == 1'b1) begin
-        //Negate operation
-        case (X_zre_acc_sel)
-            0: X_zre_acc_next =  X_zre_limb;                                                                //Do not modify z limb
-            1: X_zre_acc_next = (X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}}) + 1;                                //Invert z limb and add 1
-            2: X_zre_acc_next = (X_zre_limb ^ {(LIMB_SIZE_BITS){1'b1}}) + (X_zre_acc >>> LIMB_SIZE_BITS);   //Invert z limb and add carry
-            default: $display("[ERROR] X_zre_acc_sel has illegal value: %b for negate op", X_zre_acc_sel);
-        endcase
-        case (X_zim_acc_sel)
-            0: X_zim_acc_next =  X_zim_limb;                                                                //Do not modify z limb
-            1: X_zim_acc_next = (X_zim_limb ^ {(LIMB_SIZE_BITS){1'b1}}) + 1;                                //Invert z limb and add 1
-            2: X_zim_acc_next = (X_zim_limb ^ {(LIMB_SIZE_BITS){1'b1}}) + (X_zim_acc >>> LIMB_SIZE_BITS);   //Invert z limb and add carry
-            default: $display("[ERROR] X_zim_acc_sel has illegal value: %b for negate op", X_zim_acc_sel);
-        endcase
-    end else begin
-        $display("[ERROR] X_op_sel has illegal value: %b", X_op_sel);
-    end
+    case (X_zre_acc_sel)
+        0: X_zre_acc_next = X_zre_partial + X_zre_acc;                                                  //Add partial into the accumulator
+        1: X_zre_acc_next = X_zre_partial + $signed(X_zre_acc >>> LIMB_SIZE_BITS) + X_cre_limb;         //Shift accumulator to only store the carry and add partial and c
+        2: X_zre_acc_next = X_zre_partial + 0;                                                          //Set accumulator to partial
+        3: X_zre_acc_next = X_zre_acc;                                                                  //Do nothing
+        default: $display("[ERROR] X_zre_acc_sel has illegal value: %b", X_zre_acc_sel);
+    endcase
+    case (X_zim_acc_sel)
+        0: X_zim_acc_next = X_zim_partial + X_zim_acc;                                                  //Add partial into the accumulator
+        1: X_zim_acc_next = X_zim_partial + $signed(X_zim_acc >>> LIMB_SIZE_BITS) + X_cim_limb;         //Shift accumulator to only store the carry and add partial and c
+        2: X_zim_acc_next = X_zim_partial + 0;                                                          //Set accumulator to partial
+        3: X_zim_acc_next = X_zim_acc;                                                                  //Do nothing
+        default: $display("[ERROR] X_zim_acc_sel has illegal value: %b", X_zim_acc_sel);
+    endcase
+
 end
 
 always @(posedge clock) begin
     if (reset) begin
         //Control
-        X_op_sel          <= 0;
         X_zre_partial_sel <= 0;
         X_zim_partial_sel <= 0;
         X_zre_acc_sel     <= 0;
         X_zim_acc_sel     <= 0;
+        X_clear_lsd       <= 0;
         X_zre_wr_en       <= 0;
         X_zim_wr_en       <= 0;
         X_zre_wr_ind      <= 0;
         X_zim_wr_ind      <= 0;
 
         //Datapath
-        X_cre_limb <= 0;
-        X_cim_limb <= 0;
-        X_zre_limb <= 0;
-        X_zim_limb <= 0;
-        X_m1_out   <= 0;
-        X_m2_out   <= 0;
-        X_m1_old   <= 0;
-        X_zre_acc  <= 0;
-        X_zim_acc  <= 0;
-        X_diverge_acc <= 0;
+        X_cre_limb      <= 0;
+        X_cim_limb      <= 0;
+        X_zre_limb      <= 0;
+        X_zim_limb      <= 0;
+        X_m1_out        <= 0;
+        X_m2_out        <= 0;
+        X_m1_old        <= 0;
+        X_zre_acc       <= 0;
+        X_zim_acc       <= 0;
+        X_diverge_acc   <= 0;
     end else begin
         //Control
         X_zre_partial_sel <= M_zre_partial_sel;
         X_zim_partial_sel <= M_zim_partial_sel;
         X_zre_acc_sel     <= M_zre_acc_sel;
         X_zim_acc_sel     <= M_zim_acc_sel;
+        X_clear_lsd       <= M_clear_lsd;
         X_zre_wr_en       <= M_zre_wr_en;
         X_zim_wr_en       <= M_zim_wr_en;
         X_zre_wr_ind      <= M_zre_wr_ind;
         X_zim_wr_ind      <= M_zim_wr_ind;
 
         //Datapath
-        X_op_sel   <= M_op_sel;
-        X_cre_limb <= M_cre_limb;
-        X_cim_limb <= M_cim_limb;
-        X_zre_limb <= M_zre_limb;
-        X_zim_limb <= M_zim_limb;
-        X_m1_out   <= M_m1_out;
-        X_m2_out   <= M_m2_out;
-        X_m1_old   <= X_m1_out;
-        X_zre_acc  <= X_zre_acc_next;
-        X_zim_acc  <= X_zim_acc_next;
-        X_diverge_acc <= X_diverge_acc_next;
+        X_cre_limb      <= M_cre_limb;
+        X_cim_limb      <= M_cim_limb;
+        X_zre_limb      <= M_zre_limb;
+        X_zim_limb      <= M_zim_limb;
+        X_m1_out        <= M_m1_out;
+        X_m2_out        <= M_m2_out;
+        X_m1_old        <= X_m1_out;
+        X_zre_acc       <= X_zre_acc_next;
+        X_zim_acc       <= X_zim_acc_next;
+        X_diverge_acc   <= X_diverge_acc_next;
     end
 end
 
@@ -457,6 +463,7 @@ end
 // ---------- Write Stage (W) -------------------------------------------------
 
 //Control signals
+reg                         W_clear_lsd;
 reg                         W_zre_wr_en;
 reg                         W_zim_wr_en;
 reg  [LIMB_INDEX_BITS-1:0]  W_zre_wr_ind;
@@ -472,6 +479,7 @@ assign W_zim_sign = W_zim_limb[LIMB_SIZE_BITS-1];
 always @(posedge clock) begin
     if (reset) begin
         //Control
+        W_clear_lsd   <= 0;
         W_zre_wr_en   <= 0;
         W_zim_wr_en   <= 0;
         W_zre_wr_ind  <= 0;
@@ -481,8 +489,11 @@ always @(posedge clock) begin
         W_zre_limb <= 0;
         W_zim_limb <= 0;
         W_diverged <= 0;
+        W_zre_lsd  <= 0;
+        W_zim_lsd  <= 0;
     end else begin
         //Control
+        W_clear_lsd   <= X_clear_lsd;
         W_zre_wr_en   <= X_zre_wr_en;
         W_zim_wr_en   <= X_zim_wr_en;
         W_zre_wr_ind  <= X_zre_wr_ind;
@@ -493,8 +504,14 @@ always @(posedge clock) begin
         W_zim_limb <= X_zim_limb_out;
         W_diverged <= X_diverged;
 
-        if (W_zre_wr_en) $display("zre[%d] := %h", W_zre_wr_ind, W_zre_limb);
-        if (W_zim_wr_en) $display("zim[%d] := %h", W_zim_wr_ind, W_zim_limb);
+        if (W_clear_lsd) begin
+            W_zre_lsd <= 0;
+            W_zim_lsd <= 0;
+        end else begin
+            if (W_zre_wr_en && W_zre_limb != 0 && W_zre_wr_ind > W_zre_lsd) W_zre_lsd <= W_zre_wr_ind;
+            if (W_zim_wr_en && W_zim_limb != 0 && W_zim_wr_ind > W_zim_lsd) W_zim_lsd <= W_zim_wr_ind;
+        end
+
         if (W_zre_wr_en) zre_ram[W_zre_wr_ind] <= W_zre_limb;
         if (W_zim_wr_en) zim_ram[W_zim_wr_ind] <= W_zim_limb;
     end
