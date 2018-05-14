@@ -37,8 +37,6 @@ module solver_datapath #(
     //Multiply (M) control signals
     input [1:0]                 C_m1_a_sel,
     input [1:0]                 C_m1_b_sel,
-    input [1:0]                 C_m2_a_sel,
-    input [1:0]                 C_m2_b_sel,
 
     //Execute (X) control signals
     input [2:0]                 C_zre_partial_sel,
@@ -76,8 +74,6 @@ reg  [1:0]                  R_zre_reg_sel;
 reg  [1:0]                  R_zim_reg_sel;
 reg  [1:0]                  R_m1_a_sel;
 reg  [1:0]                  R_m1_b_sel;
-reg  [1:0]                  R_m2_a_sel;
-reg  [1:0]                  R_m2_b_sel;
 reg  [2:0]                  R_zre_partial_sel;
 reg  [1:0]                  R_zim_partial_sel;
 reg  [1:0]                  R_zre_acc_sel;
@@ -142,8 +138,6 @@ always @(posedge clock) begin
         R_zim_reg_sel     <= 0;
         R_m1_a_sel        <= 0;
         R_m1_b_sel        <= 0;
-        R_m2_a_sel        <= 0;
-        R_m2_b_sel        <= 0;
         R_zre_partial_sel <= 0;
         R_zim_partial_sel <= 0;
         R_zre_acc_sel     <= 0;
@@ -174,8 +168,6 @@ always @(posedge clock) begin
         R_zim_reg_sel     <= C_zim_reg_sel;
         R_m1_a_sel        <= C_m1_a_sel;
         R_m1_b_sel        <= C_m1_b_sel;
-        R_m2_a_sel        <= C_m2_a_sel;
-        R_m2_b_sel        <= C_m2_b_sel;
         R_zre_partial_sel <= C_zre_partial_sel;
         R_zim_partial_sel <= C_zim_partial_sel;
         R_zre_acc_sel     <= C_zre_acc_sel;
@@ -210,8 +202,6 @@ end
 //Control signals
 reg  [1:0]                  M_m1_a_sel;
 reg  [1:0]                  M_m1_b_sel;
-reg  [1:0]                  M_m2_a_sel;
-reg  [1:0]                  M_m2_b_sel;
 reg  [2:0]                  M_zre_partial_sel;
 reg  [1:0]                  M_zim_partial_sel;
 reg  [1:0]                  M_zre_acc_sel;
@@ -225,6 +215,9 @@ reg  [LIMB_INDEX_BITS-1:0]  M_zim_wr_ind;
 //Datapath signal
 reg  [LIMB_SIZE_BITS-1:0]   M_cre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   M_cim_limb;
+reg  [LIMB_SIZE_BITS-1:0]   M_zre_limb;
+reg  [LIMB_SIZE_BITS-1:0]   M_zim_limb;
+
 
 reg  [LIMB_SIZE_BITS-1:0]   M_m1_a;
 reg  [LIMB_SIZE_BITS-1:0]   M_m1_b;
@@ -250,18 +243,9 @@ always @* begin
         2: M_m1_b = R_regC;
         3: M_m1_b = R_regD;
     endcase
-    case (M_m2_a_sel)
-        0: M_m2_a = R_regA;
-        1: M_m2_a = R_regB;
-        2: M_m2_a = R_regC;
-        3: M_m2_a = R_regD;
-    endcase
-    case (M_m2_b_sel)
-        0: M_m2_b = R_regA;
-        1: M_m2_b = R_regB;
-        2: M_m2_b = R_regC;
-        3: M_m2_b = R_regD;
-    endcase
+
+    M_m2_a = M_zre_limb;
+    M_m2_b = M_zim_limb;
 end
 
 always @(posedge clock) begin
@@ -269,8 +253,6 @@ always @(posedge clock) begin
         //Control
         M_m1_a_sel        <= 0;
         M_m1_b_sel        <= 0;
-        M_m2_a_sel        <= 0;
-        M_m2_b_sel        <= 0;
         M_zre_partial_sel <= 0;
         M_zim_partial_sel <= 0;
         M_zre_acc_sel     <= 0;
@@ -284,12 +266,13 @@ always @(posedge clock) begin
         //Datapath
         M_cre_limb <= 0;
         M_cim_limb <= 0;
+        M_zre_limb <= 0;
+        M_zim_limb <= 0;
+
     end else begin
         //Control
         M_m1_a_sel        <= R_m1_a_sel;
         M_m1_b_sel        <= R_m1_b_sel;
-        M_m2_a_sel        <= R_m2_a_sel;
-        M_m2_b_sel        <= R_m2_b_sel;
         M_zre_partial_sel <= R_zre_partial_sel;
         M_zim_partial_sel <= R_zim_partial_sel;
         M_zre_acc_sel     <= R_zre_acc_sel;
@@ -303,6 +286,9 @@ always @(posedge clock) begin
         //Datapath
         M_cre_limb <= R_cre_limb;
         M_cim_limb <= R_cim_limb;
+        M_zre_limb <= R_zre_limb;
+        M_zim_limb <= R_zim_limb;
+
     end
 end
 

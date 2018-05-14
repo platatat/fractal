@@ -26,8 +26,6 @@ module solver_control #(
     output reg [1:0]                 zim_reg_sel,
     output reg [1:0]                 m1_a_sel,
     output reg [1:0]                 m1_b_sel,
-    output reg [1:0]                 m2_a_sel,
-    output reg [1:0]                 m2_b_sel,
     output reg [2:0]                 zre_partial_sel,
     output reg [1:0]                 zim_partial_sel,
     output reg [1:0]                 zre_acc_sel,
@@ -129,8 +127,6 @@ module solver_control #(
         zim_reg_sel          = 0;
         next_m1_a_sel        = 0;
         next_m1_b_sel        = 0;
-        m2_a_sel             = 0;
-        m2_b_sel             = 0;
         next_zre_partial_sel = ZRE_PART_ZERO;
         zim_partial_sel      = ZIM_PART_ZERO;
         next_zre_acc_sel     = ITER_NOP;
@@ -201,9 +197,6 @@ module solver_control #(
                               pattern_index == 1 ? 3 :
                               pattern_index == 2 ? 1 :
                                                    3;
-
-            m2_a_sel             = zre_reg_sel;
-            m2_b_sel             = zim_reg_sel;
 
             if (iteration_count > 0) begin
                 next_zre_partial_sel = zre_rd_ind == zim_rd_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
