@@ -225,8 +225,6 @@ reg  [LIMB_INDEX_BITS-1:0]  M_zim_wr_ind;
 //Datapath signal
 reg  [LIMB_SIZE_BITS-1:0]   M_cre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   M_cim_limb;
-reg  [LIMB_SIZE_BITS-1:0]   M_zre_limb;
-reg  [LIMB_SIZE_BITS-1:0]   M_zim_limb;
 
 reg  [LIMB_SIZE_BITS-1:0]   M_m1_a;
 reg  [LIMB_SIZE_BITS-1:0]   M_m1_b;
@@ -286,8 +284,6 @@ always @(posedge clock) begin
         //Datapath
         M_cre_limb <= 0;
         M_cim_limb <= 0;
-        M_zre_limb <= 0;
-        M_zim_limb <= 0;
     end else begin
         //Control
         M_m1_a_sel        <= R_m1_a_sel;
@@ -307,8 +303,6 @@ always @(posedge clock) begin
         //Datapath
         M_cre_limb <= R_cre_limb;
         M_cim_limb <= R_cim_limb;
-        M_zre_limb <= R_zre_limb;
-        M_zim_limb <= R_zim_limb;
     end
 end
 
@@ -329,8 +323,6 @@ reg  [LIMB_INDEX_BITS-1:0]  X_zim_wr_ind;
 //Datapath signals
 reg  [LIMB_SIZE_BITS-1:0]   X_cre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   X_cim_limb;
-reg  [LIMB_SIZE_BITS-1:0]   X_zre_limb;
-reg  [LIMB_SIZE_BITS-1:0]   X_zim_limb;
 
 localparam ACCUMULATOR_BITS = (LIMB_SIZE_BITS << 1) + LIMB_INDEX_BITS;
 reg  [ACCUMULATOR_BITS-1:0] X_m1_out;
@@ -422,8 +414,6 @@ always @(posedge clock) begin
         //Datapath
         X_cre_limb      <= 0;
         X_cim_limb      <= 0;
-        X_zre_limb      <= 0;
-        X_zim_limb      <= 0;
         X_m1_out        <= 0;
         X_m2_out        <= 0;
         X_m1_old        <= 0;
@@ -445,8 +435,6 @@ always @(posedge clock) begin
         //Datapath
         X_cre_limb      <= M_cre_limb;
         X_cim_limb      <= M_cim_limb;
-        X_zre_limb      <= M_zre_limb;
-        X_zim_limb      <= M_zim_limb;
         X_m1_out        <= M_m1_out;
         X_m2_out        <= M_m2_out;
         X_m1_old        <= X_m1_out;
