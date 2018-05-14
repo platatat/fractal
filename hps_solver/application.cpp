@@ -14,6 +14,7 @@ Application::Application(std::vector<std::tuple<std::string, int>> ip_addrs) :
 {
     moveTo(-0.5, 0, 2.5);
     _running = false;
+    control_rate = 1.0;
 }
 
 
@@ -67,6 +68,8 @@ void Application::init() {
 void Application::run() {
     _running = true;
 
+    double timestep = 0;
+
     while (_running) {
         auto frame_start = high_resolution_clock::now();
 
@@ -77,7 +80,7 @@ void Application::run() {
         _origin.imag.set_prec(_zoom + 64);
 
         handleEvents();
-        handleInput();
+        handleInput(timestep);
         drawFrame();
         drawHUD();
 
@@ -89,6 +92,9 @@ void Application::run() {
         _fps = (0.95 * _fps) + (0.05 * 1.0 / frame_time);
 
         SDL_Delay((int) (std::max(0.0, target_time - frame_time) * 1000));
+
+        auto loop_end = high_resolution_clock::now();
+        timestep = duration_cast<microseconds>(loop_end - frame_start).count() / 1000000.0;
     }
 
     SDL_DestroyWindow(_window);
@@ -110,6 +116,10 @@ void Application::handleEvents() {
                         _running = false;
                         break;
 
+                    case SDLK_SPACE:
+                        control_rate = 2.5;
+                        break;
+
                     case SDLK_e:
                         if (_tile_manager.getIterations() < Constants::MAX_ITERS) {
                             _tile_manager.setIterations(_tile_manager.getIterations() * 2);
@@ -123,6 +133,14 @@ void Application::handleEvents() {
                         break;
                 }
                 break;
+
+            case SDL_KEYUP:
+                switch (event.key.keysym.sym) {
+                    case SDLK_SPACE:
+                        control_rate = 1.0;
+                        break;
+                }
+                break;
         }
         if (event.type == SDL_QUIT) {
             _running = false;
@@ -131,18 +149,20 @@ void Application::handleEvents() {
 }
 
 
-void Application::handleInput() {
+void Application::handleInput(double timestep) {
     SdlInputController inputController;
     auto input = inputController.getInput();
 
-    _origin.real = _origin.real + (input.dx * 0.1 * pow(2, -_zoom));
-    _origin.imag = _origin.imag - (input.dy * 0.1 * pow(2, -_zoom));
+    double rate = control_rate * timestep * 60;
+
+    _origin.real = _origin.real + (input.dx * 0.08 * rate * pow(2, -_zoom));
+    _origin.imag = _origin.imag - (input.dy * 0.08 * rate * pow(2, -_zoom));
 
     // Translate origin to screen center before zooming.
     _origin.real = _origin.real + Viewport::screenWidth(_zoom) * 0.5;
     _origin.imag = _origin.imag + Viewport::screenHeight(_zoom) * 0.5;
 
-    _zoom += input.dz * 0.04;
+    _zoom += input.dz * 0.03 * rate;
 
     // Translate origin back to top left.
     _origin.real = _origin.real - Viewport::screenWidth(_zoom) * 0.5;

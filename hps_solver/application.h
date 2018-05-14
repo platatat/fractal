@@ -12,6 +12,7 @@ private:
     complex _origin;
     double _zoom;
     double _fps;
+    double control_rate;
 
     TileManager _tile_manager;
     Renderer _renderer;
@@ -28,7 +29,7 @@ private:
     SDL_Color   _color_grey;
 
     void handleEvents();
-    void handleInput();
+    void handleInput(double timestep);
     void drawFrame();
     void drawHUD();
 
