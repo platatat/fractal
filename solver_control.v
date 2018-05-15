@@ -51,9 +51,9 @@ module solver_control #(
     localparam STATE_ITER       = 1; // Compute a z series iteration
     localparam STATE_ITER_FLUSH = 2; // Wait for pipeline to flush
     localparam STATE_CHECK      = 3; // Check if z diverged
-    reg  [2:0] state;
-    reg  [2:0] last_state;
-    reg  [2:0] next_state;
+    reg  [1:0] state;
+    reg  [1:0] last_state;
+    reg  [1:0] next_state;
 
     localparam FLUSH_WAIT = 4;
     reg  [2:0] flush_counter;
