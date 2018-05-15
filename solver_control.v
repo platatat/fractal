@@ -72,8 +72,8 @@ module solver_control #(
     reg                        flip_partial;
     reg                        next_flip_partial;
 
-    reg  [1:0] next_mov_CtoA;
-    reg  [1:0] next_mov_DtoB;
+    reg        next_mov_CtoA;
+    reg        next_mov_DtoB;
     reg  [2:0] next_zre_partial_sel;
     reg  [1:0] next_zre_acc_sel;
     reg        next_zre_wr_en;
