@@ -63,6 +63,8 @@ public:
     void setIterations(int16_t iterations) { this->iterations = iterations; }
 
     void clearRequests();
+
+    bool isFinished() { return _outstanding_requests.size() + _request_heap.size() == 0; }
 };
 
 

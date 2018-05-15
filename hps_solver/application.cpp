@@ -78,6 +78,9 @@ void Application::run() {
 
     double timestep = 0;
 
+    auto app_start = high_resolution_clock::now();
+    bool once = true;
+
     while (_running) {
         auto frame_start = high_resolution_clock::now();
 
@@ -103,6 +106,13 @@ void Application::run() {
 
         auto loop_end = high_resolution_clock::now();
         timestep = duration_cast<microseconds>(loop_end - frame_start).count() / 1000000.0;
+
+        if (_tile_manager.isFinished() && once) {
+            auto view_finished = high_resolution_clock::now();
+            int elapsed = duration_cast<milliseconds>(view_finished - app_start).count();
+            std::cout << "viewport loaded in " << elapsed << "ms" << std::endl;
+            once = false;
+        }
     }
 
     SDL_DestroyWindow(_window);
@@ -209,7 +219,7 @@ void Application::drawFrame() {
 
     _tile_manager.clearRequests();
 
-    for (int level = -5; level <= -1; level++) {
+    for (int level = -5; level <= 0; level++) {
         Viewport viewport(_origin, _zoom, level);
         std::set<std::shared_ptr<Tile>> tiles = _tile_manager.loadViewport(viewport);
         _renderer.render(tiles, viewport, _sdl_renderer);
@@ -218,8 +228,6 @@ void Application::drawFrame() {
 
 
 void Application::drawText(std::string message, int x, int y) {
-    // std::cout << "drawing: " << message << std::endl; 
-
     SDL_Surface* message_surface = TTF_RenderText_Solid(_font_regular, message.c_str(), color_white);
     SDL_Texture* message_texture = SDL_CreateTextureFromSurface(_sdl_renderer, message_surface);
     SDL_Rect message_rect   = {x + 4, y, message_surface->w,     message_surface->h};
