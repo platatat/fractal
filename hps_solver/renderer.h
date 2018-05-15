@@ -12,6 +12,18 @@ class Renderer {
 private:
     uint8_t* _colored_buffer;
 
+    float period_r;
+    float period_g;
+    float period_b;
+    float period_l;
+
+    float phase_r;
+    float phase_g;
+    float phase_b;
+    float phase_l;
+
+    float iteration_scale;
+
     struct CachedTexture {
         SDL_Texture* texture;
         std::chrono::time_point<std::chrono::system_clock> last_hit;
@@ -33,6 +45,11 @@ private:
 public:
     Renderer();
     ~Renderer();
+
+    void setColorPhases(float r, float g, float b, float l);
+    void setColorPeriods(float r, float g, float b, float l);
+    void randomizeColors();
+    void scaleColors(float s);
 
     void render(const std::set<std::shared_ptr<Tile>>& tiles,
                 Viewport viewport,

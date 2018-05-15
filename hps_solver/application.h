@@ -24,9 +24,10 @@ private:
     TTF_Font*   _font_regular;
     TTF_Font*   _font_bold;
 
-    SDL_Color   _clear_color;
-    SDL_Color   _color_white;
-    SDL_Color   _color_grey;
+    SDL_Color   color_clear;
+    SDL_Color   color_text_highlight;
+    SDL_Color   color_white;
+    SDL_Color   color_grey;
 
     void handleEvents();
     void handleInput(double timestep);
@@ -34,6 +35,8 @@ private:
     void drawHUD();
 
     void setDrawColor(const SDL_Color& color);
+    void drawText(std::string message, int x, int y);
+
     void moveTo(mpf_class x, mpf_class y, double z);
 
 public:

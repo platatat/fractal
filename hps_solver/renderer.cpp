@@ -9,6 +9,18 @@ using std::chrono::time_point;
 
 Renderer::Renderer() {
     _colored_buffer = new uint8_t [Constants::TILE_PIXELS * 3];
+
+    period_r = 20;
+    period_g = 20;
+    period_b = 20;
+    period_l = 10;
+
+    phase_r = 0;
+    phase_g = 0;
+    phase_b = 0;
+    phase_l = 0;
+
+    iteration_scale = 200;
 }
 
 
@@ -116,22 +128,63 @@ void Renderer::cacheEvictOldest() {
 }
 
 
+void Renderer::setColorPhases(float r, float g, float b, float l) {
+    phase_r = r;
+    phase_g = g;
+    phase_b = b;
+    phase_l = l;
+
+    std::cout << "phase: (" << r << ", " << g << ", " << b << ", " << l << ")" << std::endl;
+
+    _cache.clear();
+}
+
+
+void Renderer::setColorPeriods(float r, float g, float b, float l) {
+    period_r = r;
+    period_g = g;
+    period_b = b;
+    period_l = l;
+
+    std::cout << "period: (" << r << ", " << g << ", " << b << ", " << l << ")" << std::endl;
+
+    _cache.clear();
+}
+
+
+void Renderer::randomizeColors() {
+    setColorPeriods(
+        25 + (rand() % 1000000 - 500000) / 1000000. * 5,
+        25 + (rand() % 1000000 - 500000) / 1000000. * 5,
+        25 + (rand() % 1000000 - 500000) / 1000000. * 5,
+        15 + (rand() % 1000000 - 500000) / 1000000. * 2
+    );
+
+    setColorPhases(
+        (rand() % 1000000 - 500000) / 1000000. * 10,
+        (rand() % 1000000 - 500000) / 1000000. * 10,
+        (rand() % 1000000 - 500000) / 1000000. * 10,
+        (rand() % 1000000 - 500000) / 1000000. * 10
+    );
+}
+
+
+void Renderer::scaleColors(float s) {
+    iteration_scale *= s;
+
+    _cache.clear();
+}
+
+
 SDL_Color Renderer::cyclicColor(int16_t iterations, int16_t iter_lim) {
-    float scale     = 1000.0;
-    float offset    = 10;
+    float value = iterations / iteration_scale;
 
-    float period_red    = 33.19395;
-    float period_green  = 47.59324;
-    float period_blue   = 27.23957;
-    float period_sat    = 10.23467;
-
-    float value = iterations / scale + offset;
-    float sat = sin(value * period_sat) * 0.5 + 0.5;
+    float luminance = sin((value - phase_l) * period_l) * 0.35 + 0.6;
 
     SDL_Color color;
-    color.r = (sin(value * period_red  ) * 128 + 127) * sat;
-    color.g = (sin(value * period_green) * 128 + 127) * sat;
-    color.b = (sin(value * period_green) * 128 + 127) * sat;
+    color.r = (sin((value - phase_r) * period_r) * 128 + 127) * luminance;
+    color.g = (sin((value - phase_g) * period_g) * 128 + 127) * luminance;
+    color.b = (sin((value - phase_b) * period_b) * 128 + 127) * luminance;
 
     if (iterations == iter_lim - 1) {
         color.r = 255;

@@ -12,13 +12,13 @@ Application::Application(std::vector<std::tuple<std::string, int>> ip_addrs) :
     _tile_manager(ip_addrs, Constants::CACHE_SIZE),
     _origin(0, 0)
 {
-    //moveTo(-0.5, 0, 2.5);
+    moveTo(-0.5, 0, 2.5);
 
-    moveTo(
-        mpf_class("-1.769383179195515018213847286085473782905747263654751437465528216527888191264756458836163446389529667", 300),
-        mpf_class("0.0042368479187367722149265071713679970766826709174037572794594356501123440008055451573024309950236365", 300),
-        2
-    );
+    // moveTo(
+    //     mpf_class("-1.769383179195515018213847286085473782905747263654751437465528216527888191264756458836163446389529667", 300),
+    //     mpf_class("0.0042368479187367722149265071713679970766826709174037572794594356501123440008055451573024309950236365", 300),
+    //     2
+    // );
 
     _running = false;
     control_rate = 1.0;
@@ -66,9 +66,10 @@ void Application::init() {
         std::cout << "SDL_OpenFont error: " << SDL_GetError() << std::endl;
     }
 
-    _clear_color    = { 39,  40,  34, 255};
-    _color_white    = {255, 255, 255, 255};
-    _color_grey     = {100, 100, 100, 255};
+    color_clear             = { 39,  40,  34, 255};
+    color_text_highlight    = {  0,   0,   0, 127};
+    color_white             = {255, 255, 255, 255};
+    color_grey              = {100, 100, 100, 255};
 }
 
 
@@ -80,7 +81,7 @@ void Application::run() {
     while (_running) {
         auto frame_start = high_resolution_clock::now();
 
-        setDrawColor(_clear_color);
+        setDrawColor(color_clear);
         SDL_RenderClear(_sdl_renderer);
 
         _origin.real.set_prec(_zoom + 64);
@@ -137,6 +138,18 @@ void Application::handleEvents() {
                         if (_tile_manager.getIterations() > Constants::MIN_ITERS) {
                             _tile_manager.setIterations(_tile_manager.getIterations() / 1.25);
                         }
+                        break;
+
+                    case SDLK_z:
+                        _renderer.scaleColors(1.25);
+                        break;
+
+                    case SDLK_x:
+                        _renderer.scaleColors(0.8);
+                        break;
+
+                    case SDLK_c:
+                        _renderer.randomizeColors();
                         break;
                 }
                 break;
@@ -204,23 +217,54 @@ void Application::drawFrame() {
 }
 
 
-void Application::drawHUD() {
-    SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_NONE);
+void Application::drawText(std::string message, int x, int y) {
+    // std::cout << "drawing: " << message << std::endl; 
 
-    std::ostringstream ss;
-    ss << "fps: " << (int) _fps << " | ";
-    ss << "zoom: " << (int) _zoom << " | ";
-    ss << "iter: " << _tile_manager.getIterations();
-    std::string hud_string = ss.str();
-
-    SDL_Surface* message_surface = TTF_RenderText_Solid(_font_regular, hud_string.c_str(), _color_white);
+    SDL_Surface* message_surface = TTF_RenderText_Solid(_font_regular, message.c_str(), color_white);
     SDL_Texture* message_texture = SDL_CreateTextureFromSurface(_sdl_renderer, message_surface);
-    SDL_Rect message_rect = {5, 5, message_surface->w, message_surface->h};
+    SDL_Rect message_rect   = {x + 4, y, message_surface->w,     message_surface->h};
+    SDL_Rect highlight_rect = {x,     y, message_surface->w + 8, message_surface->h};
 
-    setDrawColor(_color_grey);
-    SDL_RenderFillRect(_sdl_renderer, &message_rect);
+    setDrawColor(color_text_highlight);
+    SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(_sdl_renderer, &highlight_rect);
+
+    SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_NONE);
     SDL_RenderCopy(_sdl_renderer, message_texture, NULL, &message_rect);
 
     SDL_FreeSurface(message_surface);
     SDL_DestroyTexture(message_texture);
+}
+
+
+void Application::drawHUD() {
+    SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_NONE);
+
+    std::ostringstream fps;
+    fps << "fps: " << (int) _fps;
+    
+    std::ostringstream zoom;
+    zoom << "zoom: " << (int) _zoom;
+    
+    std::ostringstream iter;
+    iter << "iter: " << _tile_manager.getIterations();
+
+    mpf_class x = _origin.real + Viewport::screenWidth(_zoom) * 0.5;
+    mpf_class y = _origin.imag + Viewport::screenHeight(_zoom) * 0.5;
+
+    mp_exp_t exp = 1;
+    std::string x_str = x.get_str(exp);
+    std::string y_str = y.get_str(exp);
+
+    if (x_str.length() == 0) x_str = "0";
+    if (y_str.length() == 0) y_str = "0";
+
+    drawText(fps.str(),  4, 4 + 26 * 0);
+    drawText(zoom.str(), 4, 4 + 26 * 1);
+    drawText(iter.str(), 4, 4 + 26 * 2);
+
+    int digits = (int) (0.30102999566 * _zoom) + 3;
+
+    drawText(x_str.substr(0, digits), 4, Constants::SCREEN_HEIGHT - 4 - 26 * 2);
+    drawText(y_str.substr(0, digits), 4, Constants::SCREEN_HEIGHT - 4 - 26 * 1);
 }
