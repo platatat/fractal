@@ -381,7 +381,6 @@ reg  [LIMB_SIZE_BITS-1:0]   X_cim_limb;
 localparam ACCUMULATOR_BITS = (LIMB_SIZE_BITS << 1) + LIMB_INDEX_BITS;
 reg  [ACCUMULATOR_BITS-1:0] X_m1_out;
 reg  [ACCUMULATOR_BITS-1:0] X_m2_out;
-reg  [ACCUMULATOR_BITS-1:0] X_m1_old;
 
 reg  signed [ACCUMULATOR_BITS-1:0] X_zre_acc; //zre accumulator
 reg  signed [ACCUMULATOR_BITS-1:0] X_zim_acc; //zim accumulator
@@ -470,7 +469,6 @@ always @(posedge clock) begin
         X_cim_limb      <= 0;
         X_m1_out        <= 0;
         X_m2_out        <= 0;
-        X_m1_old        <= 0;
         X_zre_acc       <= 0;
         X_zim_acc       <= 0;
         X_diverge_acc   <= 0;
@@ -491,7 +489,6 @@ always @(posedge clock) begin
         X_cim_limb      <= M_cim_limb;
         X_m1_out        <= M_m1_out;
         X_m2_out        <= M_m2_out;
-        X_m1_old        <= X_m1_out;
         X_zre_acc       <= X_zre_acc_next;
         X_zim_acc       <= X_zim_acc_next;
         X_diverge_acc   <= X_diverge_acc_next;
