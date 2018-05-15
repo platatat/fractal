@@ -201,6 +201,9 @@ reg  [LIMB_SIZE_BITS-1:0]   A_regC;
 reg  [LIMB_SIZE_BITS-1:0]   A_regD;
 
 always @* begin
+    A_zre_limb_abs = A_zre_limb;
+    A_zim_limb_abs = A_zim_limb;
+
     case (A_zre_neg_sel)
         0: A_zre_limb_abs = A_zre_limb;                                 // Don't negate
         1: A_zre_limb_abs = A_zre_limb ^ {LIMB_SIZE_BITS{1'b1}};        // Flip bits
