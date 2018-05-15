@@ -157,7 +157,7 @@ void Renderer::randomizeColors() {
         25 + (rand() % 1000000 - 500000) / 1000000. * 5,
         25 + (rand() % 1000000 - 500000) / 1000000. * 5,
         25 + (rand() % 1000000 - 500000) / 1000000. * 5,
-        5 + (rand() % 1000000 - 500000) / 1000000. * 1
+        100 + (rand() % 1000000 - 500000) / 1000000. * 10
     );
 
     setColorPhases(
@@ -179,12 +179,14 @@ void Renderer::scaleColors(float s) {
 SDL_Color Renderer::cyclicColor(int16_t iterations, int16_t iter_lim) {
     float value = iterations / iteration_scale;
 
-    float luminance = sin((value - phase_l) * period_l) * 0.35 + 0.6;
+    float lum = sin((value - phase_l) * period_l) * 0.45 + 0.5;
+    float c1 = lum * (1 - lum) * 4;
+    float c2 = 1 - c1;
 
     SDL_Color color;
-    color.r = (sin((value - phase_r) * period_r) * 128 + 127) * luminance;
-    color.g = (sin((value - phase_g) * period_g) * 128 + 127) * luminance;
-    color.b = (sin((value - phase_b) * period_b) * 128 + 127) * luminance;
+    color.r = c1 * (sin((value - phase_r) * period_r) * 128 + 127) + c2 * lum * 255;
+    color.g = c1 * (sin((value - phase_g) * period_g) * 128 + 127) + c2 * lum * 255;
+    color.b = c1 * (sin((value - phase_b) * period_b) * 128 + 127) + c2 * lum * 255;
 
     if (iterations == iter_lim - 1) {
         color.r = 255;

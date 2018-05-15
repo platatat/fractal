@@ -219,7 +219,7 @@ void Application::drawFrame() {
 
     _tile_manager.clearRequests();
 
-    for (int level = -5; level <= 0; level++) {
+    for (int level = -5; level <= -1; level++) {
         Viewport viewport(_origin, _zoom, level);
         std::set<std::shared_ptr<Tile>> tiles = _tile_manager.loadViewport(viewport);
         _renderer.render(tiles, viewport, _sdl_renderer);
