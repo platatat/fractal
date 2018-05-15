@@ -223,10 +223,6 @@ always @(posedge clock) begin
         A_zim_wr_ind      <= 0;
 
         //Datapath
-        A_cre_limb <= 0;
-        A_cim_limb <= 0;
-        A_zre_limb <= 0;
-        A_zim_limb <= 0;
         A_regA     <= 0;
         A_regB     <= 0;
         A_regC     <= 0;
