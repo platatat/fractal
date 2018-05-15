@@ -95,18 +95,6 @@ reg  [LIMB_SIZE_BITS-1:0]   zim_ram [RAM_BITS-1:0];
 reg  [LIMB_SIZE_BITS-1:0]   cre_ram [RAM_BITS-1:0];
 reg  [LIMB_SIZE_BITS-1:0]   cim_ram [RAM_BITS-1:0];
 
-reg  [LIMB_SIZE_BITS-1:0]   R_zre_limb;
-reg  [LIMB_SIZE_BITS-1:0]   R_zim_limb;
-reg  [LIMB_SIZE_BITS-1:0]   R_cre_limb;
-reg  [LIMB_SIZE_BITS-1:0]   R_cim_limb;
-
-always @* begin
-    R_cre_limb <= cre_ram[R_c_limb_ind];
-    R_cim_limb <= cim_ram[R_c_limb_ind];
-    R_zre_limb <= zre_ram[R_zre_rd_ind];
-    R_zim_limb <= zim_ram[R_zim_rd_ind];
-end
-
 always @(posedge clock) begin
     if (reset) begin
         //Control
@@ -160,9 +148,6 @@ always @(posedge clock) begin
         //Datapath
         L_cre_limb <= C_cre_limb;
         L_cim_limb <= C_cim_limb;
-
-        if (L_cre_wr_en) cre_ram[R_c_limb_ind] <= L_cre_limb;
-        if (L_cim_wr_en) cim_ram[R_c_limb_ind] <= L_cim_limb;
     end
 end
 
@@ -265,11 +250,6 @@ always @(posedge clock) begin
         A_zim_wr_ind      <= R_zim_wr_ind;
 
         //Datapath
-        A_cre_limb <= R_cre_limb;
-        A_cim_limb <= R_cim_limb;
-        A_zre_limb <= R_zre_limb;
-        A_zim_limb <= R_zim_limb;
-
         if      (A_mov_CtoA)         A_regA <= A_regC;
         else if (A_zre_reg_sel == 0) A_regA <= A_zre_limb_abs;
         else if (A_zim_reg_sel == 0) A_regA <= A_zim_limb_abs;
@@ -551,9 +531,24 @@ always @(posedge clock) begin
             if (W_zim_wr_en && W_zim_limb != 0 && W_zim_wr_ind > W_zim_lsd) W_zim_lsd <= W_zim_wr_ind;
         end
 
-        if (W_zre_wr_en) zre_ram[W_zre_wr_ind] <= W_zre_limb;
-        if (W_zim_wr_en) zim_ram[W_zim_wr_ind] <= W_zim_limb;
     end
+end
+
+
+// ---------- Ram Read and Write ----------------------------------------------
+
+always @(posedge clock) begin
+    //Read
+    A_cre_limb <= cre_ram[R_c_limb_ind];
+    A_cim_limb <= cim_ram[R_c_limb_ind];
+    A_zre_limb <= zre_ram[R_zre_rd_ind];
+    A_zim_limb <= zim_ram[R_zim_rd_ind];
+
+    //Write
+    if (L_cre_wr_en) cre_ram[R_c_limb_ind] <= L_cre_limb;
+    if (L_cim_wr_en) cim_ram[R_c_limb_ind] <= L_cim_limb;
+    if (W_zre_wr_en) zre_ram[W_zre_wr_ind] <= W_zre_limb;
+    if (W_zim_wr_en) zim_ram[W_zim_wr_ind] <= W_zim_limb;
 end
 
 endmodule
