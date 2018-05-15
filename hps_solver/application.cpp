@@ -239,16 +239,16 @@ void Application::drawText(std::string message, int x, int y) {
 
 void Application::drawHUD() {
     SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_NONE);
-
-    std::ostringstream fps;
-    fps << "fps: " << (int) _fps;
-    
-    std::ostringstream zoom;
-    zoom << "zoom: " << (int) _zoom;
     
     std::ostringstream iter;
     iter << "iter: " << _tile_manager.getIterations();
 
+    std::ostringstream zoom;
+    zoom << "zoom: " << (int) _zoom;
+
+    drawText(iter.str(), 4, Constants::SCREEN_HEIGHT - 4 - 26 * 4);
+    drawText(zoom.str(), 4, Constants::SCREEN_HEIGHT - 4 - 26 * 3);
+    
     mpf_class x = _origin.real + Viewport::screenWidth(_zoom) * 0.5;
     mpf_class y = _origin.imag + Viewport::screenHeight(_zoom) * 0.5;
 
@@ -259,12 +259,14 @@ void Application::drawHUD() {
     if (x_str.length() == 0) x_str = "0";
     if (y_str.length() == 0) y_str = "0";
 
-    drawText(fps.str(),  4, 4 + 26 * 0);
-    drawText(zoom.str(), 4, 4 + 26 * 1);
-    drawText(iter.str(), 4, 4 + 26 * 2);
-
     int digits = (int) (0.30102999566 * _zoom) + 3;
 
-    drawText(x_str.substr(0, digits), 4, Constants::SCREEN_HEIGHT - 4 - 26 * 2);
-    drawText(y_str.substr(0, digits), 4, Constants::SCREEN_HEIGHT - 4 - 26 * 1);
+    std::ostringstream x_ss;
+    std::ostringstream y_ss;
+
+    x_ss << "real: " << x_str.substr(0, digits);
+    y_ss << "imag: " << y_str.substr(0, digits);
+
+    drawText(x_ss.str(), 4, Constants::SCREEN_HEIGHT - 4 - 26 * 2);
+    drawText(y_ss.str(), 4, Constants::SCREEN_HEIGHT - 4 - 26 * 1);
 }
