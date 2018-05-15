@@ -36,7 +36,7 @@ wire [1:0]                  zre_neg_sel;
 wire [1:0]                  zim_neg_sel;
 wire [1:0]                  zre_reg_sel;
 wire [1:0]                  zim_reg_sel;
-wire                        mov_AtoC;
+wire                        mov_CtoA;
 wire                        mov_DtoB;
 wire [2:0]                  zre_partial_sel;
 wire [1:0]                  zim_partial_sel;
