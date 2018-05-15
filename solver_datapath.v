@@ -6,6 +6,7 @@
 // Stages:
 //   C - Control (Not part of the datapath)
 //   R - Read / L - Load cre, cim from input
+//   A - Abs
 //   M - Multiply
 //   X - Excexute: add and accumulate
 //   W - Write
@@ -29,12 +30,12 @@ module solver_datapath #(
     input [LIMB_INDEX_BITS-1:0] C_c_limb_ind,
     input [LIMB_INDEX_BITS-1:0] C_zre_rd_ind,
     input [LIMB_INDEX_BITS-1:0] C_zim_rd_ind,
-    input [1:0]                 C_zre_neg_sel,
-    input [1:0]                 C_zim_neg_sel,
+
+    //Abs (A) control signals
     input [1:0]                 C_zre_reg_sel,
     input [1:0]                 C_zim_reg_sel,
-
-    //Multiply (M) control signals
+    input [1:0]                 C_zre_neg_sel,
+    input [1:0]                 C_zim_neg_sel,
     input                       C_mov_CtoA,
     input                       C_mov_DtoB,
 
@@ -68,10 +69,10 @@ reg                         L_cim_wr_en;
 reg  [LIMB_INDEX_BITS-1:0]  R_c_limb_ind;
 reg  [LIMB_INDEX_BITS-1:0]  R_zre_rd_ind;
 reg  [LIMB_INDEX_BITS-1:0]  R_zim_rd_ind;
-reg  [1:0]                  R_zre_neg_sel;
-reg  [1:0]                  R_zim_neg_sel;
 reg  [1:0]                  R_zre_reg_sel;
 reg  [1:0]                  R_zim_reg_sel;
+reg  [1:0]                  R_zre_neg_sel;
+reg  [1:0]                  R_zim_neg_sel;
 reg  [1:0]                  R_mov_CtoA;
 reg  [1:0]                  R_mov_DtoB;
 reg  [2:0]                  R_zre_partial_sel;
@@ -100,23 +101,10 @@ reg  [LIMB_SIZE_BITS-1:0]   R_cre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   R_cim_limb;
 
 always @* begin
-    R_cre_limb = cre_ram[R_c_limb_ind];
-    R_cim_limb = cim_ram[R_c_limb_ind];
-    R_zre_limb = zre_ram[R_zre_rd_ind];
-    R_zim_limb = zim_ram[R_zim_rd_ind];
-
-    case (R_zre_neg_sel)
-        0: R_zre_limb = R_zre_limb;                                 // Don't negate
-        1: R_zre_limb = R_zre_limb ^ {LIMB_SIZE_BITS{1'b1}};        // Flip bits
-        2: R_zre_limb = (R_zre_limb ^ {LIMB_SIZE_BITS{1'b1}}) + 1;  // Flip bits and add one
-        default: $display("[ERROR] R_zre_neg_sel has illegal value: %b", R_zre_neg_sel);
-    endcase
-    case (R_zim_neg_sel)
-        0: R_zim_limb = R_zim_limb;                                 // Don't negate
-        1: R_zim_limb = R_zim_limb ^ {LIMB_SIZE_BITS{1'b1}};        // Flip bits
-        2: R_zim_limb = (R_zim_limb ^ {LIMB_SIZE_BITS{1'b1}}) + 1;  // Flip bits and add one
-        default: $display("[ERROR] R_zim_neg_sel has illegal value: %b", R_zim_neg_sel);
-    endcase
+    R_cre_limb <= cre_ram[R_c_limb_ind];
+    R_cim_limb <= cim_ram[R_c_limb_ind];
+    R_zre_limb <= zre_ram[R_zre_rd_ind];
+    R_zim_limb <= zim_ram[R_zim_rd_ind];
 end
 
 always @(posedge clock) begin
@@ -127,10 +115,10 @@ always @(posedge clock) begin
         R_c_limb_ind      <= 0;
         R_zre_rd_ind      <= 0;
         R_zim_rd_ind      <= 0;
-        R_zre_neg_sel     <= 0;
-        R_zim_neg_sel     <= 0;
         R_zre_reg_sel     <= 0;
         R_zim_reg_sel     <= 0;
+        R_zre_neg_sel     <= 0;
+        R_zim_neg_sel     <= 0;
         R_mov_CtoA        <= 0;
         R_mov_DtoB        <= 0;
         R_zre_partial_sel <= 0;
@@ -153,10 +141,10 @@ always @(posedge clock) begin
         R_c_limb_ind      <= C_c_limb_ind;
         R_zre_rd_ind      <= C_zre_rd_ind;
         R_zim_rd_ind      <= C_zim_rd_ind;
-        R_zre_neg_sel     <= C_zre_neg_sel;
-        R_zim_neg_sel     <= C_zim_neg_sel;
         R_zre_reg_sel     <= C_zre_reg_sel;
         R_zim_reg_sel     <= C_zim_reg_sel;
+        R_zre_neg_sel     <= C_zre_neg_sel;
+        R_zim_neg_sel     <= C_zim_neg_sel;
         R_mov_CtoA        <= C_mov_CtoA;
         R_mov_DtoB        <= C_mov_DtoB;
         R_zre_partial_sel <= C_zre_partial_sel;
@@ -179,11 +167,126 @@ always @(posedge clock) begin
 end
 
 
+// ---------- Abs Stage (A) ---------------------------------------------------
+
+//Control signals
+reg  [1:0]                  A_zre_reg_sel;
+reg  [1:0]                  A_zim_reg_sel;
+reg  [1:0]                  A_zre_neg_sel;
+reg  [1:0]                  A_zim_neg_sel;
+reg                         A_mov_CtoA;
+reg                         A_mov_DtoB;
+reg  [2:0]                  A_zre_partial_sel;
+reg  [1:0]                  A_zim_partial_sel;
+reg  [1:0]                  A_zre_acc_sel;
+reg  [1:0]                  A_zim_acc_sel;
+reg                         A_clear_lsd;
+reg                         A_zre_wr_en;
+reg                         A_zim_wr_en;
+reg  [LIMB_INDEX_BITS-1:0]  A_zre_wr_ind;
+reg  [LIMB_INDEX_BITS-1:0]  A_zim_wr_ind;
+
+//Datapath signals
+reg  [LIMB_SIZE_BITS-1:0]   A_cre_limb;
+reg  [LIMB_SIZE_BITS-1:0]   A_cim_limb;
+reg  [LIMB_SIZE_BITS-1:0]   A_zre_limb;
+reg  [LIMB_SIZE_BITS-1:0]   A_zim_limb;
+
+reg  [LIMB_SIZE_BITS-1:0]   A_zre_limb_abs;
+reg  [LIMB_SIZE_BITS-1:0]   A_zim_limb_abs;
+
+reg  [LIMB_SIZE_BITS-1:0]   A_regA;
+reg  [LIMB_SIZE_BITS-1:0]   A_regB;
+reg  [LIMB_SIZE_BITS-1:0]   A_regC;
+reg  [LIMB_SIZE_BITS-1:0]   A_regD;
+
+always @* begin
+    case (A_zre_neg_sel)
+        0: A_zre_limb_abs = A_zre_limb;                                 // Don't negate
+        1: A_zre_limb_abs = A_zre_limb ^ {LIMB_SIZE_BITS{1'b1}};        // Flip bits
+        2: A_zre_limb_abs = (A_zre_limb ^ {LIMB_SIZE_BITS{1'b1}}) + 1;  // Flip bits and add one
+        default: $display("[ERROR] A_zre_neg_sel has illegal value: %b", A_zre_neg_sel);
+    endcase
+    case (A_zim_neg_sel)
+        0: A_zim_limb_abs = A_zim_limb;                                 // Don't negate
+        1: A_zim_limb_abs = A_zim_limb ^ {LIMB_SIZE_BITS{1'b1}};        // Flip bits
+        2: A_zim_limb_abs = (A_zim_limb ^ {LIMB_SIZE_BITS{1'b1}}) + 1;  // Flip bits and add one
+        default: $display("[ERROR] A_zim_neg_sel has illegal value: %b", A_zim_neg_sel);
+    endcase
+end
+
+always @(posedge clock) begin
+    if (reset) begin
+        //Control
+        A_zre_reg_sel     <= 0;
+        A_zim_reg_sel     <= 0;
+        A_zre_neg_sel     <= 0;
+        A_zim_neg_sel     <= 0;
+        A_mov_CtoA        <= 0;
+        A_mov_DtoB        <= 0;
+        A_zre_partial_sel <= 0;
+        A_zim_partial_sel <= 0;
+        A_zre_acc_sel     <= 0;
+        A_zim_acc_sel     <= 0;
+        A_clear_lsd       <= 0;
+        A_zre_wr_en       <= 0;
+        A_zim_wr_en       <= 0;
+        A_zre_wr_ind      <= 0;
+        A_zim_wr_ind      <= 0;
+
+        //Datapath
+        A_cre_limb <= 0;
+        A_cim_limb <= 0;
+        A_zre_limb <= 0;
+        A_zim_limb <= 0;
+        A_regA     <= 0;
+        A_regB     <= 0;
+        A_regC     <= 0;
+        A_regD     <= 0;
+    end else begin
+        //Control
+        A_zre_reg_sel     <= R_zre_reg_sel;
+        A_zim_reg_sel     <= R_zim_reg_sel;
+        A_zre_neg_sel     <= R_zre_neg_sel;
+        A_zim_neg_sel     <= R_zim_neg_sel;
+        A_mov_CtoA        <= R_mov_CtoA;
+        A_mov_DtoB        <= R_mov_DtoB;
+        A_zre_partial_sel <= R_zre_partial_sel;
+        A_zim_partial_sel <= R_zim_partial_sel;
+        A_zre_acc_sel     <= R_zre_acc_sel;
+        A_zim_acc_sel     <= R_zim_acc_sel;
+        A_clear_lsd       <= R_clear_lsd;
+        A_zre_wr_en       <= R_zre_wr_en;
+        A_zim_wr_en       <= R_zim_wr_en;
+        A_zre_wr_ind      <= R_zre_wr_ind;
+        A_zim_wr_ind      <= R_zim_wr_ind;
+
+        //Datapath
+        A_cre_limb <= R_cre_limb;
+        A_cim_limb <= R_cim_limb;
+        A_zre_limb <= R_zre_limb;
+        A_zim_limb <= R_zim_limb;
+
+        if      (A_mov_CtoA)         A_regA <= A_regC;
+        else if (A_zre_reg_sel == 0) A_regA <= A_zre_limb_abs;
+        else if (A_zim_reg_sel == 0) A_regA <= A_zim_limb_abs;
+
+        if      (A_mov_DtoB)         A_regB <= A_regD;
+        else if (A_zre_reg_sel == 1) A_regB <= A_zre_limb_abs;
+        else if (A_zim_reg_sel == 1) A_regB <= A_zim_limb_abs;
+
+        if      (A_zre_reg_sel == 2) A_regC <= A_zre_limb_abs;
+        else if (A_zim_reg_sel == 2) A_regC <= A_zim_limb_abs;
+
+        if      (A_zre_reg_sel == 3) A_regD <= A_zre_limb_abs;
+        else if (A_zim_reg_sel == 3) A_regD <= A_zim_limb_abs;
+    end
+end
+
+
 // ---------- Multiply Stage (M) ----------------------------------------------
 
 //Control signals
-reg                         M_mov_CtoA;
-reg                         M_mov_DtoB;
 reg  [2:0]                  M_zre_partial_sel;
 reg  [1:0]                  M_zim_partial_sel;
 reg  [1:0]                  M_zre_acc_sel;
@@ -194,16 +297,11 @@ reg                         M_zim_wr_en;
 reg  [LIMB_INDEX_BITS-1:0]  M_zre_wr_ind;
 reg  [LIMB_INDEX_BITS-1:0]  M_zim_wr_ind;
 
-//Datapath signal
+//Datapath signals
 reg  [LIMB_SIZE_BITS-1:0]   M_cre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   M_cim_limb;
 reg  [LIMB_SIZE_BITS-1:0]   M_zre_limb;
 reg  [LIMB_SIZE_BITS-1:0]   M_zim_limb;
-
-reg  [LIMB_SIZE_BITS-1:0]   M_regA;
-reg  [LIMB_SIZE_BITS-1:0]   M_regB;
-reg  [LIMB_SIZE_BITS-1:0]   M_regC;
-reg  [LIMB_SIZE_BITS-1:0]   M_regD;
 
 reg  [LIMB_SIZE_BITS-1:0]   M_m1_a;
 reg  [LIMB_SIZE_BITS-1:0]   M_m1_b;
@@ -217,8 +315,8 @@ assign M_m1_out = M_m1_a * M_m1_b;
 assign M_m2_out = M_m2_a * M_m2_b;
 
 always @* begin
-    M_m1_a = M_regA;
-    M_m1_b = M_regB;
+    M_m1_a = A_regA;
+    M_m1_b = A_regB;
 
     M_m2_a = M_zre_limb;
     M_m2_b = M_zim_limb;
@@ -227,8 +325,6 @@ end
 always @(posedge clock) begin
     if (reset) begin
         //Control
-        M_mov_CtoA        <= 0;
-        M_mov_DtoB        <= 0;
         M_zre_partial_sel <= 0;
         M_zim_partial_sel <= 0;
         M_zre_acc_sel     <= 0;
@@ -244,43 +340,23 @@ always @(posedge clock) begin
         M_cim_limb <= 0;
         M_zre_limb <= 0;
         M_zim_limb <= 0;
-        M_regA     <= 0;
-        M_regB     <= 0;
-        M_regC     <= 0;
-        M_regD     <= 0;
     end else begin
         //Control
-        M_mov_CtoA        <= R_mov_CtoA;
-        M_mov_DtoB        <= R_mov_DtoB;
-        M_zre_partial_sel <= R_zre_partial_sel;
-        M_zim_partial_sel <= R_zim_partial_sel;
-        M_zre_acc_sel     <= R_zre_acc_sel;
-        M_zim_acc_sel     <= R_zim_acc_sel;
-        M_clear_lsd       <= R_clear_lsd;
-        M_zre_wr_en       <= R_zre_wr_en;
-        M_zim_wr_en       <= R_zim_wr_en;
-        M_zre_wr_ind      <= R_zre_wr_ind;
-        M_zim_wr_ind      <= R_zim_wr_ind;
+        M_zre_partial_sel <= A_zre_partial_sel;
+        M_zim_partial_sel <= A_zim_partial_sel;
+        M_zre_acc_sel     <= A_zre_acc_sel;
+        M_zim_acc_sel     <= A_zim_acc_sel;
+        M_clear_lsd       <= A_clear_lsd;
+        M_zre_wr_en       <= A_zre_wr_en;
+        M_zim_wr_en       <= A_zim_wr_en;
+        M_zre_wr_ind      <= A_zre_wr_ind;
+        M_zim_wr_ind      <= A_zim_wr_ind;
 
         //Datapath
-        M_cre_limb <= R_cre_limb;
-        M_cim_limb <= R_cim_limb;
-        M_zre_limb <= R_zre_limb;
-        M_zim_limb <= R_zim_limb;
-
-        if      (M_mov_CtoA)         M_regA <= M_regC;
-        else if (R_zre_reg_sel == 0) M_regA <= R_zre_limb;
-        else if (R_zim_reg_sel == 0) M_regA <= R_zim_limb;
-
-        if      (M_mov_DtoB)         M_regB <= M_regD;
-        else if (R_zre_reg_sel == 1) M_regB <= R_zre_limb;
-        else if (R_zim_reg_sel == 1) M_regB <= R_zim_limb;
-
-        if      (R_zre_reg_sel == 2) M_regC <= R_zre_limb;
-        else if (R_zim_reg_sel == 2) M_regC <= R_zim_limb;
-
-        if      (R_zre_reg_sel == 3) M_regD <= R_zre_limb;
-        else if (R_zim_reg_sel == 3) M_regD <= R_zim_limb;
+        M_cre_limb <= A_cre_limb;
+        M_cim_limb <= A_cim_limb;
+        M_zre_limb <= A_zre_limb_abs;
+        M_zim_limb <= A_zim_limb_abs;
     end
 end
 

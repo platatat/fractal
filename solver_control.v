@@ -55,7 +55,7 @@ module solver_control #(
     reg  [2:0] last_state;
     reg  [2:0] next_state;
 
-    localparam FLUSH_WAIT = 3;
+    localparam FLUSH_WAIT = 4;
     reg  [2:0] flush_counter;
     reg  [2:0] next_flush_counter;
 
@@ -101,9 +101,6 @@ module solver_control #(
     localparam ITER_CARRY       = 1;
     localparam ITER_SET         = 2;
     localparam ITER_NOP         = 3;
-    localparam ABS_NOP          = 0;
-    localparam ABS_START        = 1;
-    localparam ABS_CARRY        = 2;
 
     always @* begin
         next_state           = state;
@@ -183,8 +180,8 @@ module solver_control #(
                 zim_reg_sel = flip_partial ? 2 : 3;
             end
 
-            next_mov_CtoA = 1;
-            next_mov_DtoB = !flip_partial;
+            next_mov_CtoA = last_state == state;
+            next_mov_DtoB = flip_partial;
 
             if (iteration_count > 0) begin
                 next_zre_partial_sel = zre_rd_ind == zim_rd_ind ? (flip_partial ? ZRE_PART_SINGLE_NEG : ZRE_PART_SINGLE_POS) :
@@ -222,7 +219,6 @@ module solver_control #(
             end else begin
                 next_state <= STATE_ITER;
                 next_iteration_count = iteration_count + 1;
-                next_zre_acc_sel = zre_sign ? ABS_START : ABS_NOP;
             end
         end
         else
