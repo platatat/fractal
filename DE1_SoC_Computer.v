@@ -477,7 +477,7 @@ reg stream_valid_delay [2:1];
 // NEW Solvers and VGA logic
 //=======================================================
 
-localparam NUM_SOLVERS 			= 20;
+localparam NUM_SOLVERS 			= 29;
 localparam TILE_WIDTH_BITS      = 6;
 localparam LIMB_INDEX_BITS 		= 6;
 localparam LIMB_SIZE_BITS 		= 27;
