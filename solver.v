@@ -36,10 +36,8 @@ wire [1:0]                  zre_neg_sel;
 wire [1:0]                  zim_neg_sel;
 wire [1:0]                  zre_reg_sel;
 wire [1:0]                  zim_reg_sel;
-wire [1:0]                  m1_a_sel;
-wire [1:0]                  m1_b_sel;
-wire [1:0]                  m2_a_sel;
-wire [1:0]                  m2_b_sel;
+wire                        mov_CtoA;
+wire                        mov_DtoB;
 wire [2:0]                  zre_partial_sel;
 wire [1:0]                  zim_partial_sel;
 wire [1:0]                  zre_acc_sel;
@@ -77,10 +75,8 @@ solver_control #(LIMB_INDEX_BITS) control(
     .zim_neg_sel(zim_neg_sel),
     .zre_reg_sel(zre_reg_sel),
     .zim_reg_sel(zim_reg_sel),
-    .m1_a_sel(m1_a_sel),
-    .m1_b_sel(m1_b_sel),
-    .m2_a_sel(m2_a_sel),
-    .m2_b_sel(m2_b_sel),
+    .mov_CtoA(mov_CtoA),
+    .mov_DtoB(mov_DtoB),
     .zre_partial_sel(zre_partial_sel),
     .zim_partial_sel(zim_partial_sel),
     .zre_acc_sel(zre_acc_sel),
@@ -115,10 +111,8 @@ solver_datapath #(LIMB_INDEX_BITS, LIMB_SIZE_BITS, DIVERGENCE_RADIUS) data_path 
     .C_zim_neg_sel      (zim_neg_sel),
     .C_zre_reg_sel      (zre_reg_sel),
     .C_zim_reg_sel      (zim_reg_sel),
-    .C_m1_a_sel         (m1_a_sel),
-    .C_m1_b_sel         (m1_b_sel),
-    .C_m2_a_sel         (m2_a_sel),
-    .C_m2_b_sel         (m2_b_sel),
+    .C_mov_CtoA         (mov_CtoA),
+    .C_mov_DtoB         (mov_DtoB),
     .C_zre_partial_sel  (zre_partial_sel),
     .C_zim_partial_sel  (zim_partial_sel),
     .C_zre_acc_sel      (zre_acc_sel),
