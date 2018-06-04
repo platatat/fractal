@@ -24,7 +24,7 @@ int runClient(std::vector<std::tuple<std::string, int>> ip_addrs) {
 #endif
 
 
-int runServer(int port) {
+void runServer(int port) {
     TileServer server(port);
     server.init();
     server.serveForever();
@@ -63,7 +63,7 @@ int main(int argc, char* args[])
             std::stringstream ss(args[2]);
             int port;
             ss >> port;
-            return runServer(port);
+            runServer(port);
         }
 
         else {
@@ -77,4 +77,6 @@ int main(int argc, char* args[])
         std::cout << e.what() << std::endl;
         return -1;
     }
+
+    return 0;
 }
