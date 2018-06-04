@@ -3,10 +3,14 @@ project('fractal', 'cpp')
 add_global_arguments('-std=c++14', language : 'cpp')
 add_global_arguments('-Wfatal-errors', language : 'cpp')
 
+cc = meson.get_compiler('cpp')
+
 deps = [
     dependency('threads'),
     dependency('sdl2'),
-    dependency('gmpxx')
+    dependency('SDL2_ttf'),
+    cc.find_library('gmp'),
+    cc.find_library('gmpxx')
 ]
 
 srcs = [
