@@ -1,17 +1,19 @@
-#include "socket_util.h"
+#include "networking/networking.h"
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+namespace networking {
 
-void SocketUtil::sendData(int sock, uint8_t* data, int size) {
+
+void sendData(int sock, uint8_t* data, int size) {
     send(sock, data, size, MSG_NOSIGNAL);
 }
 
 
-int SocketUtil::receiveData(int sock, uint8_t* buffer, int size) {
+int receiveData(int sock, uint8_t* buffer, int size) {
     int bytes_read = 0;
 
     while (bytes_read < size) {
@@ -29,7 +31,7 @@ int SocketUtil::receiveData(int sock, uint8_t* buffer, int size) {
 }
 
 
-void SocketUtil::sendPacket(int sock, std::vector<uint8_t> data) {
+void sendPacket(int sock, std::vector<uint8_t> data) {
     uint32_t packet_size = data.size();
     uint8_t packet_header [4];
     ((uint32_t*) packet_header)[0] = htonl(packet_size);
@@ -38,7 +40,7 @@ void SocketUtil::sendPacket(int sock, std::vector<uint8_t> data) {
 }
 
 
-std::vector<uint8_t> SocketUtil::receivePacket(int sock) {
+std::vector<uint8_t> receivePacket(int sock) {
     // Receive packet header.
     uint8_t packet_header [4];
     int err = receiveData(sock, packet_header, 4);
@@ -51,4 +53,32 @@ std::vector<uint8_t> SocketUtil::receivePacket(int sock) {
     receiveData(sock, packet_body, packet_size);
     std::vector<uint8_t> result(packet_body, packet_body + packet_size);
     return result;
+}
+
+
+std::vector<uint8_t> serialize(std::vector<uint16_t> data) {
+    std::vector<uint8_t> bytes;
+    uint8_t buffer[2];
+
+    for (unsigned int i = 0; i < data.size(); i++) {
+        ((uint16_t*) buffer)[0] = htons(data[i]);
+        bytes.push_back(buffer[0]);
+        bytes.push_back(buffer[1]);
+    }
+
+    return bytes;
+}
+
+
+std::vector<uint16_t> deserializeVector16(std::vector<uint8_t> bytes) {
+    std::vector<uint16_t> data;
+
+    for (unsigned int i = 0; i < bytes.size(); i += 2) {
+        data.push_back(ntohs(*((uint16_t*) (&bytes[0] + i))));
+    }
+
+    return data;
+}
+
+
 }

@@ -74,7 +74,7 @@ SDL_Texture* Renderer::createTextureForTile(std::shared_ptr<Tile> tile, SDL_Rend
     std::vector<uint16_t> tile_data = tile->getData();
 
     for (int i = 0; i < Constants::TILE_PIXELS; i++) {
-        SDL_Color color = cyclicColor(tile_data[i], tile->getHeader()->iter_lim);
+        SDL_Color color = cyclicColor(tile_data[i], tile->getHeader()->i);
         _colored_buffer[i * 3 + 0] = color.b;
         _colored_buffer[i * 3 + 1] = color.g;
         _colored_buffer[i * 3 + 2] = color.r;

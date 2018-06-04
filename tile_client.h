@@ -1,8 +1,8 @@
 #ifndef __TILE_CLIENT_H__
 #define __TILE_CLIENT_H__
 
-#include "tile.h"
-#include "tile_header.h"
+#include "solver/tile.h"
+#include "solver/tile_header.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>

@@ -2,7 +2,7 @@
 #define __TILE_MANAGER_H__
 
 #include "complex.h"
-#include "tile.h"
+#include "solver/tile.h"
 #include "tile_request_heap.h"
 #include "tile_client.h"
 #include "viewport.h"

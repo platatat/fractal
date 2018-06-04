@@ -1,6 +1,6 @@
 #include "application.h"
-#include "sdl_input_controller.h"
 #include "viewport.h"
+#include "input/input.h"
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -180,8 +180,8 @@ void Application::handleEvents() {
 
 
 void Application::handleInput(double timestep) {
-    SdlInputController inputController;
-    auto input = inputController.getInput();
+    input::Controller input_controller;
+    input::Model input = input_controller.getInput();
 
     double rate = control_rate * timestep * 60;
 

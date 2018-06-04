@@ -19,7 +19,6 @@ int runClient(std::vector<std::tuple<std::string, int>> ip_addrs) {
 
 void runServer(int port) {
     TileServer server(port);
-    server.init();
     server.serveForever();
 }
 

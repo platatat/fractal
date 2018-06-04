@@ -15,18 +15,18 @@ deps = [
 
 srcs = [
     'application.cpp',
-    'cpu_solver.cpp',
     'main.cpp',
     'renderer.cpp',
-    'sdl_input_controller.cpp',
-    'socket_util.cpp',
-    'solver.cpp',
-    'tile.cpp',
     'tile_client.cpp',
     'tile_manager.cpp',
     'tile_request_heap.cpp',
     'tile_server.cpp',
-    'viewport.cpp'
+    'viewport.cpp',
+    'input/controller.cpp',
+    'networking/networking.cpp',
+    'solver/solver.cpp',
+    'solver/tile.cpp',
+    'solver/tile_header.cpp'
 ]
 
-executable('fractal', sources: srcs, dependencies: deps)
+executable('fractal', sources: srcs, dependencies: deps, install: true)

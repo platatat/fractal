@@ -136,7 +136,7 @@ std::shared_ptr<Tile> TileManager::requestTile(std::shared_ptr<TileHeader> heade
 
         // Get a lower resolution tile if possible, or return a placeholder tile with no data.
         if (depth > 0) {
-            auto parent_header = std::make_shared<TileHeader>(header->x >> 1, header->y >> 1, header->z - 1, header->iter_lim);
+            auto parent_header = std::make_shared<TileHeader>(header->x >> 1, header->y >> 1, header->z - 1, header->i);
             return requestTile(parent_header, depth - 1);
         }
         else {

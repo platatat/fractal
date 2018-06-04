@@ -1,7 +1,7 @@
 #ifndef __TILE_REQUEST_HEAP_H__
 #define __TILE_REQUEST_HEAP_H__
 
-#include "tile_header.h"
+#include "solver/tile_header.h"
 #include <iostream>
 #include <functional>
 #include <vector>

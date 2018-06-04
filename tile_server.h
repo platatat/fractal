@@ -1,8 +1,8 @@
 #ifndef __TILE_SERVER_H__
 #define __TILE_SERVER_H__
 
-#include "solver.h"
-#include "tile_header.h"
+#include "solver/solver.h"
+#include "solver/tile_header.h"
 
 #include <condition_variable>
 #include <deque>
@@ -18,20 +18,17 @@ typedef struct sockaddr sockaddr;
 
 class TileServer {
 private:
-    int _port;
-    int _socket_fd;
-    sockaddr_in _address;
-    socklen_t _address_len;
+    int port;
+    int socket_fd;
+    sockaddr_in address;
+    socklen_t address_len;
 
     std::vector<std::thread> client_listeners;
 
     std::set<std::tuple<std::shared_ptr<TileHeader>, int>> requests;
-    std::mutex _mutex;
-    std::thread _tile_poll_thread;
+    std::mutex mutex;
 
-    std::unique_ptr<Solver> solver;
-
-    static void tilePollTask(TileServer* tile_server);
+    static void clientListenerTask(int connection);
 
 public:
     TileServer(int port);

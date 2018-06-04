@@ -1,6 +1,6 @@
 #include "tile_client.h"
 #include "constants.h"
-#include "socket_util.h"
+#include "networking/networking.h"
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -38,20 +38,16 @@ void TileClient::init() {
 
 void TileClient::requestTile(std::shared_ptr<TileHeader> header) {
     std::vector<uint8_t> data = header->serialize();
-    SocketUtil::sendPacket(_socket_fd, data);
+    networking::sendPacket(_socket_fd, data);
 }
 
 
 std::unique_ptr<Tile> TileClient::receiveTile() {
-    std::vector<uint8_t> header_data = SocketUtil::receivePacket(_socket_fd);
-    std::unique_ptr<TileHeader> unique_header = TileHeader::deserialize(header_data);
-    std::shared_ptr<TileHeader> header = std::move(unique_header);
-    std::vector<uint8_t> tile_bytes = SocketUtil::receivePacket(_socket_fd);
-
-    std::vector<uint16_t> tile_data;
-    for (unsigned int i = 0; i < tile_bytes.size(); i += 2) {
-        tile_data.push_back(ntohs(*((uint16_t*) (&tile_bytes[0] + i))));
-    }
+    std::vector<uint8_t> header_data = networking::receivePacket(_socket_fd);
+    std::shared_ptr<TileHeader> header = TileHeader::deserialize(header_data);
+    
+    std::vector<uint8_t> tile_bytes = networking::receivePacket(_socket_fd);
+    std::vector<uint16_t> tile_data = networking::deserializeVector16(tile_bytes);
 
     return std::unique_ptr<Tile>(new Tile(header, tile_data));
 }
