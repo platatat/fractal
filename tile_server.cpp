@@ -1,7 +1,6 @@
 #include "tile_server.h"
 
 #include "cpu_solver.h"
-#include "fpga_solver.h"
 #include "constants.h"
 #include "socket_util.h"
 #include "tile.h"
@@ -34,9 +33,8 @@ void TileServer::init() {
         std::cout << "socket failed" << std::endl;
     }
 
-    int opt = 1;
-
     /*
+    int opt = 1;
     if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         std::cout << "setsockopt failed" << std::endl;
     }

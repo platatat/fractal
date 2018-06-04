@@ -20,7 +20,7 @@ Renderer::Renderer() {
     phase_b = 0;
     phase_l = 0;
 
-    iteration_scale = 200;
+    iteration_scale = 500;
 }
 
 

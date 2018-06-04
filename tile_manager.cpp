@@ -13,13 +13,13 @@ using std::chrono::time_point;
 
 
 TileManager::TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int cache_size, int request_depth) :
-        _request_heap(64), 
-        _cache_size(cache_size), 
+        cache_size(cache_size),
+        request_depth(request_depth),
+        iterations(Constants::ITERATIONS),
         next_request_index(0),
-        _request_depth(request_depth),
-        iterations(Constants::ITERATIONS) {
+        _request_heap(64) {
 
-    for (int i = 0; i < ip_addrs.size(); i++) {
+    for (unsigned int i = 0; i < ip_addrs.size(); i++) {
         std::string ip_addr = std::get<0>(ip_addrs[i]);
         int port = std::get<1>(ip_addrs[i]);
         clients.emplace_back(ip_addr, port);
@@ -53,7 +53,7 @@ void TileManager::tileRequestingTask(TileManager* tile_manager) {
             std::unique_lock<std::mutex> lock(tile_manager->_mutex);
 
             // Wait for space on the server request queue.
-            while (tile_manager->_outstanding_requests.size() >= tile_manager->_request_depth) {
+            while (tile_manager->_outstanding_requests.size() >= tile_manager->request_depth) {
                 tile_manager->_requests_available.wait(lock);
             }
 
@@ -90,7 +90,7 @@ bool TileManager::isTileRequested(std::shared_ptr<TileHeader> header) {
 
 
 void TileManager::cacheInsert(std::shared_ptr<Tile> tile) {
-    while (_cache.size() >= _cache_size - 1) {
+    while (_cache.size() >= cache_size - 1) {
         cacheEvictOldest();
     }
 

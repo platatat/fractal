@@ -18,8 +18,8 @@
 
 class TileManager {
 private:
-    int _cache_size;
-    int _request_depth;
+    unsigned int cache_size;
+    unsigned int request_depth;
 
     int16_t iterations;
 

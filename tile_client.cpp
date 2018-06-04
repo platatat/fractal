@@ -49,7 +49,7 @@ std::unique_ptr<Tile> TileClient::receiveTile() {
     std::vector<uint8_t> tile_bytes = SocketUtil::receivePacket(_socket_fd);
 
     std::vector<uint16_t> tile_data;
-    for (int i = 0; i < tile_bytes.size(); i += 2) {
+    for (unsigned int i = 0; i < tile_bytes.size(); i += 2) {
         tile_data.push_back(ntohs(*((uint16_t*) (&tile_bytes[0] + i))));
     }
 

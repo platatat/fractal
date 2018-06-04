@@ -15,7 +15,6 @@ deps = [
 
 srcs = [
     'application.cpp',
-    'bignum.cpp',
     'cpu_solver.cpp',
     'main.cpp',
     'renderer.cpp',

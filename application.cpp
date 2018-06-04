@@ -9,8 +9,8 @@ using namespace std::chrono;
 
 
 Application::Application(std::vector<std::tuple<std::string, int>> ip_addrs) :
-    _tile_manager(ip_addrs, Constants::CACHE_SIZE),
-    _origin(0, 0)
+    _origin(0, 0),
+    _tile_manager(ip_addrs, Constants::CACHE_SIZE)
 {
     moveTo(-0.5, 0, 2.5);
 
