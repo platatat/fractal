@@ -192,7 +192,7 @@ void Application::handleInput(double timestep) {
     _origin.real = _origin.real + Viewport::screenWidth(_zoom) * 0.5;
     _origin.imag = _origin.imag + Viewport::screenHeight(_zoom) * 0.5;
 
-    _zoom += input.dz * 0.03 * rate;
+    _zoom += input.dz * 0.015 * rate;
 
     // Translate origin back to top left.
     _origin.real = _origin.real - Viewport::screenWidth(_zoom) * 0.5;
