@@ -1,3 +1,4 @@
+#include "application.h"
 #include "constants.h"
 #include "tile_client.h"
 #include "tile_server.h"
@@ -7,8 +8,6 @@
 #include <sstream>
 #include <string>
 
-#ifndef HPS
-#include "application.h"
 
 int runClient(std::vector<std::tuple<std::string, int>> ip_addrs) {
     Application app(ip_addrs);
@@ -16,12 +15,6 @@ int runClient(std::vector<std::tuple<std::string, int>> ip_addrs) {
     app.run();
     return 0;
 }
-#else
-int runClient(std::vector<std::tuple<std::string, int>> ip_addrs) {
-    printf("Client not supported on HPS build.\n");
-    return 1;
-}
-#endif
 
 
 void runServer(int port) {
