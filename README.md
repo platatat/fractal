@@ -2,9 +2,9 @@
 
 Mandelbrot solver and renderer.
 
-## To Build
+## Build Instructions
 
-First time:
+For the initial setup, install `meson` and make a build directory. You only need to run `meson build` once.
 
 ```bash
 apt install meson
@@ -12,7 +12,7 @@ mkdir build
 meson build
 ```
 
-Every time:
+Run ninja from inside the build directory to build. One process runs a server and another runs a client. The server must be started first.
 
 ```bash
 cd build
