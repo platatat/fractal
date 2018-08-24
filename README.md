@@ -2,6 +2,25 @@
 
 Mandelbrot solver and renderer.
 
+## To Build
+
+First time:
+
+```bash
+apt install meson
+mkdir build
+meson build
+```
+
+Every time:
+
+```bash
+cd build
+ninja
+./fractal server PORT
+./fractal client IP:PORT
+```
+
 ## To-Do List
 
 - Epsilon solver
