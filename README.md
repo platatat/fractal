@@ -12,7 +12,7 @@ mkdir build
 meson build
 ```
 
-Run ninja from inside the build directory to build. One process runs a server and another runs a client. The server must be started first.
+Run ninja from inside the build directory to build the project. Run a server in one process and a client in another. The server must be started first.
 
 ```bash
 cd build
@@ -23,6 +23,7 @@ ninja
 
 ## To-Do List
 
+- More than 2 server connections
 - Epsilon solver
 - Dynamic iteration updates
 - Store tiles to disk
@@ -30,4 +31,3 @@ ninja
 - Faster client-side rendering
 - Smooth coloring
 - Multi-threaded CPU solver
-- Non-local networking
