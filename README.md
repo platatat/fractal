@@ -7,7 +7,9 @@ Mandelbrot solver and renderer.
 For the initial setup, install `meson` and make a build directory. You only need to run `meson build` once.
 
 ```bash
-apt install meson
+apt update
+apt install python-pip3 g++ libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libgmp-dev libcairo2-dev
+pip3 install meson
 mkdir build
 meson build
 ```
