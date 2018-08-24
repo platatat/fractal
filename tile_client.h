@@ -30,6 +30,10 @@ public:
     void requestTile(std::shared_ptr<TileHeader> header);
 
     std::unique_ptr<Tile> receiveTile();
+
+    const std::string get_ip_addr() { return ip_addr; }
+
+    const int get_port() { return _port; }
 };
 
 
