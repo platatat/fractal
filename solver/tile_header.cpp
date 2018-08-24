@@ -72,7 +72,8 @@ std::shared_ptr<TileHeader> TileHeader::deserialize(const std::vector<uint8_t>& 
 
     // Make sure buffer is correct size.
     if (data.size() != x_size + y_size + sizeof(x_size) + sizeof(y_size) + sizeof(z) + sizeof(i)) {
-        throw std::runtime_error("tille header deserialization size mismatch");
+        std::cout << x_size << ", " << y_size << ", " << data.size() << std::endl;
+        throw std::runtime_error("tile header deserialization size mismatch\n");
     }
 
     // Read x and y from buffer.
