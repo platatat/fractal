@@ -16,7 +16,6 @@ TileManager::TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int
         cache_size(cache_size),
         request_depth(request_depth),
         iterations(Constants::ITERATIONS),
-        next_request_index(0),
         _request_heap(64) {
 
     for (unsigned int i = 0; i < ip_addrs.size(); i++) {
@@ -24,59 +23,61 @@ TileManager::TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int
         int port = std::get<1>(ip_addrs[i]);
         clients.emplace_back(ip_addr, port);
         clients[i].init();
-        receiving_threads.emplace_back([this, i] (TileManager* manager) {
-            while (true) {
-                std::unique_ptr<Tile> unique_tile = manager->clients[i].receiveTile();
-                std::shared_ptr<Tile> tile = std::move(unique_tile);
-                std::shared_ptr<TileHeader> header = tile->getHeader();
-
-                {
-                    std::unique_lock<std::mutex> lock(manager->_mutex);
-                    manager->cacheInsert(tile);
-                    manager->_outstanding_requests.erase(header);
-                    manager->_requests_available.notify_all();
-                }
-            }
-        }, this);
+        requesting_threads.emplace_back(tileRequestingTask, this, i);
+        receiving_threads.emplace_back(tileReceivingTask, this, i);
     }
-
-    _tile_requesting_thread = std::thread(tileRequestingTask, this);
 }
 
 
-void TileManager::tileRequestingTask(TileManager* tile_manager) {
+void TileManager::tileRequestingTask(TileManager* manager, unsigned int i) {
     while(true) {
         std::shared_ptr<TileHeader> header;
-        bool tile_requested;
 
         {
-            std::unique_lock<std::mutex> lock(tile_manager->_mutex);
-
-            // Wait for space on the server request queue.
-            while (tile_manager->_outstanding_requests.size() >= tile_manager->request_depth) {
-                tile_manager->_requests_available.wait(lock);
-            }
+            std::unique_lock<std::mutex> lock(manager->_mutex);
 
             // Wait for a request from the viewport.
-            while (tile_manager->_request_heap.size() == 0) {
-                tile_manager->_requests_nonempty.wait(lock);
+            while (manager->_request_heap.size() == 0) {
+                manager->_requests_nonempty.wait(lock);
             }
-            
-            // Get the highest priority tile request.
-            tile_requested = tile_manager->_request_heap.size() > 0;
-            if (tile_requested) {
-                header = tile_manager->_request_heap.front();
-                tile_manager->_request_heap.pop();
-                tile_manager->_outstanding_requests.insert(header);
-            }
-            
+
+            if (manager->_request_heap.size() == 0) std::cout << "Empty request heap" << std::endl;
+
+            std::cout << "requesting from " << manager->clients[i].get_ip_addr();
+            std::cout << ":" << manager->clients[i].get_port() << std::endl;
+
+            header = manager->_request_heap.front();
+            manager->_request_heap.pop();
+            manager->_outstanding_requests.insert(header);
         }
-        
-        // Send the tile request to the server.
-        if (tile_requested) {
-            tile_manager->clients[tile_manager->next_request_index].requestTile(header);
-            tile_manager->next_request_index++;
-            tile_manager->next_request_index %= tile_manager->clients.size();
+
+        // std::cout << "requesting " << header->get_str() << std::endl;
+
+        manager->clients[i].requestTile(header);
+    }
+}
+
+
+void TileManager::tileReceivingTask(TileManager* manager, unsigned int i) {
+    // unsigned int outstanding_request_count = 0;
+
+    while (true) {
+        // Receive a tile.
+        std::unique_ptr<Tile> unique_tile = manager->clients[i].receiveTile();
+
+        std::cout << "received tile from " << manager->clients[i].get_ip_addr();
+        std::cout << ":" << manager->clients[i].get_port() << std::endl;
+
+        std::shared_ptr<Tile> tile = std::move(unique_tile); // TODO: this unique ptr shit is dumb.
+        std::shared_ptr<TileHeader> header = tile->getHeader();
+
+        {
+            // Put the tile in the cache and erase it from outstanding requests.
+            std::unique_lock<std::mutex> lock(manager->_mutex);
+            // std::cout << " (" << outstanding_request_count << ")" << std::endl;
+            manager->cacheInsert(tile);
+            manager->_outstanding_requests.erase(header);
+            manager->_requests_available.notify_all();
         }
     }
 }

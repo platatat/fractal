@@ -23,7 +23,6 @@ private:
 
     int16_t iterations;
 
-    int next_request_index;
     std::vector<TileClient> clients;
 
     TileRequestHeap _request_heap;
@@ -32,10 +31,12 @@ private:
     std::mutex _mutex;
     std::condition_variable _requests_nonempty;
     std::condition_variable _requests_available;
-    std::thread _tile_requesting_thread;
+    std::vector<std::thread> requesting_threads;
     std::vector<std::thread> receiving_threads;
 
-    static void tileRequestingTask(TileManager* tile_manager);
+    static void tileRequestingTask(TileManager* manager, unsigned int i);
+
+    static void tileReceivingTask(TileManager* manager, unsigned int i);
 
     bool isTileRequested(std::shared_ptr<TileHeader> header);
 
@@ -53,7 +54,7 @@ private:
     std::unordered_map<std::shared_ptr<TileHeader>, CachedTile, TileHeader::Hasher, TileHeader::Comparator> _cache;
 
 public:
-    TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int cache_size, int request_depth = 30);
+    TileManager(std::vector<std::tuple<std::string, int>> ip_addrs, int cache_size, int request_depth = 10);
 
     std::shared_ptr<Tile> requestTile(std::shared_ptr<TileHeader> header, int depth);
 
