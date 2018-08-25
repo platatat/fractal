@@ -15,6 +15,7 @@ deps = [
 
 srcs = [
     'application.cpp',
+    'balancer.cpp',
     'main.cpp',
     'renderer.cpp',
     'tile_client.cpp',
@@ -22,11 +23,17 @@ srcs = [
     'tile_request_heap.cpp',
     'tile_server.cpp',
     'viewport.cpp',
+    'worker.cpp',
     'input/controller.cpp',
     'networking/networking.cpp',
+    'networking/remote_sink.cpp',
+    'networking/remote_source.cpp',
     'solver/solver.cpp',
     'solver/tile.cpp',
-    'solver/tile_header.cpp'
+    'solver/tile_header.cpp',
+    'tilestream/cache.cpp',
+    'tilestream/reliable_node.cpp',
+    'tilestream/source_demux.cpp'
 ]
 
 executable('fractal', sources: srcs, dependencies: deps, install: true)
