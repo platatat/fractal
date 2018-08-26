@@ -1,9 +1,14 @@
 #include "balancer.h"
 
+#include "tilestream/reliable_node.h"
 #include "networking/remote_sink.h"
 #include "networking/remote_source.h"
 
-Balancer::Balancer(int worker_port) : cache(new tilestream::Cache), source_demux(new tilestream::SourceDemux), worker_server_thread(workerServerTask, this, worker_port) {
+Balancer::Balancer(int worker_port, int inflight_max) :
+        inflight_max(inflight_max), cache(new tilestream::Cache),
+        source_demux(new tilestream::SourceDemux),
+        worker_server_thread(workerServerTask, this, worker_port)
+{
     this->cache->setSource(this->source_demux);
 }
 
@@ -37,8 +42,11 @@ void Balancer::workerServerTask(Balancer* balancer, int port) {
 }
 
 void Balancer::addWorker(int socket_fd) {
-    std::shared_ptr<networking::RemoteSource> remote_source(new networking::RemoteSource(socket_fd, this->cache));
-    this->source_demux->addSource(remote_source);
+    std::shared_ptr<tilestream::ReliableNode> reliable_node(new tilestream::ReliableNode(this->cache, this->inflight_max));
+    reliable_node->setResendSource(this->source_demux);
+    std::shared_ptr<networking::RemoteSource> remote_source(new networking::RemoteSource(socket_fd, reliable_node));
+    reliable_node->setSource(remote_source);
+    this->source_demux->addSource(reliable_node);
 }
 
 void Balancer::addClient(int socket_fd) {

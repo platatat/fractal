@@ -6,7 +6,7 @@
 
 class Balancer {
 public:
-    Balancer(int worker_port);
+    Balancer(int worker_port, int inflight_max);
 
     void serveForever(int client_port);
 
@@ -14,6 +14,8 @@ public:
     void addWorker(int socket_fd);
 
 private:
+    int inflight_max;
+
     std::shared_ptr<tilestream::Cache> cache;
     std::shared_ptr<tilestream::SourceDemux> source_demux;
 

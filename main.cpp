@@ -67,8 +67,8 @@ int main(int argc, char* args[])
         }
 
         else if (strcmp(args[1], "balancer") == 0) {
-            if (argc < 4) {
-                std::cout << "must specify worker_port client_port" << std::endl;
+            if (argc < 5) {
+                std::cout << "must specify worker_port client_port inflight_max" << std::endl;
                 return -1;
             }
             std::stringstream worker_port_ss(args[2]);
@@ -78,7 +78,12 @@ int main(int argc, char* args[])
             std::stringstream client_port_ss(args[3]);
             int client_port;
             client_port_ss >> client_port;
-            Balancer b(worker_port);
+
+            std::stringstream inflight_max_ss(args[4]);
+            int inflight_max;
+            inflight_max_ss >> inflight_max;
+
+            Balancer b(worker_port, inflight_max);
             b.serveForever(client_port);
         }
 

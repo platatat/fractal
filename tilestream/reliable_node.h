@@ -4,14 +4,15 @@
 #include "sink.h"
 #include "source.h"
 
+#include <condition_variable>
 #include <mutex>
-#include <set>
+#include <unordered_set>
 
 namespace tilestream {
 
 class ReliableNode : public Source, public Sink {
 public:
-    ReliableNode(std::shared_ptr<Sink> sink);
+    ReliableNode(std::shared_ptr<Sink> sink, int inflight_max);
 
     void setSource(std::shared_ptr<Source> source);
     void setResendSource(std::shared_ptr<Source> source);
@@ -26,8 +27,10 @@ private:
     std::shared_ptr<Source> source;
     std::shared_ptr<Source> resend_source;
 
+    int inflight_max;
     std::mutex mutex;
-    std::set<std::shared_ptr<TileHeader>> inflight;
+    std::condition_variable has_inflight_space;
+    std::unordered_set<std::shared_ptr<TileHeader>, TileHeader::Hasher, TileHeader::Comparator> inflight;
 };
 
 }
