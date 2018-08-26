@@ -9,4 +9,4 @@ mkdir build
 meson build
 cd build
 ninja
-./fractal server 5000
+./fractal worker 54.90.220.130:7000 10 1
